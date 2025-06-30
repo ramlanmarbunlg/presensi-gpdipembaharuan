@@ -179,7 +179,7 @@ elif halaman == "🔐 Admin Panel":
         from googleapiclient.http import MediaIoBaseUpload
         from google.oauth2 import service_account
         
-        st.subheader("🖼️ Upload Foto Jemaat ke Google Drive")
+        st.subheader("🖼️ Upload Foto Jemaat")
         
         # Waktu tampil pesan sukses
         delay_foto = st.slider("⏱️ Lama tampil pesan sukses (detik)", 1, 5, 3, key="slider_foto")
