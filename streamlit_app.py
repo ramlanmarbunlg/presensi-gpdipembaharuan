@@ -142,37 +142,37 @@ elif halaman == "🔐 Admin Panel":
         tanggal_list = [r["Waktu"][:10] for r in df_presensi]
         st.bar_chart(Counter(tanggal_list))
 
-# =================== FORM TAMBAH JEMAAT BARU ===================
-st.subheader("🆕 Tambah Jemaat Baru")
-
-# Autogenerate ID Jemaat (misal format: J001, J002, dst)
-daftar_id = [j["ID"] for j in sheet_jemaat.get_all_records()]
-angka_terakhir = max([int(i[1:]) for i in daftar_id if i.startswith("J")], default=0)
-id_baru = f"J{angka_terakhir + 1:03d}"
-
-with st.form("form_jemaat"):
-    st.text_input("ID Jemaat Baru", value=id_baru, disabled=True, key="form_id_jemaat")
-    st.text_input("Nama Jemaat Baru", key="form_nama_jemaat")
-
-    col1, col2 = st.columns(2)
-    simpan = col1.form_submit_button("💾 Simpan")
-    reset = col2.form_submit_button("🧹 Bersihkan Form")
-
-# === Tombol Simpan ditekan ===
-if simpan:
-    nama = st.session_state.form_nama_jemaat.strip()
-    if nama:
-        sheet_jemaat.append_row([id_baru, nama, ""])
-        st.success(f"✅ Jemaat '{nama}' berhasil ditambahkan dengan ID: {id_baru}")
-        st.session_state.form_nama_jemaat = ""  # Kosongkan input nama
-        st.experimental_rerun()
-    else:
-        st.warning("⚠️ Nama jemaat tidak boleh kosong.")
-
-# === Tombol Reset ditekan ===
-if reset:
-    st.session_state.form_nama_jemaat = ""
-    st.experimental_rerun()
+        # =================== FORM TAMBAH JEMAAT BARU ===================
+        st.subheader("🆕 Tambah Jemaat Baru")
+        
+        # Autogenerate ID Jemaat (misal format: J001, J002, dst)
+        daftar_id = [j["ID"] for j in sheet_jemaat.get_all_records()]
+        angka_terakhir = max([int(i[1:]) for i in daftar_id if i.startswith("J")], default=0)
+        id_baru = f"J{angka_terakhir + 1:03d}"
+        
+        with st.form("form_jemaat"):
+            st.text_input("ID Jemaat Baru", value=id_baru, disabled=True, key="form_id_jemaat")
+            st.text_input("Nama Jemaat Baru", key="form_nama_jemaat")
+        
+            col1, col2 = st.columns(2)
+            simpan = col1.form_submit_button("💾 Simpan")
+            reset = col2.form_submit_button("🧹 Bersihkan Form")
+        
+        # === Tombol Simpan ditekan ===
+        if simpan:
+            nama = st.session_state.form_nama_jemaat.strip()
+            if nama:
+                sheet_jemaat.append_row([id_baru, nama, ""])
+                st.success(f"✅ Jemaat '{nama}' berhasil ditambahkan dengan ID: {id_baru}")
+                st.session_state.form_nama_jemaat = ""  # Kosongkan input nama
+                st.experimental_rerun()
+            else:
+                st.warning("⚠️ Nama jemaat tidak boleh kosong.")
+        
+        # === Tombol Reset ditekan ===
+        if reset:
+            st.session_state.form_nama_jemaat = ""
+            st.experimental_rerun()
             
         # Upload Foto Jemaat
         st.subheader("📷 Upload Foto Jemaat")
