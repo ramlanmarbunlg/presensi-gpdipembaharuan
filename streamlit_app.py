@@ -213,7 +213,11 @@ elif halaman == "🔐 Admin Panel":
                 }
                 uploaded = drive_service.files().create(body=file_metadata, media_body=media, fields="id").execute()
                 file_id = uploaded.get("id")
-        
+                folder_id = st.secrets.get("folder_id_foto")
+                if not folder_id:
+                    st.error("❌ folder_id_foto belum diset di secrets.toml!")
+                    st.stop()
+
                 # Update sheet
                 baris_update = next(i + 2 for i, row in enumerate(daftar_jemaat) if row["ID"] == opsi_jemaat[selected])
                 sheet_jemaat.update_cell(baris_update, 3, file_id)
