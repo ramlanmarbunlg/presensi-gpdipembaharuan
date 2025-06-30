@@ -160,10 +160,9 @@ elif halaman == "🔐 Admin Panel":
             sheet_jemaat.append_row([new_id, st.session_state.new_nama.strip(), ""])
             st.success(f"✅ Jemaat '{st.session_state.new_nama}' berhasil ditambahkan dengan ID: {new_id}")
         
-            # Bersihkan input setelah tambah
-            st.session_state.new_nama = ""
-            st.rerun()  # refresh form agar ID autoincrement juga reset
-
+            # Tidak perlu set session_state secara langsung
+            st.experimental_rerun()
+            
         # Upload Foto Jemaat
         st.subheader("📷 Upload Foto Jemaat")
         daftar_jemaat = sheet_jemaat.get_all_records()
@@ -200,7 +199,7 @@ elif halaman == "🔐 Admin Panel":
                         break
                         # Kosongkan uploader setelah upload
                         st.session_state.foto_upload = None
-                        st.rerun()  # agar komponen uploader kosong kembali
+                        st.experimental_rerun()  # agar komponen uploader kosong kembali
             else:
                 st.warning("❗ Pilih nama jemaat dan unggah foto.")
 
