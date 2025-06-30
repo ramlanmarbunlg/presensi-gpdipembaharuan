@@ -156,12 +156,12 @@ elif halaman == "🔐 Admin Panel":
             st.text_input("Nama Jemaat Baru", key="new_nama")
             submitted = st.form_submit_button("Tambah Jemaat")
         
-        if submitted and st.session_state.new_nama:
-            sheet_jemaat.append_row([new_id, st.session_state.new_nama.strip(), ""])
-            st.success(f"✅ Jemaat '{st.session_state.new_nama}' berhasil ditambahkan dengan ID: {new_id}")
-        
-            # Tidak perlu set session_state secara langsung
-            st.experimental_rerun()
+            if submitted and st.session_state.new_nama:
+                sheet_jemaat.append_row([new_id, st.session_state.new_nama.strip(), ""])
+                st.success(f"✅ Jemaat '{st.session_state.new_nama}' berhasil ditambahkan dengan ID: {new_id}")
+            
+                # Tidak perlu set session_state secara langsung
+                st.experimental_rerun()
             
         # Upload Foto Jemaat
         st.subheader("📷 Upload Foto Jemaat")
