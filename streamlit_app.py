@@ -36,7 +36,7 @@ if img:
             st.secrets["gcp_service_account"], scope
         )
         client = gspread.authorize(creds)
-        sheet = client.open_by_key(st.secrets["1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ"]).sheet1
+        sheet = client.open_by_key(st.secrets["Sheet1"]).sheet1
 
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         sheet.append_row([now, qr_data])
