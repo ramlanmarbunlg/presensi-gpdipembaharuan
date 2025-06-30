@@ -143,25 +143,26 @@ elif halaman == "🔐 Admin Panel":
         st.bar_chart(Counter(tanggal_list))
 
         # ------------------ Tambah Jemaat Baru ------------------
-        st.subheader("🆕 Tambah Jemaat Baru")
+        st.subheader("🆕 Tambah Jemaat Baru + QR Code")
         
-        # Autoincrement ID Jemaat
+        # Ambil ID terakhir dari sheet_jemaat
         id_list = [row["ID"] for row in sheet_jemaat.get_all_records() if row["ID"].startswith("J")]
-        if id_list:
-            angka_terakhir = max([int(i[1:]) for i in id_list])
-            new_id = f"J{angka_terakhir + 1:03d}"
-        else:
-            new_id = "J001"
+        angka_terakhir = max([int(i[1:]) for i in id_list]) if id_list else 0
+        new_id = f"J{angka_terakhir + 1:03d}"
         
-        # Form input
+        # Form input dengan session_state untuk reset
         with st.form("form_jemaat"):
-            st.text_input("ID Jemaat Baru (Otomatis)", value=new_id, disabled=True)
-            new_nama = st.text_input("Nama Jemaat Baru")
-            submitted = st.form_submit_button("➕ Simpan Data")
+            st.text_input("ID Jemaat Baru (Otomatis)", value=new_id, disabled=True, key="new_id_display")
+            st.text_input("Nama Jemaat Baru", key="new_nama")
+            submitted = st.form_submit_button("Tambah Jemaat")
         
-        if submitted and new_nama:
-            sheet_jemaat.append_row([new_id, new_nama, ""])  # Tambah baris ke sheet
-            st.success(f"✅ Jemaat baru '{new_nama}' berhasil ditambahkan dengan ID: {new_id}")
+        if submitted and st.session_state.new_nama:
+            sheet_jemaat.append_row([new_id, st.session_state.new_nama.strip(), ""])
+            st.success(f"✅ Jemaat '{st.session_state.new_nama}' berhasil ditambahkan dengan ID: {new_id}")
+        
+            # Bersihkan input setelah tambah
+            st.session_state.new_nama = ""
+            st.experimental_rerun()  # refresh form agar ID autoincrement juga reset
 
         # Upload Foto Jemaat
         st.subheader("📷 Upload Foto Jemaat")
@@ -195,10 +196,13 @@ elif halaman == "🔐 Admin Panel":
                 for idx, row in enumerate(all_rows):
                     if row[0] == id_jemaat:
                         sheet_jemaat.update_cell(idx + 1, 3, file_id)
-                        st.success(f"✅ Foto berhasil diunggah. ID: {file_id}")
+                        st.success(f"✅ Foto berhasil diunggah dan disimpan ke Drive. ID: {file_id}")
                         break
+                        # Kosongkan uploader setelah upload
+                        st.session_state.foto_upload = None
+                        st.experimental_rerun()  # agar komponen uploader kosong kembali
             else:
-                st.warning("❗ Pilih jemaat dan unggah foto.")
+                st.warning("❗ Pilih nama jemaat dan unggah foto.")
 
         # Tombol logout
         if st.button("🔒 Logout Admin"):
