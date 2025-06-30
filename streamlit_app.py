@@ -212,8 +212,8 @@ elif halaman == "🔐 Admin Panel":
                     st.error("❌ folder_id_foto belum diset di secrets.toml!")
                     st.stop()
                 file_metadata = {
-                    "name": nama_file,
-                    "parents": [st.secrets["folder_id_foto"]]
+                    "name": f"foto_{id_jemaat}.jpg",
+                    "parents": [st.secrets["drive"]["folder_id_foto"]]
                 }
                 uploaded = drive_service.files().create(body=file_metadata, media_body=media, fields="id").execute()
                 file_id = uploaded.get("id")
@@ -222,7 +222,7 @@ elif halaman == "🔐 Admin Panel":
                 baris_update = next(i + 2 for i, row in enumerate(daftar_jemaat) if row["ID"] == opsi_jemaat[selected])
                 sheet_jemaat.update_cell(baris_update, 3, file_id)
         
-                st.success(f"✅ Foto jemaat {selected} berhasil diupload ke Drive.")
+                st.success(f"✅ Foto jemaat berhasil diunggah. ID: {file_id}")
                 time.sleep(delay_foto)
         
                 # Reset form
