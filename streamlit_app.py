@@ -8,6 +8,7 @@ from pyzbar.pyzbar import decode
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
+import time 
 from zoneinfo import ZoneInfo
 from reportlab.pdfgen import canvas
 from io import BytesIO
@@ -145,34 +146,33 @@ elif halaman == "🔐 Admin Panel":
         # =================== FORM TAMBAH JEMAAT BARU ===================
         st.subheader("🆕 Tambah Jemaat Baru")
         
-        # Autogenerate ID Jemaat (misal format: J001, J002, dst)
+        # Pilihan waktu delay sebelum reset otomatis (fleksibel)
+        delay = st.slider("⏱️ Tampilkan pesan sukses selama (detik):", 1, 5, 2)
+        
+        # Ambil ID terakhir dari sheet
         daftar_id = [j["ID"] for j in sheet_jemaat.get_all_records()]
         angka_terakhir = max([int(i[1:]) for i in daftar_id if i.startswith("J")], default=0)
         id_baru = f"J{angka_terakhir + 1:03d}"
         
-        with st.form("form_jemaat"):
-            st.text_input("ID Jemaat Baru", value=id_baru, disabled=True, key="form_id_jemaat")
-            st.text_input("Nama Jemaat Baru", key="form_nama_jemaat")
+        # Gunakan form_key untuk bisa reset otomatis
+        form_key = st.session_state.get("form_key", "form_jemaat_default")
         
-            col1, col2 = st.columns(2)
-            simpan = col1.form_submit_button("💾 Simpan")
-            reset = col2.form_submit_button("🧹 Bersihkan Form")
+        with st.form(key=form_key):
+            st.text_input("ID Jemaat Baru", value=id_baru, disabled=True)
+            nama_baru = st.text_input("Nama Jemaat Baru", key="input_nama")
         
-        # === Tombol Simpan ditekan ===
+            simpan = st.form_submit_button("💾 Simpan")
+        
+        # Simpan dan reset otomatis
         if simpan:
-            nama = st.session_state.form_nama_jemaat.strip()
-            if nama:
-                sheet_jemaat.append_row([id_baru, nama, ""])
-                st.success(f"✅ Jemaat '{nama}' berhasil ditambahkan dengan ID: {id_baru}")
-                st.session_state.form_nama_jemaat = ""  # Kosongkan input nama
+            if nama_baru.strip():
+                sheet_jemaat.append_row([id_baru, nama_baru.strip(), ""])
+                st.success(f"✅ Jemaat '{nama_baru}' berhasil ditambahkan dengan ID: {id_baru}")
+                time.sleep(delay)  # waktu tampil pesan sukses sesuai slider
+                st.session_state.form_key = f"form_{datetime.now().timestamp()}"
                 st.experimental_rerun()
             else:
-                st.warning("⚠️ Nama jemaat tidak boleh kosong.")
-        
-        # === Tombol Reset ditekan ===
-        if reset:
-            st.session_state.form_nama_jemaat = ""
-            st.experimental_rerun()
+                st.warning("⚠️ Nama tidak boleh kosong.")
             
         # Upload Foto Jemaat
         st.subheader("📷 Upload Foto Jemaat")
