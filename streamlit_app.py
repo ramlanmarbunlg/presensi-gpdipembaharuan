@@ -158,21 +158,21 @@ elif halaman == "🔐 Admin Panel":
             simpan = col1.form_submit_button("💾 Simpan")
             reset = col2.form_submit_button("🧹 Bersihkan Form")
         
-        # === Tombol Simpan ditekan ===
-        if simpan:
-            nama = st.session_state.form_nama_jemaat.strip()
-            if nama:
-                sheet_jemaat.append_row([id_baru, nama, ""])
-                st.success(f"✅ Jemaat '{nama}' berhasil ditambahkan dengan ID: {id_baru}")
-                st.session_state.form_nama_jemaat = ""  # Kosongkan input nama
+            # === Tombol Simpan ditekan ===
+            if simpan:
+                nama = st.session_state.form_nama_jemaat.strip()
+                if nama:
+                    sheet_jemaat.append_row([id_baru, nama, ""])
+                    st.success(f"✅ Jemaat '{nama}' berhasil ditambahkan dengan ID: {id_baru}")
+                    st.session_state.form_nama_jemaat = ""  # Kosongkan input nama
+                    st.experimental_rerun()
+                else:
+                    st.warning("⚠️ Nama jemaat tidak boleh kosong.")
+            
+            # === Tombol Reset ditekan ===
+            if reset:
+                st.session_state.form_nama_jemaat = ""
                 st.experimental_rerun()
-            else:
-                st.warning("⚠️ Nama jemaat tidak boleh kosong.")
-        
-        # === Tombol Reset ditekan ===
-        if reset:
-            st.session_state.form_nama_jemaat = ""
-            st.experimental_rerun()
             
         # Upload Foto Jemaat
         st.subheader("📷 Upload Foto Jemaat")
