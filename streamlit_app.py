@@ -78,10 +78,10 @@ if img:
                 c.setFont("Helvetica-Bold", 18)
                 c.drawString(100, 750, "SERTIFIKAT KEHADIRAN JEMAAT")
                 c.setFont("Helvetica", 12)
-                c.drawString(100, 700, f"Nama Jemaat : {nama_jemaat}")
                 c.drawString(100, 680, f"ID Jemaat   : {qr_data}")
+                c.drawString(100, 700, f"Nama Jemaat : {nama_jemaat}")
                 c.drawString(100, 660, f"Waktu Hadir : {waktu_str}")
-                c.drawString(100, 640, "Lokasi      : Gereja ABC")
+                c.drawString(100, 640, "Lokasi      : GPdI Pembaharuan Medan")
                 c.save()
                 buffer.seek(0)
 
