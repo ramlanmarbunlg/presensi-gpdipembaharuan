@@ -194,7 +194,7 @@ elif halaman == "🔐 Admin Panel":
         
         # ✅ Preview gambar sebelum upload
         if foto_file:
-            st.image(foto_file, caption="📷 Preview Foto", use_column_width=True)
+            st.image(foto_file, caption="📷 Preview Foto", width=150)
         
         # Tombol upload
         if st.button("📤 Upload Foto"):
