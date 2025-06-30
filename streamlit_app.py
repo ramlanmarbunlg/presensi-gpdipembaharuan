@@ -207,16 +207,16 @@ elif halaman == "🔐 Admin Panel":
                 # Upload file
                 nama_file = f"foto_{opsi_jemaat[selected]}.jpg"
                 media = MediaIoBaseUpload(foto_file, mimetype="image/jpeg")
+                folder_id = st.secrets.get("folder_id_foto")
+                if not folder_id:
+                    st.error("❌ folder_id_foto belum diset di secrets.toml!")
+                    st.stop()
                 file_metadata = {
                     "name": nama_file,
                     "parents": [st.secrets["folder_id_foto"]]
                 }
                 uploaded = drive_service.files().create(body=file_metadata, media_body=media, fields="id").execute()
                 file_id = uploaded.get("id")
-                folder_id = st.secrets.get("folder_id_foto")
-                if not folder_id:
-                    st.error("❌ folder_id_foto belum diset di secrets.toml!")
-                    st.stop()
 
                 # Update sheet
                 baris_update = next(i + 2 for i, row in enumerate(daftar_jemaat) if row["ID"] == opsi_jemaat[selected])
