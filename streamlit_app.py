@@ -157,7 +157,7 @@ elif halaman == "🔐 Admin Panel":
         with st.form("form_jemaat"):
             st.text_input("ID Jemaat Baru (Otomatis)", value=new_id, disabled=True)
             new_nama = st.text_input("Nama Jemaat Baru")
-            submitted = st.form_submit_button("Tambah Jemaat")
+            submitted = st.form_submit_button("➕ Simpan Data")
         
         if submitted and new_nama:
             sheet_jemaat.append_row([new_id, new_nama, ""])  # Tambah baris ke sheet
