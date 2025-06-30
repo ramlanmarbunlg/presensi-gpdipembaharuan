@@ -147,7 +147,7 @@ elif halaman == "🔐 Admin Panel":
         with st.form("form_jemaat"):
             new_id = st.text_input("ID Jemaat Baru")
             new_nama = st.text_input("Nama Jemaat Baru")
-            submitted = st.form_submit_button("➕ Tambah ke Database")
+            submitted = st.form_submit_button("➕ Simpan Data")
 
         if submitted:
             if new_id and new_nama:
