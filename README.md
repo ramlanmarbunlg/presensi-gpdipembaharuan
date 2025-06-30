@@ -22,7 +22,7 @@ A simple Streamlit app template for you to modify!
 - ❌ Streamlit Cloud tidak mendukung OpenCV berbasis native bindings seperti cv2 secara penuh
 - ✅ Modul cv2 memerlukan pustaka native C/C++ (misalnya .so, .dll, atau .dylib) yang tidak bisa dibuild atau dijalankan di lingkungan terbatas seperti Streamlit Cloud.
 - ✅ Solusi Alternatif Scan QR Tanpa OpenCV, saya menggunakan streamlit-webrtc + pyzbar yang memang didukung Streamlit Cloud.
-- ✅ Kelebihannya:
+- ✅ Kelebihan streamlit-webrtc + pyzbar:
   - Tidak perlu cv2
   - Aman digunakan di Streamlit Cloud
   - Tetap real-time dari webcam
