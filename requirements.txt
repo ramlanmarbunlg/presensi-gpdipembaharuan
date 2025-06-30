@@ -1,5 +1,4 @@
 streamlit==1.35.0
 streamlit-webrtc
-pyzbar
+opencv-python
 numpy
-Pillow
