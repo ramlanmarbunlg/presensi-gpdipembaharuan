@@ -145,23 +145,23 @@ elif halaman == "🔐 Admin Panel":
         # ------------------ Tambah Jemaat Baru ------------------
         st.subheader("🆕 Tambah Jemaat Baru + QR Code")
         
-        # Ambil ID terakhir dari sheet_jemaat
+        # Autoincrement ID Jemaat
         id_list = [row["ID"] for row in sheet_jemaat.get_all_records() if row["ID"].startswith("J")]
-        angka_terakhir = max([int(i[1:]) for i in id_list]) if id_list else 0
-        new_id = f"J{angka_terakhir + 1:03d}"
+        if id_list:
+            angka_terakhir = max([int(i[1:]) for i in id_list])
+            new_id = f"J{angka_terakhir + 1:03d}"
+        else:
+            new_id = "J001"
         
-        # Form input dengan session_state untuk reset
+        # Form input
         with st.form("form_jemaat"):
-            st.text_input("ID Jemaat Baru (Otomatis)", value=new_id, disabled=True, key="new_id_display")
-            st.text_input("Nama Jemaat Baru", key="new_nama")
+            st.text_input("ID Jemaat Baru (Otomatis)", value=new_id, disabled=True)
+            new_nama = st.text_input("Nama Jemaat Baru")
             submitted = st.form_submit_button("Tambah Jemaat")
         
-            if submitted and st.session_state.new_nama:
-                sheet_jemaat.append_row([new_id, st.session_state.new_nama.strip(), ""])
-                st.success(f"✅ Jemaat '{st.session_state.new_nama}' berhasil ditambahkan dengan ID: {new_id}")
-            
-                # Tidak perlu set session_state secara langsung
-                st.experimental_rerun()
+        if submitted and new_nama:
+            sheet_jemaat.append_row([new_id, new_nama, ""])  # Tambah baris ke sheet
+            st.success(f"✅ Jemaat baru '{new_nama}' berhasil ditambahkan dengan ID: {new_id}")
             
         # Upload Foto Jemaat
         st.subheader("📷 Upload Foto Jemaat")
@@ -197,9 +197,6 @@ elif halaman == "🔐 Admin Panel":
                         sheet_jemaat.update_cell(idx + 1, 3, file_id)
                         st.success(f"✅ Foto berhasil diunggah dan disimpan ke Drive. ID: {file_id}")
                         break
-                        # Kosongkan uploader setelah upload
-                        st.session_state.foto_upload = None
-                        st.experimental_rerun()  # agar komponen uploader kosong kembali
             else:
                 st.warning("❗ Pilih nama jemaat dan unggah foto.")
 
