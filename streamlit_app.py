@@ -27,7 +27,7 @@ creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service
 client = gspread.authorize(creds)
 
 # Sheet utama
-sheet_presensi = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").sheet1
+sheet_presensi = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("presensi")
 sheet_jemaat = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("data_jemaat")
 
 # ===================== HALAMAN PRESENSI =====================
