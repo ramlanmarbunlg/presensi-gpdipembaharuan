@@ -1,6 +1,6 @@
 streamlit==1.35.0
-pyzbar
-pillow
-reportlab
 gspread
 oauth2client
+pillow
+pyzbar
+reportlab
