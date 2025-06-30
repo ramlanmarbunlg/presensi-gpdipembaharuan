@@ -6,3 +6,4 @@ oauth2client
 reportlab
 qrcode
 pandas
+google-api-python-client
