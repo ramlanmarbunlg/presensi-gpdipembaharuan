@@ -209,7 +209,7 @@ elif halaman == "🔐 Admin Panel":
                 media = MediaIoBaseUpload(foto_file, mimetype="image/jpeg")
                 file_metadata = {
                     "name": nama_file,
-                    "parents": [st.secrets["drive"]]
+                    "parents": [st.secrets["folder_id_foto"]]
                 }
                 uploaded = drive_service.files().create(body=file_metadata, media_body=media, fields="id").execute()
                 file_id = uploaded.get("id")
