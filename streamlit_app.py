@@ -142,24 +142,26 @@ elif halaman == "🔐 Admin Panel":
         tanggal_list = [r["Waktu"][:10] for r in df_presensi]
         st.bar_chart(Counter(tanggal_list))
 
-        # Tambah jemaat baru
+        # ------------------ Tambah Jemaat Baru ------------------
         st.subheader("🆕 Tambah Jemaat Baru")
+        
+        # Autoincrement ID Jemaat
+        id_list = [row["ID"] for row in sheet_jemaat.get_all_records() if row["ID"].startswith("J")]
+        if id_list:
+            angka_terakhir = max([int(i[1:]) for i in id_list])
+            new_id = f"J{angka_terakhir + 1:03d}"
+        else:
+            new_id = "J001"
+        
+        # Form input
         with st.form("form_jemaat"):
-            new_id = st.text_input("ID Jemaat Baru")
+            st.text_input("ID Jemaat Baru (Otomatis)", value=new_id, disabled=True)
             new_nama = st.text_input("Nama Jemaat Baru")
-            submitted = st.form_submit_button("➕ Simpan Data")
-
-        if submitted:
-            if new_id and new_nama:
-                existing_ids = [row["ID"] for row in sheet_jemaat.get_all_records()]
-                if new_id in existing_ids:
-                    st.warning("⚠️ ID Jemaat sudah terdaftar.")
-                else:
-                    sheet_jemaat.append_row([new_id, new_nama, ""])
-                    st.success(f"✅ Jemaat '{new_nama}' berhasil ditambahkan.")
-                    st.info("📌 QR Code akan dibuat otomatis oleh Apps Script.")
-            else:
-                st.error("❌ Isi ID dan Nama terlebih dahulu.")
+            submitted = st.form_submit_button("Tambah Jemaat")
+        
+        if submitted and new_nama:
+            sheet_jemaat.append_row([new_id, new_nama, ""])  # Tambah baris ke sheet
+            st.success(f"✅ Jemaat baru '{new_nama}' berhasil ditambahkan dengan ID: {new_id}")
 
         # Upload Foto Jemaat
         st.subheader("📷 Upload Foto Jemaat")
