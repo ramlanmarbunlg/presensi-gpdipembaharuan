@@ -74,7 +74,7 @@ if img:
 
             # ===================== TAMPILKAN FOTO JIKA ADA =====================
             if foto_id:
-                foto_url = f"https://drive.google.com/uc?id={foto_id}"
+                foto_url = f"https://drive.google.com/thumbnail?id={foto_id}"
                 try:
                     st.image(foto_url, width=200, caption=f"🧍 Foto Jemaat: {nama_jemaat}")
                 except:
