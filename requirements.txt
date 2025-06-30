@@ -1,1 +1,4 @@
+opencv-python
+pyzbar
+Pillow
 streamlit
