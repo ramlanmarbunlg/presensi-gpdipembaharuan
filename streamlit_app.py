@@ -142,39 +142,36 @@ elif halaman == "🔐 Admin Panel":
         tanggal_list = [r["Waktu"][:10] for r in df_presensi]
         st.bar_chart(Counter(tanggal_list))
 
-        # ===== TAMBAH JEMAAT BARU =====
+        # =================== FORM TAMBAH JEMAAT BARU ===================
         st.subheader("🆕 Tambah Jemaat Baru")
         
-        # Dapatkan ID terakhir → autogenerate ID baru (misal: J001, J002)
+        # Autogenerate ID Jemaat (misal format: J001, J002, dst)
         daftar_id = [j["ID"] for j in sheet_jemaat.get_all_records()]
         angka_terakhir = max([int(i[1:]) for i in daftar_id if i.startswith("J")], default=0)
         id_baru = f"J{angka_terakhir + 1:03d}"
         
-        # Untuk membuat input bisa di-reset aman, kita buat unique form key
-        form_key = st.session_state.get("form_key", "form_jemaat_default")
+        with st.form("form_jemaat"):
+            st.text_input("ID Jemaat Baru", value=id_baru, disabled=True, key="form_id_jemaat")
+            st.text_input("Nama Jemaat Baru", key="form_nama_jemaat")
         
-        with st.form(key=form_key):
-            st.text_input("ID Jemaat Baru", value=id_baru, disabled=True)
-            nama_baru = st.text_input("Nama Jemaat Baru", key="input_nama")
-        
-            col1, col2 = st.columns([1, 1])
+            col1, col2 = st.columns(2)
             simpan = col1.form_submit_button("💾 Simpan")
             reset = col2.form_submit_button("🧹 Bersihkan Form")
         
-        # Jika tombol Simpan ditekan
+        # === Tombol Simpan ditekan ===
         if simpan:
-            if nama_baru.strip():
-                sheet_jemaat.append_row([id_baru, nama_baru.strip(), ""])
-                st.success(f"✅ Jemaat '{nama_baru}' berhasil ditambahkan dengan ID: {id_baru}")
-                # Buat ulang form key → memicu reset seluruh isian
-                st.session_state.form_key = f"form_{datetime.now().timestamp()}"
+            nama = st.session_state.form_nama_jemaat.strip()
+            if nama:
+                sheet_jemaat.append_row([id_baru, nama, ""])
+                st.success(f"✅ Jemaat '{nama}' berhasil ditambahkan dengan ID: {id_baru}")
+                st.session_state.form_nama_jemaat = ""  # Kosongkan input nama
                 st.experimental_rerun()
             else:
-                st.warning("⚠️ Nama tidak boleh kosong.")
+                st.warning("⚠️ Nama jemaat tidak boleh kosong.")
         
-        # Jika tombol Bersihkan ditekan
+        # === Tombol Reset ditekan ===
         if reset:
-            st.session_state.form_key = f"form_{datetime.now().timestamp()}"
+            st.session_state.form_nama_jemaat = ""
             st.experimental_rerun()
             
         # Upload Foto Jemaat
