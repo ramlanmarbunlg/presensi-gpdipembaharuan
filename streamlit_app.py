@@ -205,7 +205,7 @@ elif halaman == "🔐 Admin Panel":
                 drive_service = build("drive", "v3", credentials=credentials)
         
                 # Upload file
-                nama_file = f"foto_{opsi_jemaat[selected]}.jpg"
+                nama_file = f"foto_{select_jemaat[selected]}.jpg"
                 media = MediaIoBaseUpload(foto_file, mimetype="image/jpeg")
                 file_metadata = {
                     "name": nama_file,
