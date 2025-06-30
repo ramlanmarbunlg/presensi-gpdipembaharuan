@@ -128,7 +128,7 @@ elif halaman == "🔐 Admin Panel":
             if username == st.secrets["login_admin"]["admin_user"] and password == st.secrets["login_admin"]["admin_pass"]:
                 st.session_state["admin_login"] = True
                 st.success("✅ Login berhasil")
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.error("❌ Username atau password salah")
 
@@ -207,4 +207,4 @@ elif halaman == "🔐 Admin Panel":
         # Tombol logout
         if st.button("🔒 Logout Admin"):
             st.session_state["admin_login"] = False
-            st.experimental_rerun()
+            st.rerun()
