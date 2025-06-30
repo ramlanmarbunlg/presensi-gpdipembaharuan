@@ -208,7 +208,7 @@ elif halaman == "🔐 Admin Panel":
                 nama_file = f"foto_{opsi_jemaat[selected]}.jpg"
                 media = MediaIoBaseUpload(foto_file, mimetype="image/jpeg")
                 file_metadata = {
-                    "name": f"foto_{id_jemaat}.jpg",
+                    "name": nama_file,
                     "parents": [st.secrets["drive"]["folder_id_foto"]]
                 }
                 uploaded = drive_service.files().create(body=file_metadata, media_body=media, fields="id").execute()
