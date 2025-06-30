@@ -39,8 +39,8 @@ if img:
         client = gspread.authorize(creds)
 
         # Presensi → Sheet1 | Database Jemaat → Sheet "data_jemaat"
-        sheet_presensi = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ/").sheet1
-        sheet_jemaat = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ/").worksheet("data_jemaat")
+        sheet_presensi = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").sheet1
+        sheet_jemaat = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("data_jemaat")
 
         # ===================== CARI NAMA DARI QR (ID Jemaat) =====================
         daftar_jemaat = sheet_jemaat.get_all_records()
