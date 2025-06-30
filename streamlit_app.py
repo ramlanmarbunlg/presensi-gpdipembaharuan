@@ -1,5 +1,5 @@
 # ============================================
-# PRESENSI JEMAAT STREAMLIT QR CAMERA (FINAL+)
+# PRESENSI JEMAAT STREAMLIT QR CAMERA (FINAL++)
 # ============================================
 
 import streamlit as st
@@ -11,146 +11,194 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 from reportlab.pdfgen import canvas
 from io import BytesIO
-import qrcode
-import base64
 from collections import Counter
+import base64
+import qrcode
 
 # ===================== KONFIGURASI APLIKASI =====================
 st.set_page_config(page_title="Presensi Jemaat", page_icon="🙏")
-st.title("📸 Scan QR Kehadiran Jemaat")
+
+# ===================== SIDEBAR NAVIGASI =====================
+halaman = st.sidebar.selectbox("📂 Pilih Halaman", ["📸 Presensi Jemaat", "🔐 Admin Panel"])
 
 # ===================== KONEKSI GOOGLE SHEETS =====================
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_dict(
-    st.secrets["gcp_service_account"], scope
-)
+creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service_account"], scope)
 client = gspread.authorize(creds)
 
-# Presensi → sheet1 ; Data Jemaat → worksheet "data_jemaat"
+# Sheet utama
 sheet_presensi = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").sheet1
 sheet_jemaat = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("data_jemaat")
 
-# ===================== MODE ADMIN CEK STATISTIK =====================
-query_params = st.experimental_get_query_params()
-is_admin = query_params.get("admin", ["false"])[0] == "true"
+# ===================== HALAMAN PRESENSI =====================
+if halaman == "📸 Presensi Jemaat":
+    st.title("📸 Scan QR Kehadiran Jemaat")
+    img = st.camera_input("Silakan scan QR Code dari kartu jemaat Anda")
 
-if is_admin:
-    st.subheader("🔐 Admin Login")
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
+    if img:
+        st.image(img, caption="✅ Gambar berhasil ditangkap.")
+        image = Image.open(img)
+        decoded = decode(image)
 
-    if st.button("Login"):
-        if username == st.secrets["login_admin"]["admin_user"] and password == st.secrets["login_admin"]["admin_pass"]:
-            st.success("✅ Login berhasil.")
+        if decoded:
+            qr_data = decoded[0].data.decode("utf-8")
+            st.success(f"✅ QR Terdeteksi: {qr_data}")
 
-            st.subheader("📊 Statistik Presensi")
-            df_presensi = sheet_presensi.get_all_records()
-            st.metric("Total Jemaat Hadir", len(df_presensi))
+            daftar_jemaat = sheet_jemaat.get_all_records()
+            data_jemaat = next((j for j in daftar_jemaat if str(j["ID"]).strip() == qr_data), None)
 
-            tanggal_list = [r["Waktu"][:10] for r in df_presensi]
-            st.bar_chart(Counter(tanggal_list))
+            if not data_jemaat:
+                st.error("🚫 ID Jemaat tidak ditemukan dalam database.")
+                st.stop()
 
-            st.subheader("🆕 Tambah Jemaat Baru + QR Code")
-            with st.form("form_jemaat"):
-                new_id = st.text_input("ID Jemaat Baru")
-                new_nama = st.text_input("Nama Jemaat Baru")
-                submitted = st.form_submit_button("Generate QR & Tambah")
+            nama_jemaat = data_jemaat["Nama"]
+            foto_id = data_jemaat.get("File_ID_Foto", "").strip()
 
-            if submitted and new_id and new_nama:
-                sheet_jemaat.append_row([new_id, new_nama, ""])
-                qr = qrcode.make(new_id)
+            waktu_wib = datetime.now(ZoneInfo("Asia/Jakarta"))
+            tanggal_hari_ini = waktu_wib.strftime("%Y-%m-%d")
+            waktu_str = waktu_wib.strftime("%Y-%m-%d %H:%M:%S")
+
+            riwayat = sheet_presensi.get_all_records()
+            sudah_presensi = any(
+                r["ID"] == qr_data and tanggal_hari_ini in r["Waktu"]
+                for r in riwayat
+            )
+
+            if sudah_presensi:
+                waktu_terakhir = next(
+                    r["Waktu"] for r in riwayat if r["ID"] == qr_data and tanggal_hari_ini in r["Waktu"]
+                )
+                st.warning(f"⚠️ Anda sudah melakukan presensi hari ini pada {waktu_terakhir}")
+            else:
+                # Simpan presensi
+                sheet_presensi.append_row([waktu_str, qr_data, nama_jemaat])
+                st.success(f"📝 Kehadiran {nama_jemaat} berhasil dicatat!")
+
+                # Tampilkan foto jemaat jika tersedia
+                if foto_id:
+                    foto_url = f"https://drive.google.com/thumbnail?id={foto_id}"
+                    try:
+                        st.image(foto_url, width=200, caption=f"🧍 Foto Jemaat: {nama_jemaat}")
+                    except:
+                        st.warning("⚠️ Gagal memuat foto jemaat. Cek ID atau jenis file.")
+
+                # Unduh sertifikat
                 buffer = BytesIO()
-                qr.save(buffer, format="PNG")
-                img_data = buffer.getvalue()
-                st.image(img_data, caption=f"QR Code untuk {new_nama}")
-                b64 = base64.b64encode(img_data).decode()
-                href = f'<a href="data:image/png;base64,{b64}" download="qr_{new_id}.png">📥 Download QR Code</a>'
-                st.markdown(href, unsafe_allow_html=True)
-            st.stop()
-        else:
-            st.error("❌ Username atau password salah.")
+                c = canvas.Canvas(buffer)
+                c.setFont("Helvetica-Bold", 18)
+                c.drawString(100, 750, "SERTIFIKAT KEHADIRAN JEMAAT")
+                c.setFont("Helvetica", 12)
+                c.drawString(100, 700, f"Nama Jemaat : {nama_jemaat}")
+                c.drawString(100, 680, f"ID Jemaat   : {qr_data}")
+                c.drawString(100, 660, f"Waktu Hadir : {waktu_str}")
+                c.drawString(100, 640, "Lokasi      : GPdI Pembaharuan Medan")
+                c.save()
+                buffer.seek(0)
+                st.download_button("📥 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
 
-# ===================== SCAN QR DENGAN KAMERA =====================
-img = st.camera_input("Silakan scan QR Code dari kartu jemaat Anda")
-
-if img:
-    st.image(img, caption="✅ Gambar berhasil ditangkap.")
-    image = Image.open(img)
-    decoded = decode(image)
-
-    if decoded:
-        qr_data = decoded[0].data.decode("utf-8")
-        st.success(f"✅ QR Terdeteksi: {qr_data}")
-
-        daftar_jemaat = sheet_jemaat.get_all_records()
-        data_jemaat = next((j for j in daftar_jemaat if str(j["ID"]).strip() == qr_data), None)
-
-        if not data_jemaat:
-            st.error("🚫 ID Jemaat tidak ditemukan dalam database.")
-            st.stop()
-
-        nama_jemaat = data_jemaat["Nama"]
-        foto_id = data_jemaat.get("File_ID_Foto", "").strip()
-
-        waktu_wib = datetime.now(ZoneInfo("Asia/Jakarta"))
-        tanggal_hari_ini = waktu_wib.strftime("%Y-%m-%d")
-        waktu_str = waktu_wib.strftime("%Y-%m-%d %H:%M:%S")
-
-        riwayat = sheet_presensi.get_all_records()
-        sudah_presensi = any(
-            r["ID"] == qr_data and tanggal_hari_ini in r["Waktu"]
-            for r in riwayat
-        )
-
-        if sudah_presensi:
-            waktu_terakhir = next(
-                r["Waktu"] for r in riwayat if r["ID"] == qr_data and tanggal_hari_ini in r["Waktu"]
+            # Tampilkan total kehadiran hari ini
+            jumlah_hadir_hari_ini = sum(
+                1 for r in riwayat if tanggal_hari_ini in r["Waktu"]
             )
-            st.warning(f"⚠️ Anda sudah melakukan presensi hari ini pada {waktu_terakhir}")
+            st.info(f"📊 Total Jemaat Hadir Hari Ini: {jumlah_hadir_hari_ini}")
+
+            # Tampilkan riwayat presensi jemaat
+            st.subheader("📋 Riwayat Presensi Jemaat Ini")
+            riwayat_jemaat = [r for r in riwayat if r["ID"] == qr_data]
+            if riwayat_jemaat:
+                st.table(riwayat_jemaat)
+            else:
+                st.info("Belum ada riwayat presensi sebelumnya.")
+
         else:
-            sheet_presensi.append_row([waktu_str, qr_data, nama_jemaat])
-            st.success(f"📝 Kehadiran {nama_jemaat} berhasil dicatat!")
+            st.error("❌ QR Code tidak terbaca. Silakan ulangi scan.")
 
-            if foto_id:
-                foto_url = f"https://drive.google.com/thumbnail?id={foto_id}"
-                try:
-                    st.image(foto_url, width=200, caption=f"🧍 Foto Jemaat: {nama_jemaat}")
-                except:
-                    st.warning("⚠️ Gagal memuat foto jemaat. Cek ID atau jenis file.")
+# ===================== HALAMAN ADMIN PANEL =====================
+elif halaman == "🔐 Admin Panel":
+    st.title("🔐 Admin Panel: Kelola Data Jemaat")
 
-            buffer = BytesIO()
-            c = canvas.Canvas(buffer)
-            c.setFont("Helvetica-Bold", 18)
-            c.drawString(100, 750, "SERTIFIKAT KEHADIRAN JEMAAT")
-            c.setFont("Helvetica", 12)
-            c.drawString(100, 700, f"Nama Jemaat : {nama_jemaat}")
-            c.drawString(100, 680, f"ID Jemaat   : {qr_data}")
-            c.drawString(100, 660, f"Waktu Hadir : {waktu_str}")
-            c.drawString(100, 640, "Lokasi      : GPdI Pembaharuan Medan")
-            c.save()
-            buffer.seek(0)
+    if "admin_login" not in st.session_state:
+        st.session_state["admin_login"] = False
 
-            st.download_button(
-                label="📥 Download Sertifikat Kehadiran",
-                data=buffer,
-                file_name=f"sertifikat_{qr_data}.pdf",
-                mime="application/pdf"
-            )
-
-        # === Jumlah total jemaat hadir hari ini ===
-        jumlah_hadir_hari_ini = sum(
-            1 for r in riwayat if tanggal_hari_ini in r["Waktu"]
-        )
-        st.info(f"📊 Total Jemaat Hadir Hari Ini: {jumlah_hadir_hari_ini}")
-
-        st.subheader("📋 Riwayat Presensi Jemaat Ini")
-        riwayat_jemaat = [
-            r for r in riwayat if r["ID"] == qr_data
-        ]
-        if riwayat_jemaat:
-            st.table(riwayat_jemaat)
-        else:
-            st.info("Belum ada riwayat presensi sebelumnya.")
+    if not st.session_state["admin_login"]:
+        st.subheader("🔑 Login Admin")
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        if st.button("Login"):
+            if username == st.secrets["login_admin"]["admin_user"] and password == st.secrets["login_admin"]["admin_pass"]:
+                st.session_state["admin_login"] = True
+                st.success("✅ Login berhasil")
+                st.experimental_rerun()
+            else:
+                st.error("❌ Username atau password salah")
 
     else:
-        st.error("❌ QR Code tidak terbaca. Silakan ulangi scan.")
+        st.success("👋 Selamat datang Admin!")
+
+        # Statistik Presensi
+        st.subheader("📊 Statistik Presensi")
+        df_presensi = sheet_presensi.get_all_records()
+        st.metric("🧍 Total Jemaat Hadir", len(df_presensi))
+        tanggal_list = [r["Waktu"][:10] for r in df_presensi]
+        st.bar_chart(Counter(tanggal_list))
+
+        # Tambah jemaat baru
+        st.subheader("🆕 Tambah Jemaat Baru")
+        with st.form("form_jemaat"):
+            new_id = st.text_input("ID Jemaat Baru")
+            new_nama = st.text_input("Nama Jemaat Baru")
+            submitted = st.form_submit_button("➕ Tambah ke Database")
+
+        if submitted:
+            if new_id and new_nama:
+                existing_ids = [row["ID"] for row in sheet_jemaat.get_all_records()]
+                if new_id in existing_ids:
+                    st.warning("⚠️ ID Jemaat sudah terdaftar.")
+                else:
+                    sheet_jemaat.append_row([new_id, new_nama, ""])
+                    st.success(f"✅ Jemaat '{new_nama}' berhasil ditambahkan.")
+                    st.info("📌 QR Code akan dibuat otomatis oleh Apps Script.")
+            else:
+                st.error("❌ Isi ID dan Nama terlebih dahulu.")
+
+        # Upload Foto Jemaat
+        st.subheader("📷 Upload Foto Jemaat")
+        daftar_jemaat = sheet_jemaat.get_all_records()
+        jemaat_opsi = {f"{d['Nama']} ({d['ID']})": d["ID"] for d in daftar_jemaat}
+        selected = st.selectbox("Pilih Jemaat", options=list(jemaat_opsi.keys()))
+        foto_file = st.file_uploader("Unggah Foto", type=["jpg", "jpeg", "png"])
+
+        if st.button("📤 Upload Foto"):
+            if selected and foto_file:
+                from googleapiclient.discovery import build
+                from googleapiclient.http import MediaIoBaseUpload
+                from google.oauth2.service_account import Credentials
+
+                creds2 = Credentials.from_service_account_info(
+                    st.secrets["gcp_service_account"],
+                    scopes=["https://www.googleapis.com/auth/drive"]
+                )
+                service = build("drive", "v3", credentials=creds2)
+
+                id_jemaat = jemaat_opsi[selected]
+                file_metadata = {
+                    "name": f"foto_{id_jemaat}.jpg",
+                    "parents": [st.secrets["drive"]["folder_id_foto"]]
+                }
+                media = MediaIoBaseUpload(foto_file, mimetype="image/jpeg")
+                uploaded = service.files().create(body=file_metadata, media_body=media, fields="id").execute()
+                file_id = uploaded.get("id")
+
+                all_rows = sheet_jemaat.get_all_values()
+                for idx, row in enumerate(all_rows):
+                    if row[0] == id_jemaat:
+                        sheet_jemaat.update_cell(idx + 1, 3, file_id)
+                        st.success(f"✅ Foto berhasil diunggah. ID: {file_id}")
+                        break
+            else:
+                st.warning("❗ Pilih jemaat dan unggah foto.")
+
+        # Tombol logout
+        if st.button("🔒 Logout Admin"):
+            st.session_state["admin_login"] = False
+            st.experimental_rerun()
