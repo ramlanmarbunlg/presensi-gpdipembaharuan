@@ -162,7 +162,7 @@ elif halaman == "🔐 Admin Panel":
         
             # Bersihkan input setelah tambah
             st.session_state.new_nama = ""
-            st.experimental_rerun()  # refresh form agar ID autoincrement juga reset
+            st.rerun()  # refresh form agar ID autoincrement juga reset
 
         # Upload Foto Jemaat
         st.subheader("📷 Upload Foto Jemaat")
@@ -200,7 +200,7 @@ elif halaman == "🔐 Admin Panel":
                         break
                         # Kosongkan uploader setelah upload
                         st.session_state.foto_upload = None
-                        st.experimental_rerun()  # agar komponen uploader kosong kembali
+                        st.rerun()  # agar komponen uploader kosong kembali
             else:
                 st.warning("❗ Pilih nama jemaat dan unggah foto.")
 
