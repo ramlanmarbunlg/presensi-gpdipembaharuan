@@ -194,9 +194,9 @@ elif halaman == "🔐 Admin Panel":
         
         # ✅ Preview gambar sebelum upload
         if foto_file:
-            st.image(foto_file, caption="📷 Preview Foto", width=150)
+            st.image(foto_file, caption="📷 Preview Foto", width=100)
         
-        # Tombol upload
+         # Tombol upload
         if st.button("📤 Upload Foto"):
             if selected and foto_file:
                 credentials = service_account.Credentials.from_service_account_info(
@@ -204,27 +204,37 @@ elif halaman == "🔐 Admin Panel":
                 )
                 drive_service = build("drive", "v3", credentials=credentials)
         
-                # Upload file
-                nama_file = f"foto_{select_jemaat[selected]}.jpg"
+                # Upload file ke Google Drive
+                nama_file = f"foto_{opsi_jemaat[selected]}.jpg"
                 media = MediaIoBaseUpload(foto_file, mimetype="image/jpeg")
                 file_metadata = {
                     "name": nama_file,
                     "parents": [st.secrets["drive"]["folder_id_foto"]]
                 }
-                uploaded = drive_service.files().create(body=file_metadata, media_body=media, fields="id").execute()
+                uploaded = drive_service.files().create(
+                    body=file_metadata, media_body=media, fields="id"
+                ).execute()
                 file_id = uploaded.get("id")
-
-                # Update sheet
-                baris_update = next(i + 2 for i, row in enumerate(daftar_jemaat) if row["ID"] == opsi_jemaat[selected])
+        
+                # Update kolom File_ID_Foto di Google Sheet
+                baris_update = next(
+                    i + 2 for i, row in enumerate(daftar_jemaat)
+                    if row["ID"] == opsi_jemaat[selected]
+                )
                 sheet_jemaat.update_cell(baris_update, 3, file_id)
         
-                st.success(f"✅ Foto jemaat berhasil diunggah. ID: {file_id}")
+                # Tampilkan pesan sukses
+                st.success(f"✅ Foto jemaat berhasil diunggah. ID File: {file_id}")
+        
+                # Tunggu delay yang dipilih dari slider
                 time.sleep(delay_foto)
         
-                # Reset form
-                st.session_state.select_jemaat = None
-                st.session_state.upload_foto = None
-                st.session_state.slider_foto = 3
+                # Reset form secara aman
+                for key in ["select_jemaat", "upload_foto", "slider_foto"]:
+                    if key in st.session_state:
+                        del st.session_state[key]
+        
+                # Refresh ulang halaman agar form benar-benar bersih
                 st.experimental_rerun()
             else:
                 st.warning("⚠️ Lengkapi pilihan jemaat dan foto terlebih dahulu.")
