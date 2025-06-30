@@ -74,7 +74,7 @@ if img:
 
             # ===================== TAMPILKAN FOTO JIKA ADA =====================
             if foto_id:
-                foto_url = f"https://drive.google.com/uc?id={foto_id}"
+                foto_url = f"https://drive.google.com/uc?id={file_id_foto}"
                 st.image(foto_url, width=200, caption=f"🧍 Foto Jemaat: {nama_jemaat}")
 
             # ===================== CETAK SERTIFIKAT KEHADIRAN =====================
