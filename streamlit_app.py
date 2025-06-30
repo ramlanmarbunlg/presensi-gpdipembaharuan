@@ -75,8 +75,10 @@ if img:
             # ===================== TAMPILKAN FOTO JIKA ADA =====================
             if foto_id:
                 foto_url = f"https://drive.google.com/uc?id={foto_id}"
-                st.image(foto_url, width=200, caption=f"🧍 Foto Jemaat: {nama_jemaat}")
-
+                try:
+                    st.image(foto_url, width=200, caption=f"🧍 Foto Jemaat: {nama_jemaat}")
+                except:
+                    st.warning("⚠️ Gagal memuat foto jemaat. Cek ID atau jenis file.")
             # ===================== CETAK SERTIFIKAT KEHADIRAN =====================
             buffer = BytesIO()
             c = canvas.Canvas(buffer)
