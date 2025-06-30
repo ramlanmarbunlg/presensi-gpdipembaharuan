@@ -40,7 +40,7 @@ if is_admin:
     password = st.text_input("Password", type="password")
 
     if st.button("Login"):
-        if username == st.secrets["admin_user"] and password == st.secrets["admin_pass"]:
+        if username == st.secrets["login_admin"]["admin_user"] and password == st.secrets["login_admin"]["admin_pass"]:
             st.success("✅ Login berhasil.")
 
             st.subheader("📊 Statistik Presensi")
