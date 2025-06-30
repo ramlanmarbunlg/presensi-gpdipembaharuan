@@ -168,11 +168,11 @@ elif halaman == "🔐 Admin Panel":
                     st.experimental_rerun()
                 else:
                     st.warning("⚠️ Nama jemaat tidak boleh kosong.")
-            
-            # === Tombol Reset ditekan ===
-            if reset:
-                st.session_state.form_nama_jemaat = ""
-                st.experimental_rerun()
+                    
+                    # === Tombol Reset ditekan ===
+                    if reset:
+                        st.session_state.form_nama_jemaat = ""
+                        st.experimental_rerun()
             
         # Upload Foto Jemaat
         st.subheader("📷 Upload Foto Jemaat")
