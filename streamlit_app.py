@@ -207,10 +207,6 @@ elif halaman == "🔐 Admin Panel":
                 # Upload file
                 nama_file = f"foto_{opsi_jemaat[selected]}.jpg"
                 media = MediaIoBaseUpload(foto_file, mimetype="image/jpeg")
-                folder_id = st.secrets.get("folder_id_foto")
-                if not folder_id:
-                    st.error("❌ folder_id_foto belum diset di secrets.toml!")
-                    st.stop()
                 file_metadata = {
                     "name": f"foto_{id_jemaat}.jpg",
                     "parents": [st.secrets["drive"]["folder_id_foto"]]
