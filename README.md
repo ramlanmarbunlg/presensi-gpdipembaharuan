@@ -1,4 +1,4 @@
-# 🎈 Blank app template
+# Aplikasi Presensi GPdI Pembaharuan
 
 A simple Streamlit app template for you to modify!
 
@@ -17,3 +17,8 @@ A simple Streamlit app template for you to modify!
    ```
    $ streamlit run streamlit_app.py
    ```
+
+**Notes:**
+- ❌ Streamlit Cloud tidak mendukung OpenCV berbasis native bindings seperti cv2 secara penuh
+- ✅ Modul cv2 memerlukan pustaka native C/C++ (misalnya .so, .dll, atau .dylib) yang tidak bisa dibuild atau dijalankan di lingkungan terbatas seperti Streamlit Cloud.
+- ✅ Solusi Alternatif Scan QR Tanpa OpenCV, saya menggunakan streamlit-webrtc + pyzbar yang memang didukung Streamlit Cloud.
