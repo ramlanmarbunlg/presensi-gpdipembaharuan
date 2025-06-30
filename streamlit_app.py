@@ -175,41 +175,59 @@ elif halaman == "🔐 Admin Panel":
                 st.warning("⚠️ Nama tidak boleh kosong.")
             
         # Upload Foto Jemaat
-        st.subheader("📷 Upload Foto Jemaat")
+        from googleapiclient.discovery import build
+        from googleapiclient.http import MediaIoBaseUpload
+        from google.oauth2 import service_account
+        
+        st.subheader("🖼️ Upload Foto Jemaat ke Google Drive")
+        
+        # Waktu tampil pesan sukses
+        delay_foto = st.slider("⏱️ Lama tampil pesan sukses (detik)", 1, 5, 3, key="slider_foto")
+        
+        # Ambil daftar jemaat
         daftar_jemaat = sheet_jemaat.get_all_records()
-        jemaat_opsi = {f"{d['Nama']} ({d['ID']})": d["ID"] for d in daftar_jemaat}
-        selected = st.selectbox("Pilih Jemaat", options=list(jemaat_opsi.keys()))
-        foto_file = st.file_uploader("Unggah Foto", type=["jpg", "jpeg", "png"])
-
+        opsi_jemaat = {f"{j['Nama']} ({j['ID']})": j['ID'] for j in daftar_jemaat}
+        
+        # Form input
+        selected = st.selectbox("Pilih Jemaat", options=list(opsi_jemaat.keys()), key="select_jemaat")
+        foto_file = st.file_uploader("Pilih File Foto (JPG/PNG)", type=["jpg", "jpeg", "png"], key="upload_foto")
+        
+        # ✅ Preview gambar sebelum upload
+        if foto_file:
+            st.image(foto_file, caption="📷 Preview Foto", use_column_width=True)
+        
+        # Tombol upload
         if st.button("📤 Upload Foto"):
             if selected and foto_file:
-                from googleapiclient.discovery import build
-                from googleapiclient.http import MediaIoBaseUpload
-                from google.oauth2.service_account import Credentials
-
-                creds2 = Credentials.from_service_account_info(
-                    st.secrets["gcp_service_account"],
-                    scopes=["https://www.googleapis.com/auth/drive"]
+                credentials = service_account.Credentials.from_service_account_info(
+                    st.secrets["gcp_service_account"]
                 )
-                service = build("drive", "v3", credentials=creds2)
-
-                id_jemaat = jemaat_opsi[selected]
-                file_metadata = {
-                    "name": f"foto_{id_jemaat}.jpg",
-                    "parents": [st.secrets["drive"]["folder_id_foto"]]
-                }
+                drive_service = build("drive", "v3", credentials=credentials)
+        
+                # Upload file
+                nama_file = f"foto_{opsi_jemaat[selected]}.jpg"
                 media = MediaIoBaseUpload(foto_file, mimetype="image/jpeg")
-                uploaded = service.files().create(body=file_metadata, media_body=media, fields="id").execute()
+                file_metadata = {
+                    "name": nama_file,
+                    "parents": [st.secrets["folder_id_drive_foto"]]
+                }
+                uploaded = drive_service.files().create(body=file_metadata, media_body=media, fields="id").execute()
                 file_id = uploaded.get("id")
-
-                all_rows = sheet_jemaat.get_all_values()
-                for idx, row in enumerate(all_rows):
-                    if row[0] == id_jemaat:
-                        sheet_jemaat.update_cell(idx + 1, 3, file_id)
-                        st.success(f"✅ Foto berhasil diunggah dan disimpan ke Drive. ID: {file_id}")
-                        break
+        
+                # Update sheet
+                baris_update = next(i + 2 for i, row in enumerate(daftar_jemaat) if row["ID"] == opsi_jemaat[selected])
+                sheet_jemaat.update_cell(baris_update, 3, file_id)
+        
+                st.success(f"✅ Foto jemaat {selected} berhasil diupload ke Drive.")
+                time.sleep(delay_foto)
+        
+                # Reset form
+                st.session_state.select_jemaat = None
+                st.session_state.upload_foto = None
+                st.session_state.slider_foto = 3
+                st.experimental_rerun()
             else:
-                st.warning("❗ Pilih nama jemaat dan unggah foto.")
+                st.warning("⚠️ Lengkapi pilihan jemaat dan foto terlebih dahulu.")
 
         # Tombol logout
         if st.button("🔒 Logout Admin"):
