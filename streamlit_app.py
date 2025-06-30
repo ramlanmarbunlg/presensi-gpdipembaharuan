@@ -115,7 +115,7 @@ if halaman == "📸 Presensi Jemaat":
 
 # ===================== HALAMAN ADMIN PANEL =====================
 elif halaman == "🔐 Admin Panel":
-    st.title("🔐 Admin Panel: Kelola Data Jemaat")
+    st.title("🔐 Admin: Kelola Data Jemaat")
 
     if "admin_login" not in st.session_state:
         st.session_state["admin_login"] = False
