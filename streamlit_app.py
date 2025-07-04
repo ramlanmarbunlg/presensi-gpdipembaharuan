@@ -15,6 +15,8 @@ from io import BytesIO
 from collections import Counter
 import base64
 import qrcode
+import smtplib
+from email.message import EmailMessage
 
 # ===================== KONFIGURASI APLIKASI =====================
 st.set_page_config(page_title="Presensi Jemaat", page_icon="🙏")
@@ -27,9 +29,25 @@ scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/au
 creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service_account"], scope)
 client = gspread.authorize(creds)
 
-# Sheet utama
 sheet_presensi = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("presensi")
 sheet_jemaat = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("data_jemaat")
+
+# ===================== FUNGSI EMAIL =====================
+def kirim_email(to_email, subject, body):
+    try:
+        msg = EmailMessage()
+        msg["Subject"] = subject
+        msg["From"] = st.secrets["email"]["sender"]
+        msg["To"] = to_email
+        msg.set_content(body)
+
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(st.secrets["email"]["sender"], st.secrets["email"]["password"])
+        server.send_message(msg)
+        server.quit()
+    except Exception as e:
+        st.warning(f"🚨 Gagal kirim email: {e}")
 
 # ===================== HALAMAN PRESENSI =====================
 if halaman == "📸 Presensi Jemaat":
@@ -49,10 +67,11 @@ if halaman == "📸 Presensi Jemaat":
             data_jemaat = next((j for j in daftar_jemaat if str(j["ID"]).strip() == qr_data), None)
 
             if not data_jemaat:
-                st.error("🚫 ID Jemaat tidak ditemukan dalam database.")
+                st.error("🛑 ID Jemaat tidak ditemukan dalam database.")
                 st.stop()
 
             nama_jemaat = data_jemaat["Nama"]
+            email_jemaat = data_jemaat.get("Email", "")
             foto_id = data_jemaat.get("File_ID_Foto", "").strip()
 
             waktu_wib = datetime.now(ZoneInfo("Asia/Jakarta"))
@@ -71,19 +90,21 @@ if halaman == "📸 Presensi Jemaat":
                 )
                 st.warning(f"⚠️ Anda sudah melakukan presensi hari ini pada {waktu_terakhir}")
             else:
-                # Simpan presensi
                 sheet_presensi.append_row([waktu_str, qr_data, nama_jemaat])
                 st.success(f"📝 Kehadiran {nama_jemaat} berhasil dicatat!")
 
-                # Tampilkan foto jemaat jika tersedia
                 if foto_id:
                     foto_url = f"https://drive.google.com/thumbnail?id={foto_id}"
                     try:
-                        st.image(foto_url, width=200, caption=f"🧍 Foto Jemaat: {nama_jemaat}")
+                        st.image(foto_url, width=200, caption=f"🡭 Foto Jemaat: {nama_jemaat}")
                     except:
-                        st.warning("⚠️ Gagal memuat foto jemaat. Cek ID atau jenis file.")
+                        st.warning("⚠️ Gagal memuat foto jemaat.")
 
-                # Unduh sertifikat
+                # Kirim email ke jemaat
+                if email_jemaat:
+                    kirim_email(email_jemaat, "Kehadiran Jemaat GPdI", f"Shalom {nama_jemaat},
+Presensi Anda pada {waktu_str} telah tercatat di sistem GPdI.")
+
                 buffer = BytesIO()
                 c = canvas.Canvas(buffer)
                 c.setFont("Helvetica-Bold", 18)
@@ -95,21 +116,16 @@ if halaman == "📸 Presensi Jemaat":
                 c.drawString(100, 640, "Lokasi      : GPdI Pembaharuan Medan")
                 c.save()
                 buffer.seek(0)
-                st.download_button("📥 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
+                st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
 
-            # Tampilkan total kehadiran hari ini
             jumlah_hadir_hari_ini = sum(
                 1 for r in riwayat if tanggal_hari_ini in r["Waktu"]
             )
             st.info(f"📊 Total Jemaat Hadir Hari Ini: {jumlah_hadir_hari_ini}")
 
-            # Tampilkan riwayat presensi jemaat
             st.subheader("📋 Riwayat Presensi Jemaat Ini")
             riwayat_jemaat = [r for r in riwayat if r["ID"] == qr_data]
-            if riwayat_jemaat:
-                st.table(riwayat_jemaat)
-            else:
-                st.info("Belum ada riwayat presensi sebelumnya.")
+            st.table(riwayat_jemaat if riwayat_jemaat else "Belum ada riwayat.")
 
         else:
             st.error("❌ QR Code tidak terbaca. Silakan ulangi scan.")
@@ -136,12 +152,34 @@ elif halaman == "🔐 Admin Panel":
     else:
         st.success("👋 Selamat datang Admin!")
 
-        # Statistik Presensi
-        st.subheader("📊 Statistik Presensi")
+        # Statistik Presensi Global
+        st.subheader("📊 Statistik Presensi Global (Semua Tanggal)")
         df_presensi = sheet_presensi.get_all_records()
-        st.metric("🧍 Total Jemaat Hadir", len(df_presensi))
+        st.metric("🧍 Total Jemaat Hadir (Keseluruhan)", len(df_presensi))
         tanggal_list = [r["Waktu"][:10] for r in df_presensi]
         st.bar_chart(Counter(tanggal_list))
+
+        # Statistik Hari Ini
+        st.subheader("📅 Statistik Presensi Hari Ini")
+        waktu_wib = datetime.now(ZoneInfo("Asia/Jakarta"))
+        hari_ini = waktu_wib.strftime("%Y-%m-%d")
+        jumlah_hari_ini = sum(1 for r in df_presensi if hari_ini in r["Waktu"])
+        st.metric("🧍 Jemaat Hadir Hari Ini", jumlah_hari_ini)
+
+        # Filter per Tanggal Tertentu
+        st.subheader("🔍 Filter Presensi per Tanggal")
+        tanggal_pilih = st.date_input("Pilih tanggal:", value=datetime.now(ZoneInfo("Asia/Jakarta")).date())
+        tanggal_str = tanggal_pilih.strftime("%Y-%m-%d")
+        hasil_filter = [r for r in df_presensi if r["Waktu"].startswith(tanggal_str)]
+
+        st.info(f"📆 Total kehadiran pada tanggal {tanggal_str}: {len(hasil_filter)}")
+
+        # Tampilkan Tabel Riwayat pada Tanggal Tersebut
+        st.subheader(f"📋 Riwayat Presensi Tanggal {tanggal_str}")
+        if hasil_filter:
+            st.table(hasil_filter)
+        else:
+            st.warning("❗ Tidak ada presensi pada tanggal tersebut.")
 
         # =================== FORM TAMBAH JEMAAT BARU ===================
         st.subheader("🆕 Tambah Jemaat Baru")
