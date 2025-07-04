@@ -20,15 +20,6 @@ def convert_to_csv(data):
     return pd.DataFrame(data).to_csv(index=False).encode('utf-8')
 import smtplib
 from email.message import EmailMessage
-import re  # Tambahkan ini di atas file untuk validasi email/nomor
-# Cek email valid (standar umum)
-def is_valid_email(email):
-    email_regex = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
-    return re.match(email_regex, email)
-# Cek Nomor WhatsApp Indonesia
-def is_valid_wa(no_wa):
-    wa_regex = r"^(08\d{8,11}|628\d{7,10})$"
-    return re.match(wa_regex, no_wa)
 
 # ===================== KONFIGURASI APLIKASI =====================
 st.set_page_config(page_title="Presensi Jemaat", page_icon="🙏")
@@ -190,29 +181,64 @@ elif halaman == "🔐 Admin Panel":
         with tab1:
             st.markdown("### ✨ Tambah Jemaat Baru")
             delay = st.slider("⏱️ Tampilkan pesan sukses selama (detik):", 1, 5, 2)
-
-            daftar_id = [j["ID"] for j in sheet_jemaat.get_all_records()]
+        
+            # Ambil semua data jemaat
+            daftar_jemaat = sheet_jemaat.get_all_records()
+        
+            # Buat ID baru
+            daftar_id = [j["ID"] for j in daftar_jemaat]
             angka_terakhir = max([int(i[1:]) for i in daftar_id if i.startswith("J")], default=0)
             id_baru = f"J{angka_terakhir + 1:03d}"
-
+        
             form_key = st.session_state.get("form_key", "form_jemaat_default")
             with st.form(key=form_key):
-                st.text_input("ID Jemaat Baru", value=id_baru, disabled=True)
-                nama_baru = st.text_input("Nama Lengkap", key="input_nama")
-                no_wa = st.text_input("Nomor WhatsApp", key="input_wa")
-                email_baru = st.text_input("Alamat Email", key="input_email")
+                st.text_input("ID Jemaat", value=id_baru, disabled=True)
+                nik = st.text_input("NIK", max_chars=20)
+                nama_baru = st.text_input("Nama Lengkap")
+                jenis_kelamin = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
+                no_wa = st.text_input("No WhatsApp (format 08xxxx / 628xxx)")
+                email_baru = st.text_input("Email")
                 simpan = st.form_submit_button("💾 Simpan")
-
+        
+            # Fungsi validasi regex
+            def is_valid_wa(no):
+                import re #untuk validasi no WA
+                # Valid: 08xxxxxxxxxx (10–12 digit) atau 628xxxxxxxxx
+                wa_regex = r"^(08\d{8,11}|628\d{7,10})$"
+                return re.match(wa_regex, no)
+        
+            def is_valid_email(email):
+                import re #untuk validasi email
+                email_regex = r"^[\w\.-]+@[\w\.-]+\.\w+$"
+                return re.match(email_regex, email)
+        
+            # Jika tombol simpan ditekan
             if simpan:
-                if not nama_baru.strip() or not no_wa.strip() or not email_baru.strip():
-                    st.warning("⚠️ Semua kolom wajib diisi.")
+                if not nik.strip() or not nama_baru.strip() or not no_wa.strip() or not email_baru.strip():
+                    st.warning("⚠️ Semua field wajib diisi.")
                 elif not is_valid_wa(no_wa.strip()):
-                    st.warning("⚠️ Format nomor WhatsApp tidak valid. Gunakan awalan 08 atau 628. Maksimal 13 digit!")
+                    st.error("❌ Format nomor WhatsApp tidak valid (harus 10-13 digit).")
                 elif not is_valid_email(email_baru.strip()):
-                    st.warning("⚠️ Format email tidak valid.")
+                    st.error("❌ Format email tidak valid.")
+                elif any(j["NIK"] == nik for j in daftar_jemaat):
+                    st.error("❌ NIK sudah terdaftar.")
+                elif any(j["Email"].lower() == email_baru.lower() for j in daftar_jemaat):
+                    st.error("❌ Email sudah digunakan.")
+                elif any(j["No_WhatsApp"] == no_wa for j in daftar_jemaat):
+                    st.error("❌ Nomor WhatsApp sudah digunakan.")
                 else:
-                    # Simpan ke sheet (tambahkan kolom jika perlu)
-                    sheet_jemaat.append_row([id_baru, nama_baru.strip(), "", no_wa.strip(), email_baru.strip()])
+                    # Simpan ke Sheet sesuai urutan kolom
+                    sheet_jemaat.append_row([
+                        id_baru,              # A: ID
+                        nik,                  # B: NIK
+                        nama_baru.strip(),    # C: Nama
+                        jenis_kelamin,        # D: Jenis Kelamin
+                        "",                   # E: File_ID_Foto (kosong dulu)
+                        no_wa.strip(),        # F: No_WhatsApp
+                        email_baru.strip(),   # G: Email
+                        ""                    # H: QR (kosong dulu)
+                    ])
+        
                     st.success(f"✅ Jemaat '{nama_baru}' berhasil ditambahkan dengan ID: {id_baru}")
 
                     # Kirim email selamat datang (jika email diisi)
