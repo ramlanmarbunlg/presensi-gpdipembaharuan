@@ -82,7 +82,7 @@ if halaman == "📸 Presensi Jemaat":
             tanggal_hari_ini = waktu_wib.strftime("%Y-%m-%d")
 
             # ===== CEK TERLAMBAT atau TIDAK =====
-            batas_waktu = waktu_wib.replace(hour=3, minute=33, second=0, microsecond=0)
+            batas_waktu = waktu_wib.replace(hour=3, minute=57, second=0, microsecond=0)
             keterangan = "Tepat Waktu" if waktu_wib <= batas_waktu else "Terlambat"
 
             # ===== CEK SUDAH PRESENSI =====
