@@ -114,7 +114,8 @@ if halaman == "📸 Presensi Jemaat":
 
                 # Kirim email ke jemaat
                 if email_jemaat:
-                    kirim_email(email_jemaat, "Kehadiran Jemaat GPdI", f"Syalom {nama_jemaat}, Presensi Anda pada {waktu_str} telah tercatat di sistem GPdI Pembaharuan!.")
+                    kirim_email(email_jemaat, "Kehadiran Jemaat GPdI Pembaharuan", f"Syalom {nama_jemaat}, 
+                    \n\nPresensi Anda pada {waktu_str} telah tercatat di sistem GPdI Pembaharuan!.n\nTuhan Yesus Memberkati 🙏\n\n-- Admin GPdI Pembaharuan.")
 
                 buffer = BytesIO()
                 c = canvas.Canvas(buffer)
@@ -220,7 +221,7 @@ elif halaman == "🔐 Admin Panel":
                         import smtplib
                         from email.mime.text import MIMEText
 
-                        msg = MIMEText(f"Syalom {nama_baru},\n\nSelamat datang di sistem presensi jemaat GPdI Pembaharuan.\n\nID Jemaat Anda: {id_baru}\n\nTuhan Yesus Memberkati.")
+                        msg = MIMEText(f"Syalom {nama_baru},\n\nSelamat datang di sistem presensi jemaat GPdI Pembaharuan.\n\nID Jemaat Anda: {id_baru}\n\nGunakan kartu atau QR Code Anda saat hadir di ibadah.\n\nTuhan Yesus Memberkati. \n\n-- Admin GPdI Pembaharuan.")
                         msg["Subject"] = "Selamat Datang di GPdI Pembaharuan"
                         msg["From"] = st.secrets["email_smtp"]["sender"]
                         msg["To"] = email_baru
