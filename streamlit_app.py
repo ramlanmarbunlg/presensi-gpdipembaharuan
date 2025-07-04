@@ -1,5 +1,5 @@
 # ============================================
-# PRESENSI JEMAAT STREAMLIT QR CAMERA (FINAL++)
+# PRESENSI JEMAAT STREAMLIT QR CAMERA (V2)
 # ============================================
 
 import streamlit as st
