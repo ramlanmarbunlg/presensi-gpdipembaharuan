@@ -225,11 +225,11 @@ elif halaman == "🔐 Admin Panel":
                     st.error("❌ Format nomor WhatsApp tidak valid (harus 10-13 digit).")
                 elif not is_valid_email(email_baru.strip()):
                     st.error("❌ Format email tidak valid.")
-                elif any(j["NIK"] == nik for j in daftar_jemaat):
+                elif any(str(j["NIK"]).strip() == nik.strip() for j in daftar_jemaat):
                     st.error("❌ NIK sudah terdaftar.")
-                elif any(j["Email"].lower() == email_baru.lower() for j in daftar_jemaat):
+                elif any(str(j["Email"]).strip().lower() == email_baru.strip().lower() for j in daftar_jemaat):
                     st.error("❌ Email sudah digunakan.")
-                elif any(j["No_WhatsApp"] == no_wa for j in daftar_jemaat):
+                elif any(str(j["No_WhatsApp"]).strip() == no_wa.strip() for j in daftar_jemaat):
                     st.error("❌ Nomor WhatsApp sudah digunakan.")
                 else:
                     # Simpan ke Sheet sesuai urutan kolom
