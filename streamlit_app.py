@@ -114,7 +114,7 @@ if halaman == "📸 Presensi Jemaat":
 
                 # Kirim email ke jemaat
                 if email_jemaat:
-                    kirim_email(email_jemaat, "Kehadiran Jemaat GPdI Pembaharuan", f"Syalom {nama_jemaat},\n\nPresensi Anda pada {waktu_str} telah tercatat di sistem GPdI Pembaharuan!.n\nTuhan Yesus Memberkati 🙏\n\n-- Admin GPdI Pembaharuan.")
+                    kirim_email(email_jemaat, "Kehadiran Jemaat GPdI Pembaharuan", f"Syalom {nama_jemaat},\n\nPresensi Anda pada {waktu_str} telah tercatat di sistem GPdI Pembaharuan!\n\nTuhan Yesus Memberkati 🙏\n\n-- Admin GPdI Pembaharuan.")
 
                 buffer = BytesIO()
                 c = canvas.Canvas(buffer)
