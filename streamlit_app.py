@@ -35,7 +35,7 @@ client = gspread.authorize(creds)
 sheet_presensi = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("presensi")
 sheet_jemaat = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("data_jemaat")
 
-# ===================== FUNGSI KIRIM EMAIL (BERHASIL PRESENSI) =====================
+# ===================== FUNGSI KIRIM EMAIL (SAAT BERHASIL PRESENSI) =====================
 def kirim_email(to_email, subject, body):
     try:
         msg = EmailMessage()
@@ -78,9 +78,14 @@ if halaman == "📸 Presensi Jemaat":
             foto_id = data_jemaat.get("File_ID_Foto", "").strip()
 
             waktu_wib = datetime.now(ZoneInfo("Asia/Jakarta"))
-            tanggal_hari_ini = waktu_wib.strftime("%Y-%m-%d")
             waktu_str = waktu_wib.strftime("%Y-%m-%d %H:%M:%S")
+            tanggal_hari_ini = waktu_wib.strftime("%Y-%m-%d")
 
+            # ===== CEK TERLAMBAT atau TIDAK =====
+            batas_waktu = waktu_wib.replace(hour=3, minute=33, second=0, microsecond=0)
+            keterangan = "Tepat Waktu" if waktu_wib <= batas_waktu else "Terlambat"
+
+            # ===== CEK SUDAH PRESENSI =====
             riwayat = sheet_presensi.get_all_records()
             sudah_presensi = any(
                 r["ID"] == qr_data and tanggal_hari_ini in r["Waktu"]
@@ -93,9 +98,11 @@ if halaman == "📸 Presensi Jemaat":
                 )
                 st.warning(f"⚠️ Anda sudah melakukan presensi hari ini pada {waktu_terakhir}")
             else:
-                sheet_presensi.append_row([waktu_str, qr_data, nama_jemaat])
-                st.success(f"📝 Kehadiran {nama_jemaat} berhasil dicatat pada sistem!")
+                # ✅ Tambahkan ke Sheet dengan kolom Keterangan
+                sheet_presensi.append_row([waktu_str, qr_data, nama_jemaat, keterangan])
+                st.success(f"📝 Kehadiran {nama_jemaat} berhasil dicatat sebagai **{keterangan}** pada sistem!")
 
+                # Tampilkan foto jemaat
                 if foto_id:
                     foto_url = f"https://drive.google.com/thumbnail?id={foto_id}"
                     try:
@@ -103,10 +110,15 @@ if halaman == "📸 Presensi Jemaat":
                     except:
                         st.warning("⚠️ Gagal memuat foto jemaat.")
 
-                # Kirim email ke jemaat
+                # Kirim email presensi
                 if email_jemaat:
-                    kirim_email(email_jemaat, "Kehadiran Jemaat GPdI Pembaharuan", f"Syalom {nama_jemaat},\n\nPresensi Anda pada {waktu_str} telah tercatat di sistem GPdI Pembaharuan!\n\nTuhan Yesus Memberkati 🙏\n\n-- Admin GPdI Pembaharuan.")
+                    kirim_email(
+                        email_jemaat,
+                        "Kehadiran Jemaat GPdI Pembaharuan",
+                        f"Syalom {nama_jemaat},\n\nPresensi Anda pada {waktu_str} telah tercatat sebagai *{keterangan}*.\n\nTuhan Yesus Memberkati 🙏\n\n-- Admin GPdI Pembaharuan."
+                    )
 
+                # Sertifikat
                 buffer = BytesIO()
                 c = canvas.Canvas(buffer)
                 c.setFont("Helvetica-Bold", 18)
@@ -115,16 +127,19 @@ if halaman == "📸 Presensi Jemaat":
                 c.drawString(100, 700, f"Nama Jemaat : {nama_jemaat}")
                 c.drawString(100, 680, f"ID Jemaat   : {qr_data}")
                 c.drawString(100, 660, f"Waktu Hadir : {waktu_str}")
-                c.drawString(100, 640, "Lokasi      : GPdI Pembaharuan Medan")
+                c.drawString(100, 640, f"Keterangan  : {keterangan}")
+                c.drawString(100, 620, "Lokasi      : GPdI Pembaharuan Medan")
                 c.save()
                 buffer.seek(0)
                 st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
 
+            # Ringkasan jumlah
             jumlah_hadir_hari_ini = sum(
                 1 for r in riwayat if tanggal_hari_ini in r["Waktu"]
             )
             st.info(f"📊 Total Jemaat Hadir Hari Ini: {jumlah_hadir_hari_ini}")
 
+            # Riwayat Presensi Jemaat Ini
             st.subheader("📋 Riwayat Presensi Jemaat Ini")
             riwayat_jemaat = [r for r in riwayat if r["ID"] == qr_data]
             st.table(riwayat_jemaat if riwayat_jemaat else "Belum ada riwayat.")
