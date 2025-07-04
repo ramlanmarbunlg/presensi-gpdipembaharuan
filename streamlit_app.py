@@ -55,7 +55,7 @@ def kirim_email(to_email, subject, body):
 # ===================== HALAMAN PRESENSI =====================
 if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
-    img = st.camera_input("Silakan scan QR Code dari kartu jemaat Anda")
+    img = st.camera_input("Silakan scan QR Code dari kartu jemaat Anda!")
 
     if img:
         st.image(img, caption="✅ Gambar berhasil ditangkap.")
@@ -218,7 +218,7 @@ elif halaman == "🔐 Admin Panel":
             # Jika tombol simpan ditekan
             if simpan:
                 if not nik.strip() or not nama_baru.strip() or not no_wa.strip() or not email_baru.strip():
-                    st.warning("⚠️ Semua field wajib diisi.")
+                    st.warning("⚠️ Semua isian wajib diisi.")
                 elif not is_valid_nik(nik.strip()):
                     st.error("❌ NIK harus berupa 16 digit angka.")
                 elif not is_valid_wa(no_wa.strip()):
