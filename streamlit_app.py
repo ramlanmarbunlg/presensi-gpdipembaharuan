@@ -196,8 +196,8 @@ elif halaman == "🔐 Admin Panel":
                 nik = st.text_input("NIK", max_chars=20)
                 nama_baru = st.text_input("Nama Lengkap")
                 jenis_kelamin = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
-                no_wa = st.text_input("No WhatsApp (format 628xxx)")
-                email_baru = st.text_input("Email")
+                no_wa = st.text_input("No WhatsApp (Wajib format 628xxx)")
+                email_baru = st.text_input("Email (Wajib email aktif)")
                 simpan = st.form_submit_button("💾 Simpan")
         
             # Fungsi validasi regex
