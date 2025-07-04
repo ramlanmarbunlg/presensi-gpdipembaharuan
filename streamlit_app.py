@@ -15,12 +15,44 @@ from io import BytesIO
 from collections import Counter
 import base64
 import qrcode
-import smtplib
-from email.message import EmailMessage
 import pandas as pd
 def convert_to_csv(data):
     return pd.DataFrame(data).to_csv(index=False).encode('utf-8')
+import re  # Tambahkan ini di atas file untuk validasi email/nomor
+import smtplib
+from email.message import EmailMessage
+from email.mime.text import MIMEText
+def kirim_email_selamat_datang(penerima_email, nama_jemaat):
+    sender_email = st.secrets["email"]["from_email"]
+    app_password = st.secrets["email"]["app_password"]
 
+    subject = "Selamat Datang di Sistem Presensi GPdI Pembaharuan"
+    body = f"""
+    Shalom {nama_jemaat},
+
+    Selamat datang di sistem kehadiran jemaat GPdI Pembaharuan Medan.
+    Anda telah berhasil terdaftar dengan nama: {nama_jemaat}.
+
+    Gunakan kartu atau QR Code Anda saat hadir di ibadah.
+
+    Tuhan memberkati 🙏
+
+    -- Admin GPdI Pembaharuan
+    """
+
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = sender_email
+    msg["To"] = penerima_email
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(sender_email, app_password)
+            smtp.send_message(msg)
+        return True
+    except Exception as e:
+        st.error(f"⚠️ Gagal mengirim email: {e}")
+        return False
 
 # ===================== KONFIGURASI APLIKASI =====================
 st.set_page_config(page_title="Presensi Jemaat", page_icon="🙏")
@@ -161,30 +193,57 @@ elif halaman == "🔐 Admin Panel":
         # Tabs navigasi admin
         tab1, tab2, tab3 = st.tabs(["🆕 Tambah Jemaat", "🖼️ Upload Foto", "📊 Statistik Presensi"])
 
-        # ========== TAB 1: Tambah Jemaat ==========
-        with tab1:
-            st.markdown("### ✨ Tambah Jemaat Baru")
-            delay = st.slider("⏱️ Tampilkan pesan sukses selama (detik):", 1, 5, 2)
-
-            daftar_id = [j["ID"] for j in sheet_jemaat.get_all_records()]
-            angka_terakhir = max([int(i[1:]) for i in daftar_id if i.startswith("J")], default=0)
-            id_baru = f"J{angka_terakhir + 1:03d}"
-
-            form_key = st.session_state.get("form_key", "form_jemaat_default")
-            with st.form(key=form_key):
-                st.text_input("ID Jemaat Baru", value=id_baru, disabled=True)
-                nama_baru = st.text_input("Nama Jemaat Baru", key="input_nama")
-                simpan = st.form_submit_button("💾 Simpan")
-
-            if simpan:
-                if nama_baru.strip():
-                    sheet_jemaat.append_row([id_baru, nama_baru.strip(), ""])
-                    st.success(f"✅ Jemaat '{nama_baru}' berhasil ditambahkan dengan ID: {id_baru}")
-                    time.sleep(delay)
-                    st.session_state.form_key = f"form_{datetime.now().timestamp()}"
-                    st.experimental_rerun()
-                else:
-                    st.warning("⚠️ Nama tidak boleh kosong.")
+    # ========== TAB 1: Tambah Jemaat ==========
+    with tab1:
+        st.markdown("### ✨ Tambah Jemaat Baru")
+        delay = st.slider("⏱️ Tampilkan pesan sukses selama (detik):", 1, 5, 2)
+    
+        daftar_id = [j["ID"] for j in sheet_jemaat.get_all_records()]
+        angka_terakhir = max([int(i[1:]) for i in daftar_id if i.startswith("J")], default=0)
+        id_baru = f"J{angka_terakhir + 1:03d}"
+    
+        form_key = st.session_state.get("form_key", "form_jemaat_default")
+        with st.form(key=form_key):
+            st.text_input("ID Jemaat Baru", value=id_baru, disabled=True)
+            nama_baru = st.text_input("Nama Jemaat Baru", key="input_nama")
+            wa_baru = st.text_input("No WhatsApp (Contoh: 6281234567890)", key="input_wa")
+            email_baru = st.text_input("Email Jemaat", key="input_email")
+            simpan = st.form_submit_button("💾 Simpan")
+    
+        if simpan:
+            error_msg = ""
+    
+            # Validasi nama tidak kosong
+            if not nama_baru.strip():
+                error_msg = "⚠️ Nama tidak boleh kosong."
+    
+            # Validasi nomor WhatsApp (angka, panjang, awalan 62)
+            elif not re.fullmatch(r"62\d{8,15}", wa_baru.strip()):
+                error_msg = "⚠️ Nomor WhatsApp tidak valid. Gunakan format seperti: 6281234567890 (tanpa spasi, tanpa +)."
+    
+            # Validasi email
+            elif not re.fullmatch(r"[^@]+@[^@]+\.[^@]+", email_baru.strip()):
+                error_msg = "⚠️ Alamat email tidak valid. Contoh: nama@email.com"
+    
+            if error_msg:
+                st.warning(error_msg)
+            else:
+                sheet_jemaat.append_row([
+                    id_baru,
+                    nama_baru.strip(),
+                    "",  # kolom file_id_foto
+                    wa_baru.strip(),
+                    email_baru.strip()
+                ])
+                # Kirim email
+                sukses_email = kirim_email_selamat_datang(email_baru.strip(), nama_baru.strip())
+        
+                st.success(f"✅ Jemaat '{nama_baru}' berhasil ditambahkan dengan ID: {id_baru}")
+                if sukses_email:
+                    st.info(f"📧 Email selamat datang telah dikirim ke: {email_baru.strip()}")
+                time.sleep(delay)
+                st.session_state.form_key = f"form_{datetime.now().timestamp()}"
+                st.experimental_rerun()
 
         # ========== TAB 2: Upload Foto ==========
         with tab2:
