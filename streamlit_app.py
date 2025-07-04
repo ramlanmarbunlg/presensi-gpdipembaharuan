@@ -169,11 +169,18 @@ if halaman == "📸 Presensi Jemaat":
 elif halaman == "🔐 Admin Panel":
     st.title("🔐 Admin: Kelola Data Jemaat")
 
-    # Inisialisasi login session
+    # SIDEBAR LOGOUT – Opsi 1
+    with st.sidebar:
+        if st.session_state.get("admin_login", False):
+            st.markdown("---")
+            if st.button("🔒 Logout Admin"):
+                st.session_state["admin_login"] = False
+                st.rerun()
+
+    # Login Form jika belum login
     if "admin_login" not in st.session_state:
         st.session_state["admin_login"] = False
 
-    # Jika belum login, tampilkan form login
     if not st.session_state["admin_login"]:
         st.subheader("🔑 Login Admin")
         username = st.text_input("Username")
@@ -186,70 +193,80 @@ elif halaman == "🔐 Admin Panel":
             else:
                 st.error("❌ Username atau password salah")
 
-    # Jika sudah login, baru tampilkan tabs
+    # ====== Jika berhasil login admin ======
     else:
-        st.success("👋 Selamat datang Admin!")
+        # Opsi 2: Logout Button di Header (Atas Tabs)
+        st.markdown("### 👋 Selamat datang Admin!")
 
-        # Tabs navigasi admin
+        col1, col2 = st.columns([6, 1])
+        with col1:
+            st.markdown("Kelola data jemaat menggunakan tab di bawah ini.")
+
+        with col2:
+            if st.button("🔒 Logout"):
+                st.session_state["admin_login"] = False
+                st.rerun()
+
+        # Tabs Admin
         tab1, tab2, tab3 = st.tabs(["🆕 Tambah Jemaat", "🖼️ Upload Foto", "📊 Statistik Presensi"])
 
-    # ========== TAB 1: Tambah Jemaat ==========
-    with tab1:
-        st.markdown("### ✨ Tambah Jemaat Baru")
-        delay = st.slider("⏱️ Tampilkan pesan sukses selama (detik):", 1, 5, 2)
-    
-        daftar_id = [j["ID"] for j in sheet_jemaat.get_all_records()]
-        angka_terakhir = max([int(i[1:]) for i in daftar_id if i.startswith("J")], default=0)
-        id_baru = f"J{angka_terakhir + 1:03d}"
-    
-        form_key = st.session_state.get("form_key", "form_jemaat_default")
-        with st.form(key=form_key):
-            st.text_input("ID Jemaat Baru", value=id_baru, disabled=True)
-            nama_baru = st.text_input("Nama Jemaat Baru", key="input_nama")
-            wa_baru = st.text_input("No WhatsApp (Contoh: 6281234567890)", key="input_wa")
-            email_baru = st.text_input("Email Jemaat", key="input_email")
-            simpan = st.form_submit_button("💾 Simpan")
-    
-        if simpan:
-            error_msg = ""
-    
-            # Validasi nama tidak kosong
-            if not nama_baru.strip():
-                error_msg = "⚠️ Nama tidak boleh kosong."
-    
-            # Validasi nomor WhatsApp (angka, panjang, awalan 62)
-            elif not re.fullmatch(r"62\d{8,15}", wa_baru.strip()):
-                error_msg = "⚠️ Nomor WhatsApp tidak valid. Gunakan format seperti: 6281234567890 (tanpa spasi, tanpa +)."
-    
-            # Validasi email
-            elif not re.fullmatch(r"[^@]+@[^@]+\.[^@]+", email_baru.strip()):
-                error_msg = "⚠️ Alamat email tidak valid. Contoh: nama@email.com"
-    
-            if error_msg:
-                st.warning(error_msg)
-            else:
-                sheet_jemaat.append_row([
-                    id_baru,
-                    nama_baru.strip(),
-                    "",  # kolom file_id_foto
-                    wa_baru.strip(),
-                    email_baru.strip()
-                ])
-                # Kirim email
-                sukses_email = kirim_email_selamat_datang(email_baru.strip(), nama_baru.strip())
-        
-                st.success(f"✅ Jemaat '{nama_baru}' berhasil ditambahkan dengan ID: {id_baru}")
-                if sukses_email:
-                    st.info(f"📧 Email selamat datang telah dikirim ke: {email_baru.strip()}")
-                time.sleep(delay)
-                st.session_state.form_key = f"form_{datetime.now().timestamp()}"
-                st.experimental_rerun()
+        # ========== TAB 1: Tambah Jemaat ==========
+        with tab1:
+            st.markdown("### ✨ Tambah Jemaat Baru")
+            delay = st.slider("⏱️ Tampilkan pesan sukses selama (detik):", 1, 5, 2)
+
+            daftar_id = [j["ID"] for j in sheet_jemaat.get_all_records()]
+            angka_terakhir = max([int(i[1:]) for i in daftar_id if i.startswith("J")], default=0)
+            id_baru = f"J{angka_terakhir + 1:03d}"
+
+            form_key = st.session_state.get("form_key", "form_jemaat_default")
+            with st.form(key=form_key):
+                st.text_input("ID Jemaat Baru", value=id_baru, disabled=True)
+                nama_baru = st.text_input("Nama Jemaat Baru", key="input_nama")
+                no_wa = st.text_input("Nomor WhatsApp", key="input_wa")
+                email_baru = st.text_input("Alamat Email", key="input_email")
+                simpan = st.form_submit_button("💾 Simpan")
+
+            if simpan:
+                if not nama_baru.strip():
+                    st.warning("⚠️ Nama tidak boleh kosong.")
+                elif email_baru and "@" not in email_baru:
+                    st.warning("⚠️ Format email tidak valid.")
+                elif no_wa and not no_wa.strip().isdigit():
+                    st.warning("⚠️ Format nomor WhatsApp tidak valid. Gunakan hanya angka.")
+                else:
+                    # Simpan ke sheet (tambahkan kolom jika perlu)
+                    sheet_jemaat.append_row([id_baru, nama_baru.strip(), "", no_wa.strip(), email_baru.strip()])
+                    st.success(f"✅ Jemaat '{nama_baru}' berhasil ditambahkan dengan ID: {id_baru}")
+
+                    # Kirim email selamat datang (jika email diisi)
+                    if email_baru.strip():
+                        import smtplib
+                        from email.mime.text import MIMEText
+
+                        msg = MIMEText(f"Syalom {nama_baru},\n\nSelamat datang di sistem presensi jemaat GPdI Pembaharuan.\n\nID Jemaat Anda: {id_baru}\n\nTuhan Yesus Memberkati.")
+                        msg["Subject"] = "Selamat Datang di GPdI Pembaharuan"
+                        msg["From"] = st.secrets["email_smtp"]["sender"]
+                        msg["To"] = email_baru
+
+                        try:
+                            with smtplib.SMTP("smtp.gmail.com", 587) as server:
+                                server.starttls()
+                                server.login(st.secrets["email_smtp"]["sender"], st.secrets["email_smtp"]["app_password"])
+                                server.send_message(msg)
+                            st.success("📧 Email selamat datang berhasil dikirim.")
+                        except Exception as e:
+                            st.warning(f"⚠️ Gagal mengirim email: {e}")
+
+                    time.sleep(delay)
+                    st.session_state.form_key = f"form_{datetime.now().timestamp()}"
+                    st.experimental_rerun()
 
         # ========== TAB 2: Upload Foto ==========
         with tab2:
             st.markdown("### 🖼️ Upload Foto Jemaat")
-            delay_foto = st.slider("⏱️ Lama tampil pesan sukses (detik)", 1, 5, 3, key="slider_foto")
 
+            delay_foto = st.slider("⏱️ Lama tampil pesan sukses (detik)", 1, 5, 3, key="slider_foto")
             daftar_jemaat = sheet_jemaat.get_all_records()
             opsi_jemaat = {f"{j['Nama']} ({j['ID']})": j['ID'] for j in daftar_jemaat}
 
@@ -289,21 +306,20 @@ elif halaman == "🔐 Admin Panel":
                     for key in ["select_jemaat", "upload_foto", "slider_foto"]:
                         if key in st.session_state:
                             del st.session_state[key]
-
                     st.experimental_rerun()
                 else:
                     st.warning("⚠️ Lengkapi pilihan jemaat dan foto terlebih dahulu.")
 
-        # ========== TAB 3: Statistik Presensi + Logout ==========
+        # ========== TAB 3: Statistik Presensi ==========
         with tab3:
-            st.markdown("### 📊 Statistik Presensi Global")
-
+            st.markdown("### 📊 Statistik Presensi")
             df_presensi = sheet_presensi.get_all_records()
             st.metric("🧍 Total Presensi", len(df_presensi))
 
             tanggal_list = [r["Waktu"][:10] for r in df_presensi]
             st.bar_chart(Counter(tanggal_list))
 
+            # Filter presensi per tanggal
             tanggal_filter = st.date_input("📅 Pilih Tanggal Presensi")
             tanggal_str = tanggal_filter.strftime("%Y-%m-%d")
             hasil_filter = [r for r in df_presensi if tanggal_str in r["Waktu"]]
@@ -311,12 +327,10 @@ elif halaman == "🔐 Admin Panel":
             st.info(f"📌 Total Jemaat Hadir pada {tanggal_str}: {len(hasil_filter)}")
             st.dataframe(hasil_filter)
 
+            # Ekspor CSV
             import pandas as pd
-            if st.download_button("⬇️ Export ke CSV", data=pd.DataFrame(hasil_filter).to_csv(index=False).encode("utf-8"),
-                                  file_name=f"presensi_{tanggal_str}.csv", mime="text/csv"):
-                st.success("✅ Berhasil diekspor.")
+            def convert_to_csv(data): return pd.DataFrame(data).to_csv(index=False).encode('utf-8')
+            st.download_button("⬇️ Export ke CSV", data=convert_to_csv(hasil_filter),
+                               file_name=f"presensi_{tanggal_str}.csv", mime="text/csv")
 
-            if st.button("🔒 Logout Admin"):
-                st.session_state["admin_login"] = False
-                st.rerun()
                 
