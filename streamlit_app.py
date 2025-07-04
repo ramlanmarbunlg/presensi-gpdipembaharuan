@@ -207,7 +207,7 @@ elif halaman == "🔐 Admin Panel":
                 if not nama_baru.strip() or not no_wa.strip() or not email_baru.strip():
                     st.warning("⚠️ Semua kolom wajib diisi.")
                 elif not is_valid_wa(no_wa.strip()):
-                    st.warning("⚠️ Format nomor WhatsApp tidak valid. Gunakan awalan 08 atau 628.")
+                    st.warning("⚠️ Format nomor WhatsApp tidak valid. Gunakan awalan 08 atau 628. Maksimal 13 digit!")
                 elif not is_valid_email(email_baru.strip()):
                     st.warning("⚠️ Format email tidak valid.")
                 else:
