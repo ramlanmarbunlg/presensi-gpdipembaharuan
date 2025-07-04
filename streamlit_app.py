@@ -18,9 +18,17 @@ import qrcode
 import pandas as pd
 def convert_to_csv(data):
     return pd.DataFrame(data).to_csv(index=False).encode('utf-8')
-import re  # Tambahkan ini di atas file untuk validasi email/nomor
 import smtplib
 from email.message import EmailMessage
+import re  # Tambahkan ini di atas file untuk validasi email/nomor
+# Cek email valid (standar umum)
+def is_valid_email(email):
+    email_regex = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+    return re.match(email_regex, email)
+# Cek Nomor WhatsApp Indonesia
+def is_valid_wa(no_wa):
+    wa_regex = r"^(08\d{8,13}|628\d{7,12})$"
+    return re.match(wa_regex, no_wa)
 
 # ===================== KONFIGURASI APLIKASI =====================
 st.set_page_config(page_title="Presensi Jemaat", page_icon="🙏")
@@ -196,12 +204,12 @@ elif halaman == "🔐 Admin Panel":
                 simpan = st.form_submit_button("💾 Simpan")
 
             if simpan:
-                if not nama_baru.strip():
-                    st.warning("⚠️ Nama tidak boleh kosong.")
-                elif email_baru and "@" not in email_baru:
+                if not nama_baru.strip() or not no_wa.strip() or not email_baru.strip():
+                    st.warning("⚠️ Semua kolom wajib diisi.")
+                elif not is_valid_wa(no_wa.strip()):
+                    st.warning("⚠️ Format nomor WhatsApp tidak valid. Gunakan awalan 08 atau 628.")
+                elif not is_valid_email(email_baru.strip()):
                     st.warning("⚠️ Format email tidak valid.")
-                elif no_wa and not no_wa.strip().isdigit():
-                    st.warning("⚠️ Format nomor WhatsApp tidak valid. Gunakan hanya angka.")
                 else:
                     # Simpan ke sheet (tambahkan kolom jika perlu)
                     sheet_jemaat.append_row([id_baru, nama_baru.strip(), "", no_wa.strip(), email_baru.strip()])
