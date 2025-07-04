@@ -21,38 +21,6 @@ def convert_to_csv(data):
 import re  # Tambahkan ini di atas file untuk validasi email/nomor
 import smtplib
 from email.message import EmailMessage
-from email.mime.text import MIMEText
-def kirim_email_selamat_datang(penerima_email, nama_jemaat):
-    sender_email = st.secrets["email"]["from_email"]
-    app_password = st.secrets["email"]["app_password"]
-
-    subject = "Selamat Datang di Sistem Presensi GPdI Pembaharuan"
-    body = f"""
-    Shalom {nama_jemaat},
-
-    Selamat datang di sistem kehadiran jemaat GPdI Pembaharuan Medan.
-    Anda telah berhasil terdaftar dengan nama: {nama_jemaat}.
-
-    Gunakan kartu atau QR Code Anda saat hadir di ibadah.
-
-    Tuhan memberkati 🙏
-
-    -- Admin GPdI Pembaharuan
-    """
-
-    msg = MIMEText(body)
-    msg["Subject"] = subject
-    msg["From"] = sender_email
-    msg["To"] = penerima_email
-
-    try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-            smtp.login(sender_email, app_password)
-            smtp.send_message(msg)
-        return True
-    except Exception as e:
-        st.error(f"⚠️ Gagal mengirim email: {e}")
-        return False
 
 # ===================== KONFIGURASI APLIKASI =====================
 st.set_page_config(page_title="Presensi Jemaat", page_icon="🙏")
