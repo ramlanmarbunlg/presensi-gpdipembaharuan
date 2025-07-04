@@ -196,15 +196,15 @@ elif halaman == "🔐 Admin Panel":
                 nik = st.text_input("NIK", max_chars=20)
                 nama_baru = st.text_input("Nama Lengkap")
                 jenis_kelamin = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
-                no_wa = st.text_input("No WhatsApp (format 08xxxx / 628xxx)")
+                no_wa = st.text_input("No WhatsApp (format 628xxx)")
                 email_baru = st.text_input("Email")
                 simpan = st.form_submit_button("💾 Simpan")
         
             # Fungsi validasi regex
             def is_valid_wa(no):
                 import re #untuk validasi no WA
-                # Valid: 08xxxxxxxxxx (10–13 digit) atau 628xxxxxxxxx
-                wa_regex = r"^(08\d{8,11}|628\d{7,10})$"
+                # Valid: 628xxxxxxxxx (10–13 digit)
+                wa_regex = r"^(628\d{7,10})$"
                 return re.match(wa_regex, no)
         
             def is_valid_email(email):
