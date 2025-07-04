@@ -222,7 +222,7 @@ elif halaman == "🔐 Admin Panel":
             form_key = st.session_state.get("form_key", "form_jemaat_default")
             with st.form(key=form_key):
                 st.text_input("ID Jemaat Baru", value=id_baru, disabled=True)
-                nama_baru = st.text_input("Nama Jemaat Baru", key="input_nama")
+                nama_baru = st.text_input("Nama Lengkap", key="input_nama")
                 no_wa = st.text_input("Nomor WhatsApp", key="input_wa")
                 email_baru = st.text_input("Alamat Email", key="input_email")
                 simpan = st.form_submit_button("💾 Simpan")
