@@ -27,7 +27,7 @@ def is_valid_email(email):
     return re.match(email_regex, email)
 # Cek Nomor WhatsApp Indonesia
 def is_valid_wa(no_wa):
-    wa_regex = r"^(08\d{8,13}|628\d{7,12})$"
+    wa_regex = r"^(08\d{8,11}|628\d{7,10})$"
     return re.match(wa_regex, no_wa)
 
 # ===================== KONFIGURASI APLIKASI =====================
