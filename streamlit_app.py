@@ -149,134 +149,124 @@ elif halaman == "🔐 Admin Panel":
                 st.error("❌ Username atau password salah")
 
     else:
-        st.success("👋 Selamat datang Admin!")
+    st.success("👋 Selamat datang Admin!")
 
-        # Statistik Presensi Global
-        st.subheader("📊 Statistik Presensi Global (Semua Tanggal)")
-        df_presensi = sheet_presensi.get_all_records()
-        st.metric("🧍 Total Jemaat Hadir (Keseluruhan)", len(df_presensi))
-        tanggal_list = [r["Waktu"][:10] for r in df_presensi]
-        st.bar_chart(Counter(tanggal_list))
+col1, col2 = st.columns([3, 1])
+with col1:
+    st.subheader("🆕 Tambah Jemaat Baru")
+    delay = st.slider("⏱️ Tampilkan pesan sukses selama (detik):", 1, 5, 2)
 
-        # Statistik Hari Ini
-        st.subheader("📅 Statistik Presensi Hari Ini")
-        waktu_wib = datetime.now(ZoneInfo("Asia/Jakarta"))
-        hari_ini = waktu_wib.strftime("%Y-%m-%d")
-        jumlah_hari_ini = sum(1 for r in df_presensi if hari_ini in r["Waktu"])
-        st.metric("🧍 Jemaat Hadir Hari Ini", jumlah_hari_ini)
+    # Auto ID Jemaat
+    daftar_id = [j["ID"] for j in sheet_jemaat.get_all_records()]
+    angka_terakhir = max([int(i[1:]) for i in daftar_id if i.startswith("J")], default=0)
+    id_baru = f"J{angka_terakhir + 1:03d}"
 
-        # Filter per Tanggal Tertentu
-        st.subheader("🔍 Filter Presensi per Tanggal")
-        tanggal_pilih = st.date_input("Pilih tanggal:", value=datetime.now(ZoneInfo("Asia/Jakarta")).date())
-        tanggal_str = tanggal_pilih.strftime("%Y-%m-%d")
-        hasil_filter = [r for r in df_presensi if r["Waktu"].startswith(tanggal_str)]
+    form_key = st.session_state.get("form_key", "form_jemaat_default")
+    with st.form(key=form_key):
+        st.text_input("ID Jemaat Baru", value=id_baru, disabled=True)
+        nama_baru = st.text_input("Nama Jemaat Baru", key="input_nama")
+        simpan = st.form_submit_button("💾 Simpan")
 
-        st.info(f"📆 Total kehadiran pada tanggal {tanggal_str}: {len(hasil_filter)}")
-
-        # Tampilkan Tabel Riwayat pada Tanggal Tersebut
-        st.subheader(f"📋 Riwayat Presensi Tanggal {tanggal_str}")
-        if hasil_filter:
-            st.table(hasil_filter)
+    if simpan:
+        if nama_baru.strip():
+            sheet_jemaat.append_row([id_baru, nama_baru.strip(), ""])
+            st.success(f"✅ Jemaat '{nama_baru}' berhasil ditambahkan dengan ID: {id_baru}")
+            time.sleep(delay)
+            st.session_state.form_key = f"form_{datetime.now().timestamp()}"
+            st.experimental_rerun()
         else:
-            st.warning("❗ Tidak ada presensi pada tanggal tersebut.")
+            st.warning("⚠️ Nama tidak boleh kosong.")
 
-        # =================== FORM TAMBAH JEMAAT BARU ===================
-        st.subheader("🆕 Tambah Jemaat Baru")
-        
-        # Pilihan waktu delay sebelum reset otomatis (fleksibel)
-        delay = st.slider("⏱️ Tampilkan pesan sukses selama (detik):", 1, 5, 2)
-        
-        # Ambil ID terakhir dari sheet
-        daftar_id = [j["ID"] for j in sheet_jemaat.get_all_records()]
-        angka_terakhir = max([int(i[1:]) for i in daftar_id if i.startswith("J")], default=0)
-        id_baru = f"J{angka_terakhir + 1:03d}"
-        
-        # Gunakan form_key untuk bisa reset otomatis
-        form_key = st.session_state.get("form_key", "form_jemaat_default")
-        
-        with st.form(key=form_key):
-            st.text_input("ID Jemaat Baru", value=id_baru, disabled=True)
-            nama_baru = st.text_input("Nama Jemaat Baru", key="input_nama")
-        
-            simpan = st.form_submit_button("💾 Simpan")
-        
-        # Simpan dan reset otomatis
-        if simpan:
-            if nama_baru.strip():
-                sheet_jemaat.append_row([id_baru, nama_baru.strip(), ""])
-                st.success(f"✅ Jemaat '{nama_baru}' berhasil ditambahkan dengan ID: {id_baru}")
-                time.sleep(delay)  # waktu tampil pesan sukses sesuai slider
-                st.session_state.form_key = f"form_{datetime.now().timestamp()}"
-                st.experimental_rerun()
-            else:
-                st.warning("⚠️ Nama tidak boleh kosong.")
-            
-        # Upload Foto Jemaat
-        from googleapiclient.discovery import build
-        from googleapiclient.http import MediaIoBaseUpload
-        from google.oauth2 import service_account
-        
-        st.subheader("🖼️ Upload Foto Jemaat")
-        
-        # Waktu tampil pesan sukses
-        delay_foto = st.slider("⏱️ Lama tampil pesan sukses (detik)", 1, 5, 3, key="slider_foto")
-        
-        # Ambil daftar jemaat
-        daftar_jemaat = sheet_jemaat.get_all_records()
-        opsi_jemaat = {f"{j['Nama']} ({j['ID']})": j['ID'] for j in daftar_jemaat}
-        
-        # Form input
-        selected = st.selectbox("Pilih Jemaat", options=list(opsi_jemaat.keys()), key="select_jemaat")
-        foto_file = st.file_uploader("Pilih File Foto (JPG/PNG)", type=["jpg", "jpeg", "png"], key="upload_foto")
-        
-        # ✅ Preview gambar sebelum upload
-        if foto_file:
-            st.image(foto_file, caption="📷 Preview Foto", width=100)
-        
-         # Tombol upload
-        if st.button("📤 Upload Foto"):
-            if selected and foto_file:
-                credentials = service_account.Credentials.from_service_account_info(
-                    st.secrets["gcp_service_account"]
-                )
-                drive_service = build("drive", "v3", credentials=credentials)
-        
-                # Upload file ke Google Drive
-                nama_file = f"foto_{opsi_jemaat[selected]}.jpg"
-                media = MediaIoBaseUpload(foto_file, mimetype="image/jpeg")
-                file_metadata = {
-                    "name": nama_file,
-                    "parents": [st.secrets["drive"]["folder_id_foto"]]
-                }
-                uploaded = drive_service.files().create(
-                    body=file_metadata, media_body=media, fields="id"
-                ).execute()
-                file_id = uploaded.get("id")
-        
-                # Update kolom File_ID_Foto di Google Sheet
-                baris_update = next(
-                    i + 2 for i, row in enumerate(daftar_jemaat)
-                    if row["ID"] == opsi_jemaat[selected]
-                )
-                sheet_jemaat.update_cell(baris_update, 3, file_id)
-        
-                # Tampilkan pesan sukses
-                st.success(f"✅ Foto jemaat berhasil diunggah. ID File: {file_id}")
-        
-                # Tunggu delay yang dipilih dari slider
-                time.sleep(delay_foto)
-        
-                # Reset form secara aman
-                for key in ["select_jemaat", "upload_foto", "slider_foto"]:
-                    if key in st.session_state:
-                        del st.session_state[key]
-        
-                # Refresh ulang halaman agar form benar-benar bersih
-                st.experimental_rerun()
-            else:
-                st.warning("⚠️ Lengkapi pilihan jemaat dan foto terlebih dahulu.")
+    # Upload Foto
+    st.subheader("🖼️ Upload Foto Jemaat")
+    delay_foto = st.slider("⏱️ Lama tampil pesan sukses (detik)", 1, 5, 3, key="slider_foto")
+    daftar_jemaat = sheet_jemaat.get_all_records()
+    opsi_jemaat = {f"{j['Nama']} ({j['ID']})": j['ID'] for j in daftar_jemaat}
+    selected = st.selectbox("Pilih Jemaat", options=list(opsi_jemaat.keys()), key="select_jemaat")
+    foto_file = st.file_uploader("Pilih File Foto (JPG/PNG)", type=["jpg", "jpeg", "png"], key="upload_foto")
 
-        # Tombol logout
-        if st.button("🔒 Logout Admin"):
-            st.session_state["admin_login"] = False
-            st.rerun()
+    if foto_file:
+        st.image(foto_file, caption="📷 Preview Foto", width=150)
+
+    if st.button("📤 Upload Foto"):
+        if selected and foto_file:
+            from googleapiclient.discovery import build
+            from googleapiclient.http import MediaIoBaseUpload
+            from google.oauth2 import service_account
+
+            credentials = service_account.Credentials.from_service_account_info(st.secrets["gcp_service_account"])
+            drive_service = build("drive", "v3", credentials=credentials)
+
+            nama_file = f"foto_{opsi_jemaat[selected]}.jpg"
+            media = MediaIoBaseUpload(foto_file, mimetype="image/jpeg")
+            file_metadata = {"name": nama_file, "parents": [st.secrets["drive"]["folder_id_foto"]]}
+            uploaded = drive_service.files().create(body=file_metadata, media_body=media, fields="id").execute()
+            file_id = uploaded.get("id")
+
+            baris_update = next(
+                i + 2 for i, row in enumerate(daftar_jemaat)
+                if row["ID"] == opsi_jemaat[selected]
+            )
+            sheet_jemaat.update_cell(baris_update, 3, file_id)
+
+            st.success(f"✅ Foto jemaat berhasil diunggah. ID File: {file_id}")
+            time.sleep(delay_foto)
+
+            for key in ["select_jemaat", "upload_foto", "slider_foto"]:
+                if key in st.session_state:
+                    del st.session_state[key]
+
+            st.experimental_rerun()
+        else:
+            st.warning("⚠️ Lengkapi pilihan jemaat dan foto terlebih dahulu.")
+
+with col2:
+    st.markdown("### ")
+    if st.button("🔒 Logout Admin"):
+        st.session_state["admin_login"] = False
+        st.rerun()
+
+    # --- Statistik Global ---
+    st.subheader("📊 Statistik Presensi Global")
+    df_presensi = sheet_presensi.get_all_records()
+    st.metric("🧍 Total Presensi Keseluruhan", len(df_presensi))
+    tanggal_list = [r["Waktu"][:10] for r in df_presensi]
+    st.bar_chart(Counter(tanggal_list))
+
+    # --- Statistik Hari Ini ---
+    st.subheader("📅 Statistik Hari Ini")
+    waktu_wib = datetime.now(ZoneInfo("Asia/Jakarta"))
+    hari_ini = waktu_wib.strftime("%Y-%m-%d")
+    total_hari_ini = sum(1 for r in df_presensi if hari_ini in r["Waktu"])
+    st.metric("👥 Jumlah Jemaat Hadir Hari Ini", total_hari_ini)
+
+    # --- Filter Presensi ---
+    st.subheader("🔍 Filter Riwayat Presensi")
+
+    # Konversi jadi DataFrame (untuk CSV export dan filter lebih mudah)
+    import pandas as pd
+    df = pd.DataFrame(df_presensi)
+
+    # Dropdown nama jemaat (otomatis dari data presensi)
+    semua_nama = sorted(df["Nama"].unique().tolist())
+    pilih_nama = st.selectbox("🧍 Filter berdasarkan nama jemaat (opsional):", ["Semua"] + semua_nama)
+
+    # Filter berdasarkan tanggal
+    tanggal_input = st.date_input("📆 Pilih tanggal presensi:", value=datetime.now(ZoneInfo("Asia/Jakarta")).date())
+    tanggal_str = tanggal_input.strftime("%Y-%m-%d")
+
+    # Terapkan filter
+    df_filtered = df[df["Waktu"].str.startswith(tanggal_str)]
+    if pilih_nama != "Semua":
+        df_filtered = df_filtered[df_filtered["Nama"] == pilih_nama]
+
+    st.info(f"📋 Total data: {len(df_filtered)}")
+
+    # Tampilkan hasil
+    if not df_filtered.empty:
+        st.dataframe(df_filtered)
+        # Export ke CSV
+        csv_data = df_filtered.to_csv(index=False).encode("utf-8")
+        st.download_button("📥 Download CSV", data=csv_data, file_name=f"presensi_{tanggal_str}.csv", mime="text/csv")
+    else:
+        st.warning("❗ Tidak ada data presensi sesuai filter.")
