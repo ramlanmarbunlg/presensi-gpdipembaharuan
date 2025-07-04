@@ -55,7 +55,7 @@ def kirim_email(to_email, subject, body):
 
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
-        server.login(st.secrets["email"]["sender"], st.secrets["email"]["password"])
+        server.login(st.secrets["email_smtp"]["sender"], st.secrets["email"]["app_password"])
         server.send_message(msg)
         server.quit()
     except Exception as e:
@@ -114,7 +114,7 @@ if halaman == "📸 Presensi Jemaat":
 
                 # Kirim email ke jemaat
                 if email_jemaat:
-                    kirim_email(email_jemaat, "Kehadiran Jemaat GPdI", f"Syalom {nama_jemaat}, Presensi Anda pada {waktu_str} telah tercatat di sistem GPdI.")
+                    kirim_email(email_jemaat, "Kehadiran Jemaat GPdI", f"Syalom {nama_jemaat}, Presensi Anda pada {waktu_str} telah tercatat di sistem GPdI Pembaharuan!.")
 
                 buffer = BytesIO()
                 c = canvas.Canvas(buffer)
