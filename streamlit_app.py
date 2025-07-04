@@ -44,18 +44,18 @@ client = gspread.authorize(creds)
 sheet_presensi = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("presensi")
 sheet_jemaat = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("data_jemaat")
 
-# ===================== FUNGSI EMAIL =====================
+# ===================== FUNGSI KIRIM EMAIL (BERHASIL PRESENSI) =====================
 def kirim_email(to_email, subject, body):
     try:
         msg = EmailMessage()
         msg["Subject"] = subject
-        msg["From"] = st.secrets["email"]["sender"]
+        msg["From"] = st.secrets["email_smtp"]["sender"]
         msg["To"] = to_email
         msg.set_content(body)
 
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
-        server.login(st.secrets["email_smtp"]["sender"], st.secrets["email"]["app_password"])
+        server.login(st.secrets["email_smtp"]["sender"], st.secrets["email_smtp"]["app_password"])
         server.send_message(msg)
         server.quit()
     except Exception as e:
