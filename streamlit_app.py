@@ -81,8 +81,8 @@ if halaman == "📸 Presensi Jemaat":
             waktu_str = waktu_wib.strftime("%Y-%m-%d %H:%M:%S")
             tanggal_hari_ini = waktu_wib.strftime("%Y-%m-%d")
 
-            # ===== CEK TERLAMBAT atau TIDAK =====
-            batas_waktu = waktu_wib.replace(hour=4, minute=0, second=0, microsecond=0)
+            # ===== CEK TERLAMBAT atau TIDAK (IBADAH 10.30)=====
+            batas_waktu = waktu_wib.replace(hour=10, minute=30, second=0, microsecond=0)
             keterangan = "Tepat Waktu" if waktu_wib <= batas_waktu else "Terlambat"
 
             # ===== CEK SUDAH PRESENSI =====
@@ -127,7 +127,7 @@ if halaman == "📸 Presensi Jemaat":
                 
                     body_email = (
                         f"Syalom {nama_jemaat},\n\n"
-                        f"Presensi Anda pada {waktu_str} telah tercatat sebagai *{keterangan}*.\n\n"
+                        f"Presensi Anda pada {waktu_str} telah tercatat sebagai **{keterangan}**.\n\n"
                         f"{pesan_tambahan}\n\n"
                         "Tuhan Yesus Memberkati 🙏\n\n-- Admin GPdI Pembaharuan."
                     )
