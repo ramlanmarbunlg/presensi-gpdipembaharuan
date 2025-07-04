@@ -203,7 +203,7 @@ elif halaman == "🔐 Admin Panel":
             # Fungsi validasi regex
             def is_valid_wa(no):
                 import re #untuk validasi no WA
-                # Valid: 08xxxxxxxxxx (10–12 digit) atau 628xxxxxxxxx
+                # Valid: 08xxxxxxxxxx (10–13 digit) atau 628xxxxxxxxx
                 wa_regex = r"^(08\d{8,11}|628\d{7,10})$"
                 return re.match(wa_regex, no)
         
@@ -211,11 +211,16 @@ elif halaman == "🔐 Admin Panel":
                 import re #untuk validasi email
                 email_regex = r"^[\w\.-]+@[\w\.-]+\.\w+$"
                 return re.match(email_regex, email)
+
+            def is_valid_nik(nik):
+                return nik.isdigit() and len(nik) == 16
         
             # Jika tombol simpan ditekan
             if simpan:
                 if not nik.strip() or not nama_baru.strip() or not no_wa.strip() or not email_baru.strip():
                     st.warning("⚠️ Semua field wajib diisi.")
+                elif not is_valid_nik(nik.strip()):
+                    st.error("❌ NIK harus berupa 16 digit angka.")
                 elif not is_valid_wa(no_wa.strip()):
                     st.error("❌ Format nomor WhatsApp tidak valid (harus 10-13 digit).")
                 elif not is_valid_email(email_baru.strip()):
