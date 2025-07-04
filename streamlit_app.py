@@ -103,7 +103,7 @@ if halaman == "📸 Presensi Jemaat":
                 st.warning(f"⚠️ Anda sudah melakukan presensi hari ini pada {waktu_terakhir}")
             else:
                 sheet_presensi.append_row([waktu_str, qr_data, nama_jemaat])
-                st.success(f"📝 Kehadiran {nama_jemaat} berhasil dicatat!")
+                st.success(f"📝 Kehadiran {nama_jemaat} berhasil dicatat pada sistem!")
 
                 if foto_id:
                     foto_url = f"https://drive.google.com/thumbnail?id={foto_id}"
