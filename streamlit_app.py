@@ -152,8 +152,8 @@ elif halaman == "🔐 Admin Panel":
             else:
                 st.error("❌ Username atau password salah")
 
-    else:
-        st.success("👋 Selamat datang Admin!")
+else:
+    st.success("👋 Selamat datang Admin!")
 
 # Tabs navigasi admin
 tab1, tab2, tab3 = st.tabs(["🆕 Tambah Jemaat", "🖼️ Upload Foto", "📊 Statistik Presensi"])
