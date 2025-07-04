@@ -110,12 +110,32 @@ if halaman == "📸 Presensi Jemaat":
                     except:
                         st.warning("⚠️ Gagal memuat foto jemaat.")
 
-                # Kirim email presensi
+                # Kirim email presensi dengan pesan sesuai keterangan
                 if email_jemaat:
+                    if keterangan == "Tepat Waktu":
+                        pesan_tambahan = (
+                            "Selamat datang di rumah Tuhan! Kami sangat menghargai kedatangan Saudara tepat waktu, "
+                            "karena hal ini menunjukkan rasa hormat kita kepada Tuhan dan kepada sesama jemaat. "
+                            "Mari kita bersama-sama memulai ibadah dengan hati yang tenang dan penuh sukacita."
+                        )
+                    else:  # Terlambat
+                        pesan_tambahan = (
+                            "Mari bersama-sama kita hadir tepat waktu dalam ibadah sebagai bentuk penghormatan kepada Tuhan "
+                            "dan persekutuan yang kudus. Keterlambatan dapat mengurangi hadirat Tuhan dan menghalangi kita "
+                            "untuk sepenuhnya terlibat dalam penyembahan."
+                        )
+                
+                    body_email = (
+                        f"Syalom {nama_jemaat},\n\n"
+                        f"Presensi Anda pada {waktu_str} telah tercatat sebagai *{keterangan}*.\n\n"
+                        f"{pesan_tambahan}\n\n"
+                        "Tuhan Yesus Memberkati 🙏\n\n-- Admin GPdI Pembaharuan."
+                    )
+                
                     kirim_email(
                         email_jemaat,
                         "Kehadiran Jemaat GPdI Pembaharuan",
-                        f"Syalom {nama_jemaat},\n\nPresensi Anda pada {waktu_str} telah tercatat sebagai *{keterangan}*.\n\nTuhan Yesus Memberkati 🙏\n\n-- Admin GPdI Pembaharuan."
+                        body_email
                     )
 
                 # Sertifikat
