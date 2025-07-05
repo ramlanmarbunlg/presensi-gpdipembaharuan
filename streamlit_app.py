@@ -79,6 +79,29 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+# =================== FULLSCREEN MODE / KIOSK ===================
+st.markdown("""
+    <script>
+        // Jalankan fullscreen saat pertama kali load halaman
+        function openFullscreen() {
+            let elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) { /* Safari */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE11 */
+                elem.msRequestFullscreen();
+            }
+        }
+
+        // Otomatis aktif saat load (delay sedikit untuk aman)
+        window.addEventListener('load', function() {
+            setTimeout(openFullscreen, 500);
+        });
+    </script>
+""", unsafe_allow_html=True)
+
+
 # ===================== SIDEBAR NAVIGASI =====================
 halaman = st.sidebar.selectbox("📂 Pilih Halaman", ["📸 Presensi Jemaat", "🔐 Admin Panel"])
 
