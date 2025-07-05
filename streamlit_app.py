@@ -20,6 +20,17 @@ from email.message import EmailMessage
 import smtplib
 import streamlit.components.v1 as components
 
+    st.markdown("""
+        <style>
+        .stApp {
+            background-image: url("https://www.transparenttextures.com/patterns/asfalt-light.png");
+            background-size: auto;
+            background-repeat: repeat;
+            background-position: top left;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
 # ===================== KONFIGURASI APLIKASI =====================
 st.set_page_config(page_title="Presensi Jemaat", page_icon="🙏")
 
@@ -55,17 +66,6 @@ st.markdown("""
             border-top: 1px solid #ccc;
         }
     </style>
-
-    st.markdown("""
-        <style>
-        .stApp {
-            background-image: url("https://www.transparenttextures.com/patterns/asfalt-light.png");
-            background-size: auto;
-            background-repeat: repeat;
-            background-position: top left;
-        }
-        </style>
-    """, unsafe_allow_html=True)
 
     <div class="header">
         <img src="https://drive.google.com/thumbnail?id=1iMX_EgdFn6PcbllsAWezgyhypGymN1xE" alt="Logo Gereja">
