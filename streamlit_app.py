@@ -44,7 +44,7 @@ st.markdown("""
         }
 
         body {
-            background-image: url("https://www.transparenttextures.com/patterns/white-wall.png");
+            background-image: url("https://www.transparenttextures.com/patterns/asfalt-light.png");
             background-size: cover;
             background-repeat: no-repeat;
             background-position: center;
@@ -55,7 +55,7 @@ st.markdown("""
             bottom: 0;
             width: 100%;
             background-color: #f0f2f6;
-            text-align: center;
+            text-align: left;
             padding: 0.5rem;
             color: #666;
             font-size: 13px;
@@ -64,7 +64,7 @@ st.markdown("""
     </style>
 
     <div class="header">
-        <img src="https://drive.google.com/file/d/1iMX_EgdFn6PcbllsAWezgyhypGymN1xE/view" alt="Logo Gereja">
+        <img src="https://drive.google.com/thumbnail?id=1iMX_EgdFn6PcbllsAWezgyhypGymN1xE" alt="Logo Gereja">
         <h1>GPdI Pembaharuan Medan</h1>
     </div>
 """, unsafe_allow_html=True)
