@@ -23,17 +23,6 @@ import streamlit.components.v1 as components
 # ===================== KONFIGURASI APLIKASI =====================
 st.set_page_config(page_title="Presensi Jemaat", page_icon="🙏")
 
-st.markdown("""
-    <style>
-    .stApp {
-        background-image: url("https://www.transparenttextures.com/patterns/asfalt-light.png");
-        background-size: auto;
-        background-repeat: repeat;
-        background-position: top left;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
 # =================== UI HEADER ===================
 st.markdown("""
     <style>
@@ -66,6 +55,26 @@ st.markdown("""
             border-top: 1px solid #ccc;
         }
     </style>
+
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background: linear-gradient(135deg, #f9d423, #ff4e50, #007cf0, #ffffff);
+        background-size: 400% 400%;
+        animation: gradientBG 15s ease infinite;
+        min-height: 100vh;
+    }
+
+    @keyframes gradientBG {
+        0% {background-position: 0% 50%;}
+        50% {background-position: 100% 50%;}
+        100% {background-position: 0% 50%;}
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
     <div class="header">
         <img src="https://drive.google.com/thumbnail?id=1iMX_EgdFn6PcbllsAWezgyhypGymN1xE" alt="Logo Gereja">
