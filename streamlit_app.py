@@ -129,7 +129,7 @@ if halaman == "📸 Presensi Jemaat":
                         f"Syalom {nama_jemaat},\n\n"
                         f"Presensi Anda pada {waktu_str} telah tercatat sebagai **{keterangan}**.\n\n"
                         f"{pesan_tambahan}\n\n"
-                        "Tuhan Yesus Memberkati 🙏\n\n-- Admin GPdI Pembaharuan."
+                        "Tuhan Yesus Memberkati 🙏\n\n-- IT & Media GPdI Pembaharuan."
                     )
                 
                     kirim_email(
@@ -286,7 +286,7 @@ elif halaman == "🔐 Admin Panel":
                         import smtplib
                         from email.mime.text import MIMEText
 
-                        msg = MIMEText(f"Syalom {nama_baru},\n\nSelamat datang di sistem presensi jemaat GPdI Pembaharuan.\n\nID Jemaat Anda: {id_baru}\n\nGunakan kartu atau QR Code Anda saat hadir di ibadah.\n\nTuhan Yesus Memberkati 🙏. \n\n-- Admin GPdI Pembaharuan.")
+                        msg = MIMEText(f"Syalom {nama_baru},\n\nSelamat datang di sistem presensi jemaat GPdI Pembaharuan.\n\nID Jemaat Anda: {id_baru}\n\nGunakan kartu atau QR Code Anda saat hadir di ibadah.\n\nTuhan Yesus Memberkati 🙏. \n\n-- IT & Media GPdI Pembaharuan.")
                         msg["Subject"] = "Selamat Datang di GPdI Pembaharuan"
                         msg["From"] = st.secrets["email_smtp"]["sender"]
                         msg["To"] = email_baru
