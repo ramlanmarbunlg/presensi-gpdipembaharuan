@@ -340,7 +340,7 @@ elif halaman == "🔐 Admin Panel":
                         i + 2 for i, row in enumerate(daftar_jemaat)
                         if row["ID"] == opsi_jemaat[selected]
                     )
-                    sheet_jemaat.update_cell(baris_update, 3, file_id)
+                    sheet_jemaat.update_cell(baris_update, 5, file_id)
 
                     st.success(f"✅ Foto jemaat berhasil diunggah. ID File: {file_id}")
                     time.sleep(delay_foto)
