@@ -178,7 +178,6 @@ if halaman == "📸 Presensi Jemaat":
             if decoded:
                 qr_data = decoded[0].data.decode("utf-8")
                 st.experimental_set_query_params(qr=qr_data)
-                time.sleep(3)
                 st.experimental_rerun()
             else:
                 st.error("❌ QR Code tidak terbaca. Silakan ulangi scan.")
