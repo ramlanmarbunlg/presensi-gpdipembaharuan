@@ -140,7 +140,7 @@ st.markdown("""
     <script>
         let idleTime = 0;
         let slides = [
-            {img: "https://source.unsplash.com/featured/?cross", caption: "Selamat datang di Rumah Tuhan"},
+            {img: "https://unsplash.com/photos/gray-cross-near-tall-green-trees-U_b-eSviHvs", caption: "Selamat datang di Rumah Tuhan"},
             {img: "https://source.unsplash.com/featured/?church", caption: "Tuhan itu baik, kasih setia-Nya selama-lamanya"},
             {img: "https://source.unsplash.com/featured/?worship", caption: "Masuklah gerbang-Nya dengan ucapan syukur"},
             {img: "https://source.unsplash.com/featured/?bible", caption: "Firman-Mu adalah pelita bagi kakiku"}
