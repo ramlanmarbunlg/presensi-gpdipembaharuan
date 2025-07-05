@@ -194,6 +194,13 @@ def proses_presensi(qr_data):
     time.sleep(2)
     st.experimental_rerun()
 
+# ===================== FOOTER =====================
+st.markdown("""
+    <div class="footer">
+        &copy; 2025 GPdI Pembaharuan | IT & Media Team
+    </div>
+""", unsafe_allow_html=True)
+
 # ===================== HALAMAN PRESENSI =====================
 if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
@@ -285,13 +292,6 @@ elif halaman == "🔐 Admin Panel":
                 st.rerun()
             else:
                 st.error("❌ Username atau password salah")
-                
-# ===================== FOOTER =====================
-st.markdown("""
-    <div class="footer">
-        &copy; 2025 GPdI Pembaharuan | IT & Media Team
-    </div>
-""", unsafe_allow_html=True)
 
     # ====== Jika berhasil login admin ======
     else:
