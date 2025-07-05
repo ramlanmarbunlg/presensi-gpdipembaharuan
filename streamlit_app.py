@@ -51,22 +51,122 @@ def kirim_email(to_email, subject, body):
     except Exception as e:
         st.warning(f"🚨 Gagal kirim email: {e}")
 
+import streamlit as st
+from PIL import Image
+from datetime import datetime
+from zoneinfo import ZoneInfo
+import time
+from io import BytesIO
+from reportlab.pdfgen import canvas
+import streamlit.components.v1 as components
+
+# ===================== FUNGSI PRESENSI =====================
+def proses_presensi(qr_data):
+    daftar_jemaat = sheet_jemaat.get_all_records()
+    data_jemaat = next((j for j in daftar_jemaat if str(j["ID"]).strip() == qr_data), None)
+
+    if not data_jemaat:
+        st.error("🛑 ID Jemaat tidak ditemukan dalam database.")
+        return
+
+    nama_jemaat = data_jemaat["Nama"]
+    email_jemaat = data_jemaat.get("Email", "")
+    foto_id = data_jemaat.get("File_ID_Foto", "").strip()
+
+    waktu_wib = datetime.now(ZoneInfo("Asia/Jakarta"))
+    waktu_str = waktu_wib.strftime("%Y-%m-%d %H:%M:%S")
+    tanggal_hari_ini = waktu_wib.strftime("%Y-%m-%d")
+
+    # ===== CEK TERLAMBAT atau TIDAK (IBADAH 10.30)=====
+    batas_waktu = waktu_wib.replace(hour=10, minute=30, second=0, microsecond=0)
+    keterangan = "Tepat Waktu" if waktu_wib <= batas_waktu else "Terlambat"
+
+    # ===== CEK SUDAH PRESENSI =====
+    riwayat = sheet_presensi.get_all_records()
+    sudah_presensi = any(r["ID"] == qr_data and tanggal_hari_ini in r["Waktu"] for r in riwayat)
+
+    if sudah_presensi:
+        waktu_terakhir = next(r["Waktu"] for r in riwayat if r["ID"] == qr_data and tanggal_hari_ini in r["Waktu"])
+        st.warning(f"⚠️ Anda sudah melakukan presensi hari ini pada {waktu_terakhir}")
+    else:
+        sheet_presensi.append_row([waktu_str, qr_data, nama_jemaat, keterangan])
+        st.success(f"📝 Kehadiran {nama_jemaat} berhasil dicatat sebagai **{keterangan}**!")
+
+        # 🔔 Beep
+        st.markdown("""
+        <audio autoplay>
+            <source src="https://www.soundjay.com/buttons/sounds/beep-08b.mp3" type="audio/mpeg">
+        </audio>
+        """, unsafe_allow_html=True)
+
+        # Foto
+        if foto_id:
+            foto_url = f"https://drive.google.com/thumbnail?id={foto_id}"
+            st.image(foto_url, width=200, caption=f"🡭 Foto Jemaat: {nama_jemaat}")
+
+        # Email Notifikasi
+        if email_jemaat:
+            if keterangan == "Tepat Waktu":
+                pesan_tambahan = (
+                    "Selamat datang di rumah Tuhan! Kami sangat menghargai kedatangan Saudara tepat waktu, "
+                    "karena hal ini menunjukkan rasa hormat kita kepada Tuhan dan kepada sesama jemaat. "
+                    "Mari kita bersama-sama memulai ibadah dengan hati yang tenang dan penuh sukacita."
+                )
+            else:
+                pesan_tambahan = (
+                    "Mari bersama-sama kita hadir tepat waktu dalam ibadah sebagai bentuk penghormatan kepada Tuhan "
+                    "dan persekutuan yang kudus. Keterlambatan dapat mengurangi hadirat Tuhan dan menghalangi kita "
+                    "untuk sepenuhnya terlibat dalam penyembahan."
+                )
+
+            body_email = (
+                f"Syalom {nama_jemaat},\n\n"
+                f"Presensi Anda pada {waktu_str} telah tercatat sebagai **{keterangan}**.\n\n"
+                f"{pesan_tambahan}\n\n"
+                "Tuhan Yesus Memberkati 🙏\n\n-- IT & Media GPdI Pembaharuan."
+            )
+
+            kirim_email(email_jemaat, "Kehadiran Jemaat GPdI Pembaharuan", body_email)
+
+        # Sertifikat PDF
+        buffer = BytesIO()
+        c = canvas.Canvas(buffer)
+        c.setFont("Helvetica-Bold", 18)
+        c.drawString(100, 750, "SERTIFIKAT KEHADIRAN JEMAAT")
+        c.setFont("Helvetica", 12)
+        c.drawString(100, 700, f"Nama Jemaat : {nama_jemaat}")
+        c.drawString(100, 680, f"ID Jemaat   : {qr_data}")
+        c.drawString(100, 660, f"Waktu Hadir : {waktu_str}")
+        c.drawString(100, 640, f"Keterangan  : {keterangan}")
+        c.drawString(100, 620, "Lokasi      : GPdI Pembaharuan Medan")
+        c.save()
+        buffer.seek(0)
+        st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
+
+        time.sleep(2)
+        st.experimental_rerun()
+
 # ===================== HALAMAN PRESENSI =====================
 if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
-    st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
 
-    # ==== Autofocus field QR scan ====
-    st.markdown("""
-        <script>
-        const qrInput = window.parent.document.querySelector('input[data-testid="stTextInput"]');
-        if (qrInput) { qrInput.focus(); }
-        </script>
-    """, unsafe_allow_html=True)
+    # ===================== MODE USB SCANNER =====================
+    st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
 
     qr_code_input = st.text_input("🆔 ID dari QR Code", placeholder="Scan QR di sini...", key="input_qr")
 
-    # ========== KAMERA MANUAL ==========
+    # Auto-focus menggunakan HTML JS injection
+    components.html("""
+    <script>
+        const input = window.parent.document.querySelectorAll('input')[0];
+        if (input) { input.focus(); }
+    </script>
+    """, height=0)
+
+    if qr_code_input:
+        proses_presensi(qr_code_input.strip())
+
+    # ===================== MODE KAMERA MANUAL =====================
     st.markdown("### 📷 Gunakan Kamera Manual (Opsional)")
     use_camera = st.button("Aktifkan Kamera Manual")
 
@@ -78,113 +178,11 @@ if halaman == "📸 Presensi Jemaat":
             image = Image.open(img)
             decoded = decode(image)
             if decoded:
-                qr_code_input = decoded[0].data.decode("utf-8")
+                qr_data_camera = decoded[0].data.decode("utf-8")
+                st.info(f"✅ QR Terdeteksi: {qr_data_camera}")
+                proses_presensi(qr_data_camera)
             else:
                 st.error("❌ QR Code tidak terbaca. Silakan ulangi scan.")
-
-    if qr_code_input:
-        qr_data = qr_code_input.strip()
-
-        daftar_jemaat = sheet_jemaat.get_all_records()
-        data_jemaat = next((j for j in daftar_jemaat if str(j["ID"]).strip() == qr_data), None)
-
-        if not data_jemaat:
-            st.error("🛑 ID Jemaat tidak ditemukan dalam database.")
-            st.stop()
-
-        nama_jemaat = data_jemaat["Nama"]
-        email_jemaat = data_jemaat.get("Email", "")
-        foto_id = data_jemaat.get("File_ID_Foto", "").strip()
-
-        waktu_wib = datetime.now(ZoneInfo("Asia/Jakarta"))
-        waktu_str = waktu_wib.strftime("%Y-%m-%d %H:%M:%S")
-        tanggal_hari_ini = waktu_wib.strftime("%Y-%m-%d")
-
-        # ===== CEK TERLAMBAT atau TIDAK (IBADAH 10.30)=====
-        batas_waktu = waktu_wib.replace(hour=10, minute=30, second=0, microsecond=0)
-        keterangan = "Tepat Waktu" if waktu_wib <= batas_waktu else "Terlambat"
-
-        # ===== CEK SUDAH PRESENSI =====
-        riwayat = sheet_presensi.get_all_records()
-        sudah_presensi = any(
-            r["ID"] == qr_data and tanggal_hari_ini in r["Waktu"]
-            for r in riwayat
-        )
-
-        if sudah_presensi:
-            waktu_terakhir = next(
-                r["Waktu"] for r in riwayat if r["ID"] == qr_data and tanggal_hari_ini in r["Waktu"]
-            )
-            st.warning(f"⚠️ Anda sudah melakukan presensi hari ini pada {waktu_terakhir}")
-        else:
-            # ✅ Tambahkan ke Sheet dengan kolom Keterangan
-            sheet_presensi.append_row([waktu_str, qr_data, nama_jemaat, keterangan])
-            st.success(f"📝 Kehadiran {nama_jemaat} berhasil dicatat sebagai **{keterangan}** pada sistem!")
-
-            # 🔔 Tambahkan suara beep
-            st.markdown(
-                """
-                <audio autoplay>
-                    <source src="https://www.soundjay.com/buttons/sounds/beep-08b.mp3" type="audio/mpeg">
-                </audio>
-                """,
-                unsafe_allow_html=True
-            )
-
-            # Foto Jemaat
-            if foto_id:
-                foto_url = f"https://drive.google.com/thumbnail?id={foto_id}"
-                st.image(foto_url, width=200, caption=f"🡭 Foto Jemaat: {nama_jemaat}")
-
-            # Email Notifikasi
-            if email_jemaat:
-                if keterangan == "Tepat Waktu":
-                    pesan_tambahan = (
-                        "Selamat datang di rumah Tuhan! Kami sangat menghargai kedatangan Saudara tepat waktu, "
-                        "karena hal ini menunjukkan rasa hormat kita kepada Tuhan dan kepada sesama jemaat. "
-                        "Mari kita bersama-sama memulai ibadah dengan hati yang tenang dan penuh sukacita."
-                    )
-                else:
-                    pesan_tambahan = (
-                        "Mari bersama-sama kita hadir tepat waktu dalam ibadah sebagai bentuk penghormatan kepada Tuhan "
-                        "dan persekutuan yang kudus. Keterlambatan dapat mengurangi hadirat Tuhan dan menghalangi kita "
-                        "untuk sepenuhnya terlibat dalam penyembahan."
-                    )
-
-                body_email = (
-                    f"Syalom {nama_jemaat},\n\n"
-                    f"Presensi Anda pada {waktu_str} telah tercatat sebagai **{keterangan}**.\n\n"
-                    f"{pesan_tambahan}\n\n"
-                    "Tuhan Yesus Memberkati 🙏\n\n-- IT & Media GPdI Pembaharuan."
-                )
-
-                kirim_email(email_jemaat, "Kehadiran Jemaat GPdI Pembaharuan", body_email)
-
-            # Sertifikat
-            buffer = BytesIO()
-            c = canvas.Canvas(buffer)
-            c.setFont("Helvetica-Bold", 18)
-            c.drawString(100, 750, "SERTIFIKAT KEHADIRAN JEMAAT")
-            c.setFont("Helvetica", 12)
-            c.drawString(100, 700, f"Nama Jemaat : {nama_jemaat}")
-            c.drawString(100, 680, f"ID Jemaat   : {qr_data}")
-            c.drawString(100, 660, f"Waktu Hadir : {waktu_str}")
-            c.drawString(100, 640, f"Keterangan  : {keterangan}")
-            c.drawString(100, 620, "Lokasi      : GPdI Pembaharuan Medan")
-            c.save()
-            buffer.seek(0)
-            st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
-
-            time.sleep(2)
-            st.experimental_rerun()
-
-        # Statistik harian & riwayat
-        jumlah_hadir_hari_ini = sum(1 for r in riwayat if tanggal_hari_ini in r["Waktu"])
-        st.info(f"📊 Total Jemaat Hadir Hari Ini: {jumlah_hadir_hari_ini}")
-
-        st.subheader("📋 Riwayat Presensi Jemaat Ini")
-        riwayat_jemaat = [r for r in riwayat if r["ID"] == qr_data]
-        st.table(riwayat_jemaat if riwayat_jemaat else "Belum ada riwayat.")
 
 # ===================== HALAMAN ADMIN PANEL =====================
 elif halaman == "🔐 Admin Panel":
