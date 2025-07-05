@@ -54,7 +54,7 @@ def kirim_email(to_email, subject, body):
 # ===================== HALAMAN PRESENSI =====================
 if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
-    st.header("### 🖨️ Arahkan QR Code ke Scanner USB (atau input manual)")
+    st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
 
     qr_code_input = st.text_input("🆔 ID dari QR Code", placeholder="Scan QR di sini...", key="input_qr")
 
