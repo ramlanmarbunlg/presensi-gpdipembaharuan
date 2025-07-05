@@ -43,12 +43,16 @@ st.markdown("""
             color: #2c3e50;
         }
 
-        body {
-            background-image: url("https://www.transparenttextures.com/patterns/asfalt-light.png");
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-position: center;
-        }
+        st.markdown("""
+            <style>
+            .stApp {
+                background-image: url("https://www.transparenttextures.com/patterns/asfalt-light.png");
+                background-size: cover;
+                background-repeat: no-repeat;
+                background-position: center;
+            }
+            </style>
+        """, unsafe_allow_html=True)
 
         .footer {
             position: fixed;
