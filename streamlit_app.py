@@ -23,16 +23,31 @@ import streamlit.components.v1 as components
 # ===================== KONFIGURASI APLIKASI =====================
 st.set_page_config(page_title="Presensi Jemaat", page_icon="🙏")
 
-# =================== UI HEADER ===================
+# =================== UI HEADER, BACKGROUND & FOOTER ===================
 st.markdown("""
     <style>
+        /* 🔆 BACKGROUND GRADASI WARNA */
+        .stApp {
+            background: linear-gradient(135deg, #f9d423, #ff4e50, #007cf0, #ffffff);
+            background-size: 400% 400%;
+            animation: gradientBG 20s ease infinite;
+            min-height: 100vh;
+        }
+        @keyframes gradientBG {
+            0% {background-position: 0% 50%;}
+            50% {background-position: 100% 50%;}
+            100% {background-position: 0% 50%;}
+        }
+
+        /* 🎯 HEADER */
         .header {
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #f0f2f6;
+            background-color: rgba(255, 255, 255, 0.9);
             padding: 1rem;
             border-bottom: 2px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .header img {
             height: 60px;
@@ -41,40 +56,22 @@ st.markdown("""
         .header h1 {
             font-size: 28px;
             color: #2c3e50;
+            margin: 0;
         }
 
+        /* 📝 FOOTER */
         .footer {
             position: fixed;
             bottom: 0;
             width: 100%;
-            background-color: #f0f2f6;
+            background-color: rgba(255, 255, 255, 0.8);
             text-align: left;
-            padding: 0.5rem;
+            padding: 0.5rem 1rem;
             color: #666;
             font-size: 13px;
             border-top: 1px solid #ccc;
         }
     </style>
-
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background: linear-gradient(135deg, #f9d423, #ff4e50, #007cf0, #ffffff);
-        background-size: 400% 400%;
-        animation: gradientBG 15s ease infinite;
-        min-height: 100vh;
-    }
-
-    @keyframes gradientBG {
-        0% {background-position: 0% 50%;}
-        50% {background-position: 100% 50%;}
-        100% {background-position: 0% 50%;}
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
     <div class="header">
         <img src="https://drive.google.com/thumbnail?id=1iMX_EgdFn6PcbllsAWezgyhypGymN1xE" alt="Logo Gereja">
