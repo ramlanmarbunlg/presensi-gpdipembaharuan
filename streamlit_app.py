@@ -20,16 +20,16 @@ from email.message import EmailMessage
 import smtplib
 import streamlit.components.v1 as components
 
-st.markdown("""
-    <style>
-    .stApp {
-        background-image: url("https://www.transparenttextures.com/patterns/asfalt-light.png");
-        background-size: auto;
-        background-repeat: repeat;
-        background-position: top left;
-    }
-    </style>
-""", unsafe_allow_html=True)
+    st.markdown("""
+        <style>
+        .stApp {
+            background-image: url("https://www.transparenttextures.com/patterns/asfalt-light.png");
+            background-size: auto;
+            background-repeat: repeat;
+            background-position: top left;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
 # ===================== KONFIGURASI APLIKASI =====================
 st.set_page_config(page_title="Presensi Jemaat", page_icon="🙏")
