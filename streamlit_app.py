@@ -64,7 +64,7 @@ st.markdown("""
     </style>
 
     <div class="header">
-        <img src="https://your-church-logo-url.png" alt="Logo Gereja">
+        <img src="https://drive.google.com/file/d/1iMX_EgdFn6PcbllsAWezgyhypGymN1xE/view" alt="Logo Gereja">
         <h1>GPdI Pembaharuan Medan</h1>
     </div>
 """, unsafe_allow_html=True)
