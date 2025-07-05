@@ -21,7 +21,7 @@ import smtplib
 import streamlit.components.v1 as components
 
 # ===================== KONFIGURASI APLIKASI =====================
-st.set_page_config(page_title="Presensi Jemaat", page_icon="🙏")
+st.set_page_config(page_title="Presensi Jemaat", page_icon="🙏", layout="wide")
 
 # =================== UI HEADER, BACKGROUND & FOOTER ===================
 st.markdown("""
@@ -226,13 +226,6 @@ def proses_presensi(qr_data):
 
     time.sleep(2)
     st.experimental_rerun()
-
-# ===================== FOOTER =====================
-st.markdown("""
-    <div class="footer">
-        &copy; 2025 GPdI Pembaharuan | IT & Media Team
-    </div>
-""", unsafe_allow_html=True)
 
 # ===================== HALAMAN PRESENSI =====================
 if halaman == "📸 Presensi Jemaat":
@@ -512,4 +505,9 @@ elif halaman == "🔐 Admin Panel":
             st.download_button("⬇️ Export ke CSV", data=convert_to_csv(hasil_filter),
                                file_name=f"presensi_{tanggal_str}.csv", mime="text/csv")
 
-                
+# ===================== FOOTER =====================
+st.markdown("""
+    <div class="footer">
+        © 2025 GPdI Pembaharuan Medan — IT & Media Ministry
+    </div>
+""", unsafe_allow_html=True)
