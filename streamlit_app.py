@@ -101,7 +101,7 @@ if halaman == "📸 Presensi Jemaat":
             st.markdown(
                 """
                 <audio autoplay>
-                    <source src="https://www.soundjay.com/button/beep-08.mp3" type="audio/mpeg">
+                    <source src="https://www.soundjay.com/buttons/sounds/beep-08b.mp3" type="audio/mpeg">
                 </audio>
                 """,
                 unsafe_allow_html=True
