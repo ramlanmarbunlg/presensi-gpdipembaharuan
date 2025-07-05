@@ -23,6 +23,52 @@ import streamlit.components.v1 as components
 # ===================== KONFIGURASI APLIKASI =====================
 st.set_page_config(page_title="Presensi Jemaat", page_icon="🙏")
 
+# =================== UI HEADER ===================
+st.markdown("""
+    <style>
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f2f6;
+            padding: 1rem;
+            border-bottom: 2px solid #ddd;
+        }
+        .header img {
+            height: 60px;
+            margin-right: 20px;
+        }
+        .header h1 {
+            font-size: 28px;
+            color: #2c3e50;
+        }
+
+        body {
+            background-image: url("https://www.transparenttextures.com/patterns/white-wall.png");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #f0f2f6;
+            text-align: center;
+            padding: 0.5rem;
+            color: #666;
+            font-size: 13px;
+            border-top: 1px solid #ccc;
+        }
+    </style>
+
+    <div class="header">
+        <img src="https://your-church-logo-url.png" alt="Logo Gereja">
+        <h1>GPdI Pembaharuan Medan</h1>
+    </div>
+""", unsafe_allow_html=True)
+
 # ===================== SIDEBAR NAVIGASI =====================
 halaman = st.sidebar.selectbox("📂 Pilih Halaman", ["📸 Presensi Jemaat", "🔐 Admin Panel"])
 
@@ -239,6 +285,13 @@ elif halaman == "🔐 Admin Panel":
                 st.rerun()
             else:
                 st.error("❌ Username atau password salah")
+                
+# ===================== FOOTER =====================
+st.markdown("""
+    <div class="footer">
+        &copy; 2025 GPdI Pembaharuan | IT & Media Team
+    </div>
+""", unsafe_allow_html=True)
 
     # ====== Jika berhasil login admin ======
     else:
