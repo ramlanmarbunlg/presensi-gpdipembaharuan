@@ -237,6 +237,12 @@ st.markdown("""
 # ===================== HALAMAN PRESENSI =====================
 if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
+    # 🖥️ Tombol Fullscreen manual
+    st.markdown("""
+        <div style='text-align:right'>
+            <button onclick="document.documentElement.requestFullscreen()">🖥️ Mode Fullscreen</button>
+        </div>
+    """, unsafe_allow_html=True)
 
     # ===================== MODE USB SCANNER =====================
     st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
