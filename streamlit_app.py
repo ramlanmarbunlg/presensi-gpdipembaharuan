@@ -177,20 +177,31 @@ if halaman == "📸 Presensi Jemaat":
 
     # ===================== MODE KAMERA MANUAL =====================
     st.markdown("### 📷 Gunakan Kamera Manual (Opsional)")
-    with st.form("kamera_manual"):
-        img = st.camera_input("📸 Ambil Gambar QR Code dari Kamera")
-        submit_camera = st.form_submit_button("Proses dari Kamera")
-
-    if submit_camera and img:
-        from pyzbar.pyzbar import decode
-        image = Image.open(img)
-        decoded = decode(image)
-        if decoded:
-            qr_data_camera = decoded[0].data.decode("utf-8")
-            st.info(f"✅ QR Terdeteksi: {qr_data_camera}")
-            proses_presensi(qr_data_camera)
-        else:
-            st.error("❌ QR Code tidak terbaca dari gambar. Silakan ulangi scan.")
+    # Tombol untuk aktifkan kamera
+    if "kamera_manual_aktif" not in st.session_state:
+        st.session_state.kamera_manual_aktif = False
+    
+    if not st.session_state.kamera_manual_aktif:
+        if st.button("Aktifkan Kamera Manual"):
+            st.session_state.kamera_manual_aktif = True
+            st.experimental_rerun()
+    
+    # Jika sudah aktif, tampilkan form kamera
+    if st.session_state.kamera_manual_aktif:
+        with st.form("kamera_manual_form"):
+            img = st.camera_input("📸 Ambil Gambar QR Code dari Kamera")
+            submit_camera = st.form_submit_button("Proses dari Kamera")
+    
+        if submit_camera and img:
+            from pyzbar.pyzbar import decode
+            image = Image.open(img)
+            decoded = decode(image)
+            if decoded:
+                qr_data_camera = decoded[0].data.decode("utf-8")
+                st.info(f"✅ QR Terdeteksi: {qr_data_camera}")
+                proses_presensi(qr_data_camera)
+            else:
+                st.error("❌ QR Code tidak terbaca dari gambar. Silakan ulangi scan.")
 
 # ===================== HALAMAN ADMIN PANEL =====================
 elif halaman == "🔐 Admin Panel":
