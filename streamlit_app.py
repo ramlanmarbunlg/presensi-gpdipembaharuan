@@ -56,7 +56,31 @@ if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
     st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
 
+    # ==== Autofocus field QR scan ====
+    st.markdown("""
+        <script>
+        const qrInput = window.parent.document.querySelector('input[data-testid="stTextInput"]');
+        if (qrInput) { qrInput.focus(); }
+        </script>
+    """, unsafe_allow_html=True)
+
     qr_code_input = st.text_input("🆔 ID dari QR Code", placeholder="Scan QR di sini...", key="input_qr")
+
+    # ========== KAMERA MANUAL ==========
+    st.markdown("### 📷 Gunakan Kamera Manual (Opsional)")
+    use_camera = st.button("Aktifkan Kamera Manual")
+
+    if use_camera:
+        img = st.camera_input("📸 Ambil Gambar QR Code dari Kamera")
+
+        if img:
+            from pyzbar.pyzbar import decode
+            image = Image.open(img)
+            decoded = decode(image)
+            if decoded:
+                qr_code_input = decoded[0].data.decode("utf-8")
+            else:
+                st.error("❌ QR Code tidak terbaca. Silakan ulangi scan.")
 
     if qr_code_input:
         qr_data = qr_code_input.strip()
@@ -97,7 +121,7 @@ if halaman == "📸 Presensi Jemaat":
             sheet_presensi.append_row([waktu_str, qr_data, nama_jemaat, keterangan])
             st.success(f"📝 Kehadiran {nama_jemaat} berhasil dicatat sebagai **{keterangan}** pada sistem!")
 
-            # 🔔 Tambahkan suara beep (audio HTML5)
+            # 🔔 Tambahkan suara beep
             st.markdown(
                 """
                 <audio autoplay>
@@ -107,15 +131,12 @@ if halaman == "📸 Presensi Jemaat":
                 unsafe_allow_html=True
             )
 
-            time.sleep(3)  # ⏳ Delay sebentar untuk tampilkan info
-            st.experimental_rerun()  # 🔁 Bersihkan input dan reload ulang
-
-            # Tampilkan foto jemaat
+            # Foto Jemaat
             if foto_id:
                 foto_url = f"https://drive.google.com/thumbnail?id={foto_id}"
                 st.image(foto_url, width=200, caption=f"🡭 Foto Jemaat: {nama_jemaat}")
 
-            # Kirim email presensi dengan pesan sesuai keterangan
+            # Email Notifikasi
             if email_jemaat:
                 if keterangan == "Tepat Waktu":
                     pesan_tambahan = (
@@ -137,13 +158,9 @@ if halaman == "📸 Presensi Jemaat":
                     "Tuhan Yesus Memberkati 🙏\n\n-- IT & Media GPdI Pembaharuan."
                 )
 
-                kirim_email(
-                    email_jemaat,
-                    "Kehadiran Jemaat GPdI Pembaharuan",
-                    body_email
-                )
+                kirim_email(email_jemaat, "Kehadiran Jemaat GPdI Pembaharuan", body_email)
 
-            # Sertifikat PDF
+            # Sertifikat
             buffer = BytesIO()
             c = canvas.Canvas(buffer)
             c.setFont("Helvetica-Bold", 18)
@@ -158,29 +175,16 @@ if halaman == "📸 Presensi Jemaat":
             buffer.seek(0)
             st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
 
+            time.sleep(2)
+            st.experimental_rerun()
+
+        # Statistik harian & riwayat
         jumlah_hadir_hari_ini = sum(1 for r in riwayat if tanggal_hari_ini in r["Waktu"])
         st.info(f"📊 Total Jemaat Hadir Hari Ini: {jumlah_hadir_hari_ini}")
 
         st.subheader("📋 Riwayat Presensi Jemaat Ini")
         riwayat_jemaat = [r for r in riwayat if r["ID"] == qr_data]
         st.table(riwayat_jemaat if riwayat_jemaat else "Belum ada riwayat.")
-
-    # ========== KAMERA MANUAL ==========
-    st.markdown("### 📷 Gunakan Kamera Manual (Opsional)")
-    if st.button("Aktifkan Kamera Manual"):
-        img = st.camera_input("📸 Ambil Gambar QR Code dari Kamera")
-
-        if img:
-            from pyzbar.pyzbar import decode
-            image = Image.open(img)
-            decoded = decode(image)
-
-            if decoded:
-                qr_data = decoded[0].data.decode("utf-8")
-                st.experimental_set_query_params(qr=qr_data)
-                st.experimental_rerun()
-            else:
-                st.error("❌ QR Code tidak terbaca. Silakan ulangi scan.")
 
 # ===================== HALAMAN ADMIN PANEL =====================
 elif halaman == "🔐 Admin Panel":
