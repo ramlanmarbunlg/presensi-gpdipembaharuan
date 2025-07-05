@@ -1,5 +1,5 @@
 # ============================================
-# PRESENSI JEMAAT STREAMLIT QR CAMERA (V2 + HTML5 QR)
+# PRESENSI JEMAAT STREAMLIT QR CAMERA (V2 + HTML5 QR + USB SCANNER MODE)
 # ============================================
 
 import streamlit as st
@@ -53,12 +53,22 @@ def kirim_email(to_email, subject, body):
 
 # ===================== HALAMAN PRESENSI =====================
 if halaman == "📸 Presensi Jemaat":
-    st.title("📸 Scan QR Kehadiran Jemaat (Otomatis)")
+    st.markdown("""
+        <style>
+        .fullscreen-input input { font-size: 32px; height: 60px; text-align: center; }
+        </style>
+    """, unsafe_allow_html=True)
+
+    st.title("📸 Scan QR Kehadiran Jemaat (Otomatis USB Scanner + Kamera)")
 
     scanned_qr = st.experimental_get_query_params().get("qr", [None])[0]
 
     if scanned_qr:
         qr_data = scanned_qr
+    else:
+        qr_data = st.text_input("🖨️ Silakan Scan QR Anda dengan USB Scanner", key="usb_input", label_visibility="collapsed", placeholder="Arahkan QR ke Scanner", help="Scan QR akan langsung diproses", on_change=st.experimental_rerun)
+
+    if qr_data:
         st.success(f"✅ QR Terdeteksi: {qr_data}")
 
         daftar_jemaat = sheet_jemaat.get_all_records()
@@ -80,19 +90,17 @@ if halaman == "📸 Presensi Jemaat":
         keterangan = "Tepat Waktu" if waktu_wib <= batas_waktu else "Terlambat"
 
         riwayat = sheet_presensi.get_all_records()
-        sudah_presensi = any(
-            r["ID"] == qr_data and tanggal_hari_ini in r["Waktu"]
-            for r in riwayat
-        )
+        sudah_presensi = any(r["ID"] == qr_data and tanggal_hari_ini in r["Waktu"] for r in riwayat)
 
         if sudah_presensi:
-            waktu_terakhir = next(
-                r["Waktu"] for r in riwayat if r["ID"] == qr_data and tanggal_hari_ini in r["Waktu"]
-            )
+            waktu_terakhir = next(r["Waktu"] for r in riwayat if r["ID"] == qr_data and tanggal_hari_ini in r["Waktu"])
             st.warning(f"⚠️ Anda sudah melakukan presensi hari ini pada {waktu_terakhir}")
         else:
             sheet_presensi.append_row([waktu_str, qr_data, nama_jemaat, keterangan])
             st.success(f"📝 Kehadiran {nama_jemaat} berhasil dicatat sebagai **{keterangan}**!")
+
+            st.balloons()
+            st.audio("https://www.soundjay.com/buttons/sounds/beep-07.mp3", autoplay=True)
 
             if foto_id:
                 st.image(f"https://drive.google.com/thumbnail?id={foto_id}", width=200, caption=f"🡭 Foto Jemaat: {nama_jemaat}")
@@ -133,22 +141,21 @@ if halaman == "📸 Presensi Jemaat":
         riwayat_jemaat = [r for r in riwayat if r["ID"] == qr_data]
         st.table(riwayat_jemaat if riwayat_jemaat else "Belum ada riwayat.")
 
-    else:
-        st.markdown("### 🎥 Arahkan QR Code ke Kamera Anda")
-        components.html(
-            """
-            <script src=\"https://unpkg.com/html5-qrcode\" type=\"text/javascript\"></script>
-            <div id=\"reader\" width=\"300px\"></div>
-            <script>
-                function onScanSuccess(decodedText, decodedResult) {
-                    window.location.href = window.location.origin + window.location.pathname + "?qr=" + encodeURIComponent(decodedText);
-                }
-                var html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-                html5QrcodeScanner.render(onScanSuccess);
-            </script>
-            """,
-            height=400
-        )
+    st.markdown("### 🎥 Mode Kamera Langsung (HTML5 QR Code)")
+    components.html(
+        """
+        <script src=\"https://unpkg.com/html5-qrcode\" type=\"text/javascript\"></script>
+        <div id=\"reader\" width=\"300px\"></div>
+        <script>
+            function onScanSuccess(decodedText, decodedResult) {
+                window.location.href = window.location.origin + window.location.pathname + "?qr=" + encodeURIComponent(decodedText);
+            }
+            var html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+            html5QrcodeScanner.render(onScanSuccess);
+        </script>
+        """,
+        height=400
+    )
 
 # ===================== HALAMAN ADMIN PANEL =====================
 elif halaman == "🔐 Admin Panel":
