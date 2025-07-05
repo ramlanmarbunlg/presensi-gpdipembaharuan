@@ -239,8 +239,8 @@ if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
     # 🖥️ Tombol Fullscreen manual
     st.markdown("""
-        <div style='text-align:right'>
-            <button onclick="document.documentElement.requestFullscreen()">🖥️ Mode Fullscreen</button>
+        <div style='text-align:left'>
+            <button onclick="document.documentElement.requestFullscreen()" style="background-color:#4CAF50;color:white;padding:10px 20px;border:none;border-radius:5px;cursor:pointer;">🖥️ Fullscreen</button>
         </div>
     """, unsafe_allow_html=True)
 
