@@ -88,78 +88,87 @@ def proses_presensi(qr_data):
     if sudah_presensi:
         waktu_terakhir = next(r["Waktu"] for r in riwayat if r["ID"] == qr_data and tanggal_hari_ini in r["Waktu"])
         st.warning(f"⚠️ Anda sudah melakukan presensi hari ini pada {waktu_terakhir}")
-    else:
-        sheet_presensi.append_row([waktu_str, qr_data, nama_jemaat, keterangan])
-        st.success(f"📝 Kehadiran {nama_jemaat} berhasil dicatat sebagai **{keterangan}**!")
+        return
 
-        # 🔔 Beep
-        st.markdown("""
-        <audio autoplay>
-            <source src="https://www.soundjay.com/buttons/sounds/beep-08b.mp3" type="audio/mpeg">
-        </audio>
-        """, unsafe_allow_html=True)
+    # ✅ Tambahkan presensi
+    sheet_presensi.append_row([waktu_str, qr_data, nama_jemaat, keterangan])
+    st.success(f"📝 Kehadiran {nama_jemaat} berhasil dicatat sebagai **{keterangan}**!")
 
-        # Foto
-        if foto_id:
-            foto_url = f"https://drive.google.com/thumbnail?id={foto_id}"
-            st.image(foto_url, width=200, caption=f"🡭 Foto Jemaat: {nama_jemaat}")
+    # 🔔 Beep
+    st.markdown("""
+    <audio autoplay>
+        <source src="https://www.soundjay.com/buttons/sounds/beep-08b.mp3" type="audio/mpeg">
+    </audio>
+    """, unsafe_allow_html=True)
 
-        # Email Notifikasi
-        if email_jemaat:
-            if keterangan == "Tepat Waktu":
-                pesan_tambahan = (
-                    "Selamat datang di rumah Tuhan! Kami sangat menghargai kedatangan Saudara tepat waktu, "
-                    "karena hal ini menunjukkan rasa hormat kita kepada Tuhan dan kepada sesama jemaat. "
-                    "Mari kita bersama-sama memulai ibadah dengan hati yang tenang dan penuh sukacita."
-                )
-            else:
-                pesan_tambahan = (
-                    "Mari bersama-sama kita hadir tepat waktu dalam ibadah sebagai bentuk penghormatan kepada Tuhan "
-                    "dan persekutuan yang kudus. Keterlambatan dapat mengurangi hadirat Tuhan dan menghalangi kita "
-                    "untuk sepenuhnya terlibat dalam penyembahan."
-                )
+    # Foto
+    if foto_id:
+        foto_url = f"https://drive.google.com/thumbnail?id={foto_id}"
+        st.image(foto_url, width=200, caption=f"🡭 Foto Jemaat: {nama_jemaat}")
 
-            body_email = (
-                f"Syalom {nama_jemaat},\n\n"
-                f"Presensi Anda pada {waktu_str} telah tercatat sebagai **{keterangan}**.\n\n"
-                f"{pesan_tambahan}\n\n"
-                "Tuhan Yesus Memberkati 🙏\n\n-- IT & Media GPdI Pembaharuan."
+    # Email Notifikasi
+    if email_jemaat:
+        if keterangan == "Tepat Waktu":
+            pesan_tambahan = (
+                "Selamat datang di rumah Tuhan! Kami sangat menghargai kedatangan Saudara tepat waktu, "
+                "karena hal ini menunjukkan rasa hormat kita kepada Tuhan dan kepada sesama jemaat. "
+                "Mari kita bersama-sama memulai ibadah dengan hati yang tenang dan penuh sukacita."
+            )
+        else:
+            pesan_tambahan = (
+                "Mari bersama-sama kita hadir tepat waktu dalam ibadah sebagai bentuk penghormatan kepada Tuhan "
+                "dan persekutuan yang kudus. Keterlambatan dapat mengurangi hadirat Tuhan dan menghalangi kita "
+                "untuk sepenuhnya terlibat dalam penyembahan."
             )
 
-            kirim_email(email_jemaat, "Kehadiran Jemaat GPdI Pembaharuan", body_email)
+        body_email = (
+            f"Syalom {nama_jemaat},\n\n"
+            f"Presensi Anda pada {waktu_str} telah tercatat sebagai **{keterangan}**.\n\n"
+            f"{pesan_tambahan}\n\n"
+            "Tuhan Yesus Memberkati 🙏\n\n-- IT & Media GPdI Pembaharuan."
+        )
 
-        # Sertifikat PDF
-        buffer = BytesIO()
-        c = canvas.Canvas(buffer)
-        c.setFont("Helvetica-Bold", 18)
-        c.drawString(100, 750, "SERTIFIKAT KEHADIRAN JEMAAT")
-        c.setFont("Helvetica", 12)
-        c.drawString(100, 700, f"Nama Jemaat : {nama_jemaat}")
-        c.drawString(100, 680, f"ID Jemaat   : {qr_data}")
-        c.drawString(100, 660, f"Waktu Hadir : {waktu_str}")
-        c.drawString(100, 640, f"Keterangan  : {keterangan}")
-        c.drawString(100, 620, "Lokasi      : GPdI Pembaharuan Medan")
-        c.save()
-        buffer.seek(0)
-        st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
+        kirim_email(email_jemaat, "Kehadiran Jemaat GPdI Pembaharuan", body_email)
 
-        time.sleep(2)
-        st.experimental_rerun()
+    # Sertifikat PDF
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer)
+    c.setFont("Helvetica-Bold", 18)
+    c.drawString(100, 750, "SERTIFIKAT KEHADIRAN JEMAAT")
+    c.setFont("Helvetica", 12)
+    c.drawString(100, 700, f"Nama Jemaat : {nama_jemaat}")
+    c.drawString(100, 680, f"ID Jemaat   : {qr_data}")
+    c.drawString(100, 660, f"Waktu Hadir : {waktu_str}")
+    c.drawString(100, 640, f"Keterangan  : {keterangan}")
+    c.drawString(100, 620, "Lokasi      : GPdI Pembaharuan Medan")
+    c.save()
+    buffer.seek(0)
+    st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
+
+    time.sleep(2)
+    st.experimental_rerun()
 
 # ===================== HALAMAN PRESENSI =====================
 if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
 
     # ===================== MODE USB SCANNER =====================
-    st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB C")
+    st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
 
     qr_code_input = st.text_input("🆔 ID dari QR Code", placeholder="Scan QR di sini...", key="input_qr")
 
-    # Auto-focus menggunakan HTML JS injection
-    components.html("""
+    # Auto-focus fix dengan cari placeholder dari input_qr
+    components.html(f"""
     <script>
-        const input = window.parent.document.querySelectorAll('input')[0];
-        if (input) { input.focus(); }
+        window.onload = function() {{
+            const inputs = window.parent.document.querySelectorAll('input');
+            for (let i = 0; i < inputs.length; i++) {{
+                if (inputs[i].placeholder === "Scan QR di sini...") {{
+                    inputs[i].focus();
+                    break;
+                }}
+            }}
+        }};
     </script>
     """, height=0)
 
@@ -168,21 +177,20 @@ if halaman == "📸 Presensi Jemaat":
 
     # ===================== MODE KAMERA MANUAL =====================
     st.markdown("### 📷 Gunakan Kamera Manual (Opsional)")
-    use_camera = st.button("Aktifkan Kamera Manual")
-
-    if use_camera:
+    with st.form("kamera_manual"):
         img = st.camera_input("📸 Ambil Gambar QR Code dari Kamera")
+        submit_camera = st.form_submit_button("Proses dari Kamera")
 
-        if img:
-            from pyzbar.pyzbar import decode
-            image = Image.open(img)
-            decoded = decode(image)
-            if decoded:
-                qr_data_camera = decoded[0].data.decode("utf-8")
-                st.info(f"✅ QR Terdeteksi: {qr_data_camera}")
-                proses_presensi(qr_data_camera)
-            else:
-                st.error("❌ QR Code tidak terbaca. Silakan ulangi scan.")
+    if submit_camera and img:
+        from pyzbar.pyzbar import decode
+        image = Image.open(img)
+        decoded = decode(image)
+        if decoded:
+            qr_data_camera = decoded[0].data.decode("utf-8")
+            st.info(f"✅ QR Terdeteksi: {qr_data_camera}")
+            proses_presensi(qr_data_camera)
+        else:
+            st.error("❌ QR Code tidak terbaca dari gambar. Silakan ulangi scan.")
 
 # ===================== HALAMAN ADMIN PANEL =====================
 elif halaman == "🔐 Admin Panel":
