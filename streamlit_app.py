@@ -107,6 +107,9 @@ if halaman == "📸 Presensi Jemaat":
                 unsafe_allow_html=True
             )
 
+            time.sleep(3)  # ⏳ Delay sebentar untuk tampilkan info
+            st.experimental_rerun()  # 🔁 Bersihkan input dan reload ulang
+
             # Tampilkan foto jemaat
             if foto_id:
                 foto_url = f"https://drive.google.com/thumbnail?id={foto_id}"
@@ -175,6 +178,7 @@ if halaman == "📸 Presensi Jemaat":
             if decoded:
                 qr_data = decoded[0].data.decode("utf-8")
                 st.experimental_set_query_params(qr=qr_data)
+                time.sleep(3)
                 st.experimental_rerun()
             else:
                 st.error("❌ QR Code tidak terbaca. Silakan ulangi scan.")
