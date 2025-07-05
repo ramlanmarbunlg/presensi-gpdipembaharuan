@@ -177,7 +177,7 @@ if halaman == "📸 Presensi Jemaat":
 
     # ===================== MODE KAMERA MANUAL =====================
     st.markdown("### 📷 Gunakan Kamera Manual (Opsional)")
-    # Tombol untuk aktifkan kamera
+    # Inisialisasi session_state kamera
     if "kamera_manual_aktif" not in st.session_state:
         st.session_state.kamera_manual_aktif = False
     
@@ -186,11 +186,20 @@ if halaman == "📸 Presensi Jemaat":
             st.session_state.kamera_manual_aktif = True
             st.experimental_rerun()
     
-    # Jika sudah aktif, tampilkan form kamera
     if st.session_state.kamera_manual_aktif:
         with st.form("kamera_manual_form"):
             img = st.camera_input("📸 Ambil Gambar QR Code dari Kamera")
-            submit_camera = st.form_submit_button("Proses dari Kamera")
+    
+            # Dua tombol: Proses & Nonaktifkan Kamera
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                submit_camera = st.form_submit_button("✅ Proses dari Kamera")
+            with col2:
+                nonaktif = st.form_submit_button("❌ Nonaktifkan Kamera")
+    
+        if nonaktif:
+            st.session_state.kamera_manual_aktif = False
+            st.experimental_rerun()
     
         if submit_camera and img:
             from pyzbar.pyzbar import decode
