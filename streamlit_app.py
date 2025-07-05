@@ -29,14 +29,8 @@ st.markdown("""
         /* 🔆 BACKGROUND GRADASI WARNA */
         .stApp {
             background: linear-gradient(135deg, #f9d423, #ff4e50, #007cf0, #ffffff);
-            background-size: 400% 400%;
-            animation: gradientBG 20s ease infinite;
             min-height: 100vh;
-        }
-        @keyframes gradientBG {
-            0% {background-position: 0% 50%;}
-            50% {background-position: 100% 50%;}
-            100% {background-position: 0% 50%;}
+            background-attachment: fixed;
         }
 
         /* 🎯 HEADER */
@@ -77,28 +71,6 @@ st.markdown("""
         <img src="https://drive.google.com/thumbnail?id=1iMX_EgdFn6PcbllsAWezgyhypGymN1xE" alt="Logo Gereja">
         <h1>GPdI Pembaharuan Medan</h1>
     </div>
-""", unsafe_allow_html=True)
-
-# =================== FULLSCREEN MODE / KIOSK ===================
-st.markdown("""
-    <script>
-        // Jalankan fullscreen saat pertama kali load halaman
-        function openFullscreen() {
-            let elem = document.documentElement;
-            if (elem.requestFullscreen) {
-                elem.requestFullscreen();
-            } else if (elem.webkitRequestFullscreen) { /* Safari */
-                elem.webkitRequestFullscreen();
-            } else if (elem.msRequestFullscreen) { /* IE11 */
-                elem.msRequestFullscreen();
-            }
-        }
-
-        // Otomatis aktif saat load (delay sedikit untuk aman)
-        window.addEventListener('load', function() {
-            setTimeout(openFullscreen, 500);
-        });
-    </script>
 """, unsafe_allow_html=True)
 
 # === HTML SLIDESHOW DAN LOGIKA IDLE ===
@@ -318,12 +290,6 @@ def proses_presensi(qr_data):
 # ===================== HALAMAN PRESENSI =====================
 if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
-    # 🖥️ Tombol Fullscreen manual
-    st.markdown("""
-        <div style='text-align:left'>
-            <button onclick="document.documentElement.requestFullscreen()" style="background-color:#4CAF50;color:white;padding:10px 20px;border:none;border-radius:5px;cursor:pointer;">🖥️ Fullscreen</button>
-        </div>
-    """, unsafe_allow_html=True)
 
     # ===================== MODE USB SCANNER =====================
     st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
