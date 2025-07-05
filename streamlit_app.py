@@ -169,7 +169,7 @@ if halaman == "📸 Presensi Jemaat":
 
 # ===================== HALAMAN ADMIN PANEL =====================
 elif halaman == "🔐 Admin Panel":
-    st.title("🔐 Admin: Kelola Data Jemaat")
+    st.title("🔐 Kelola Data Jemaat")
 
     # SIDEBAR LOGOUT – Opsi 1
     with st.sidebar:
@@ -202,7 +202,7 @@ elif halaman == "🔐 Admin Panel":
 
         col1, col2 = st.columns([6, 1])
         with col1:
-            st.markdown("Kelola data jemaat menggunakan tab di bawah ini.")
+            st.markdown("Gunakan tab di bawah ini.")
 
         with col2:
             if st.button("🔒 Logout"):
