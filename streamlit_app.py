@@ -169,7 +169,7 @@ if halaman == "📸 Presensi Jemaat":
 
 # ===================== HALAMAN ADMIN PANEL =====================
 elif halaman == "🔐 Admin Panel":
-    st.title("🔐 Manajemen Jemaat")
+    st.header("🔐 Manajemen Jemaat")
 
     # SIDEBAR LOGOUT – Opsi 1
     with st.sidebar:
