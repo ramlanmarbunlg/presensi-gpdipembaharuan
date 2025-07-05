@@ -28,7 +28,7 @@ st.markdown("""
     <style>
         /* 🔆 BACKGROUND GRADASI WARNA */
         .stApp {
-            background: linear-gradient(180deg, #f9d423, #007cf0, #ffffff);
+            background: linear-gradient(180deg, #007cf0, #ffffff);
             min-height: 100vh;
             background-attachment: fixed;
         }
