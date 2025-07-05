@@ -151,7 +151,7 @@ if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
 
     # ===================== MODE USB SCANNER =====================
-    st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
+    st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB C")
 
     qr_code_input = st.text_input("🆔 ID dari QR Code", placeholder="Scan QR di sini...", key="input_qr")
 
