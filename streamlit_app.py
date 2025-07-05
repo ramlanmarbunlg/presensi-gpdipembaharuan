@@ -101,6 +101,77 @@ st.markdown("""
     </script>
 """, unsafe_allow_html=True)
 
+# === HTML SLIDESHOW DAN LOGIKA IDLE ===
+st.markdown("""
+    <style>
+        .slideshow {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            height: 90vh;
+            background-color: black;
+            display: none;
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .slide-img {
+            max-height: 80vh;
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        .slide-caption {
+            color: white;
+            font-size: 2rem;
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+
+    <div class="slideshow" id="idleSlideShow">
+        <img class="slide-img" id="slideImage" src="https://source.unsplash.com/featured/?cross" />
+        <div class="slide-caption" id="slideCaption">"Selamat datang di Rumah Tuhan"</div>
+    </div>
+
+    <script>
+        let idleTime = 0;
+        let slides = [
+            {img: "https://source.unsplash.com/featured/?cross", caption: "Selamat datang di Rumah Tuhan"},
+            {img: "https://source.unsplash.com/featured/?church", caption: "Tuhan itu baik, kasih setia-Nya selama-lamanya"},
+            {img: "https://source.unsplash.com/featured/?worship", caption: "Masuklah gerbang-Nya dengan ucapan syukur"},
+            {img: "https://source.unsplash.com/featured/?bible", caption: "Firman-Mu adalah pelita bagi kakiku"}
+        ];
+        let slideIndex = 0;
+
+        function nextSlide() {
+            slideIndex = (slideIndex + 1) % slides.length;
+            document.getElementById("slideImage").src = slides[slideIndex].img;
+            document.getElementById("slideCaption").textContent = slides[slideIndex].caption;
+        }
+
+        setInterval(function() {
+            idleTime++;
+            if (idleTime > 30) {
+                document.getElementById("idleSlideShow").style.display = "flex";
+            }
+        }, 1000);
+
+        document.addEventListener("mousemove", resetIdle);
+        document.addEventListener("keydown", resetIdle);
+        document.addEventListener("click", resetIdle);
+
+        function resetIdle() {
+            idleTime = 0;
+            document.getElementById("idleSlideShow").style.display = "none";
+        }
+
+        setInterval(nextSlide, 5000);  // Ganti slide setiap 5 detik
+    </script>
+""", unsafe_allow_html=True)
 
 # ===================== SIDEBAR NAVIGASI =====================
 halaman = st.sidebar.selectbox("📂 Pilih Halaman", ["📸 Presensi Jemaat", "🔐 Admin Panel"])
@@ -172,6 +243,23 @@ def proses_presensi(qr_data):
     # ✅ Tambahkan presensi
     sheet_presensi.append_row([waktu_str, qr_data, nama_jemaat, keterangan])
     st.success(f"📝 Kehadiran {nama_jemaat} berhasil dicatat sebagai **{keterangan}**!")
+
+    # ========== DAFTAR ANTRIAN JEMAAT HADIR ==========
+
+    st.markdown("### 🧑‍🤝‍🧑 Antrian Jemaat Hadir (Live)")
+    riwayat_hari_ini = [r for r in sheet_presensi.get_all_records() if tanggal_hari_ini in r["Waktu"]]
+    
+    if riwayat_hari_ini:
+        riwayat_hari_ini_sorted = sorted(riwayat_hari_ini, key=lambda x: x["Waktu"], reverse=True)
+        for i, r in enumerate(riwayat_hari_ini_sorted[:10]):  # Tampilkan 10 terakhir
+            warna = "#28a745" if i == 0 else "#007cf0" if i < 3 else "#ddd"
+            st.markdown(f"""
+                <div style="padding:10px;margin:5px 0;background-color:{warna};color:white;font-size:18px;border-radius:5px;">
+                    🆔 {r['ID']} | 🙍 {r['Nama']} | ⏰ {r['Waktu'].split(' ')[1]} | 📌 {r.get('Keterangan', '')}
+                </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.info("Belum ada jemaat hadir hari ini.")
 
     # 🔔 Beep
     st.markdown("""
