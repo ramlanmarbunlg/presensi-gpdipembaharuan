@@ -397,15 +397,14 @@ elif halaman == "🔐 Admin Panel":
         # Tabs Admin
         tab1, tab2, tab3 = st.tabs(["🆕 Tambah Jemaat", "🖼️ Upload Foto", "📊 Statistik Presensi"])
 
-        # Definisikan fungsi membuat NIJ otomatis
-        def generate_nij(nik, gender, daftar_jemaat):
+        # Fungsi buat NIJ otomatis
+        def generate_nij(nik, gender, tgl_lahir, daftar_jemaat):
             nik_part = nik[6:12]
             gender_code = "01" if gender.lower() == "laki-laki" else "02"
-            bulan = datetime.now().strftime("%m")
-            tahun = datetime.now().strftime("%y")
+            bulan = tgl_lahir.strftime("%m")  # Pakai tgl_lahir
+            tahun = tgl_lahir.strftime("%y")  # Dua digit tahun
             base = f"{nik_part}-{gender_code}{bulan}{tahun}"
         
-            # Filter hanya yang NIJ-nya sudah ada dan dimulai dengan base
             existing = [
                 j for j in daftar_jemaat
                 if j.get("NIJ") and str(j["NIJ"]).startswith(base)
@@ -468,7 +467,7 @@ elif halaman == "🔐 Admin Panel":
                 elif any(str(j["NIK"]).strip() == nik.strip() for j in daftar_jemaat):
                     st.error("❌ NIK sudah terdaftar.")
                 else:
-                    nij = generate_nij(nik, jenis_kelamin, daftar_jemaat)
+                    nij = generate_nij(nik, jenis_kelamin, tgl_lahir, daftar_jemaat)
                     tgl_lahir_str = tgl_lahir.strftime("%Y-%m-%d")
         
                     sheet_jemaat.append_row([
