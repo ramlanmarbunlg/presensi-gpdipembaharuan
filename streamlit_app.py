@@ -584,13 +584,13 @@ elif halaman == "🔐 Admin Panel":
                 # KTP
                 nama_ktp = f"ktp_{jemaat_id}.jpg"
                 file_id_ktp = upload_and_overwrite(ktp_file, nama_ktp, st.secrets["drive_foto"]["folder_id_ktp"])
-                link_ktp = f'=HYPERLINK("https://drive.google.com/file/d/{file_id_ktp}", "Lihat KTP")'
+                link_ktp = f'=HYPERLINK("https://drive.google.com/file/d/{file_id_ktp}"; "Lihat KTP")'
                 sheet_jemaat.update_cell(baris_update, 8, link_ktp)
         
                 # KK
                 nama_kk = f"kk_{jemaat_id}.jpg"
                 file_id_kk = upload_and_overwrite(kk_file, nama_kk, st.secrets["drive_foto"]["folder_id_kk"])
-                link_kk = f'=HYPERLINK("https://drive.google.com/file/d/{file_id_kk}", "Lihat KK")'
+                link_kk = f'=HYPERLINK("https://drive.google.com/file/d/{file_id_kk}"; "Lihat KK")'
                 sheet_jemaat.update_cell(baris_update, 9, link_kk)
         
                 st.success("✅ Semua file berhasil diunggah dan disimpan ke database.")
