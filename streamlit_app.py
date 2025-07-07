@@ -398,30 +398,25 @@ elif halaman == "🔐 Admin Panel":
         tab1, tab2, tab3 = st.tabs(["🆕 Tambah Jemaat", "🖼️ Upload Foto", "📊 Statistik Presensi"])
 
         # Fungsi buat NIJ otomatis
+        from datetime import datetime
+
         def generate_nij(nik, gender, tgl_lahir, daftar_jemaat):
             nik_part = nik[6:12]
             gender_code = "01" if gender.lower() == "laki-laki" else "02"
             bulan = f"{tgl_lahir.month:02d}"
-            tahun = str(tgl_lahir.year)[-2:]  # 2 digit terakhir tahun
+            tahun = str(tgl_lahir.year)[-2:]
             base = f"{nik_part}-{gender_code}{bulan}{tahun}"
         
-            # Ambil hanya NIJ yang sesuai prefix
-            nij_list = [
-                str(j.get("NIJ", "")).strip()
-                for j in daftar_jemaat
-                if str(j.get("NIJ", "")).startswith(base)
-            ]
+            nij_list = []
+            for j in daftar_jemaat:
+                nij = str(j.get("NIJ", "")).strip()
+                if nij.startswith(base):
+                    parts = nij.split("-")
+                    if len(parts) == 3 and parts[-1].isdigit():
+                        nij_list.append(int(parts[-1]))
         
-            # Ambil 4 digit terakhir sebagai nomor urut
-            last_numbers = [
-                int(nij.split("-")[-1])
-                for nij in nij_list
-                if nij.count("-") == 2 and nij.split("-")[-1].isdigit()
-            ]
-            next_number = max(last_numbers, default=0) + 1
-            nomor_urut = f"{next_number:04d}"
-        
-            return f"{base}-{nomor_urut}"
+            nomor_urut = max(nij_list, default=0) + 1
+            return f"{base}-{nomor_urut:04d}"
 
         # ========== TAB 1: Tambah Jemaat ==========
         with tab1:
