@@ -7,6 +7,7 @@ from PIL import Image
 from pyzbar.pyzbar import decode
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+from datetime import datetime
 from datetime import date
 import time 
 from zoneinfo import ZoneInfo
@@ -396,18 +397,21 @@ elif halaman == "🔐 Admin Panel":
         # Tabs Admin
         tab1, tab2, tab3 = st.tabs(["🆕 Tambah Jemaat", "🖼️ Upload Foto", "📊 Statistik Presensi"])
 
-        # Defenisikan membuat NIJ Otomatis
+        # Definisikan fungsi membuat NIJ otomatis
         def generate_nij(nik, gender, daftar_jemaat):
             nik_part = nik[6:12]
             gender_code = "01" if gender.lower() == "laki-laki" else "02"
             bulan = datetime.now().strftime("%m")
             tahun = datetime.now().strftime("%y")
-            base = f"{nik_part}.{gender_code}{bulan}{tahun}"
+            base = f"{nik_part}-{gender_code}{bulan}{tahun}"
         
-            # Hitung urutan
-            existing = [j for j in daftar_jemaat if "NIJ" in j and str(j["NIJ"]).startswith(base)]
-            nomor_urut = f"{len(existing)+1:04d}"
-            return f"{base}.{nomor_urut}"
+            # Filter hanya yang NIJ-nya sudah ada dan dimulai dengan base
+            existing = [
+                j for j in daftar_jemaat
+                if j.get("NIJ") and str(j["NIJ"]).startswith(base)
+            ]
+            nomor_urut = f"{len(existing) + 1:04d}"
+            return f"{base}-{nomor_urut}"
 
         # ========== TAB 1: Tambah Jemaat ==========
         with tab1:
