@@ -285,7 +285,7 @@ def proses_presensi(qr_data):
     buffer.seek(0)
     st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
 
-    time.sleep(2)
+    time.sleep(3)
     st.experimental_rerun()
 
 # ===================== HALAMAN PRESENSI =====================
