@@ -597,7 +597,7 @@ elif halaman == "🔐 Admin Panel":
             
                     for key in ["select_jemaat", "upload_foto", "ktp_file", "kk_file", "slider_foto"]:
                         if key in st.session_state:
-                       del st.session_state[key]
+                           del st.session_state[key]
                     st.experimental_rerun()
 
         # ========== TAB 3: Statistik Presensi ==========
