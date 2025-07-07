@@ -396,6 +396,7 @@ elif halaman == "🔐 Admin Panel":
         # Tabs Admin
         tab1, tab2, tab3 = st.tabs(["🆕 Tambah Jemaat", "🖼️ Upload Foto", "📊 Statistik Presensi"])
 
+        # Defenisikan membuat NIJ Otomatis
         def generate_nij(nik, gender, daftar_jemaat):
             nik_part = nik[6:12]
             gender_code = "01" if gender.lower() == "laki-laki" else "02"
@@ -426,7 +427,13 @@ elif halaman == "🔐 Admin Panel":
                 nik = st.text_input("NIK", max_chars=20)
                 nama_baru = st.text_input("Nama Lengkap")
                 jenis_kelamin = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
-                tgl_lahir = st.date_input("Tanggal Lahir")
+                # 🎂 Input Tanggal Lahir dengan batas tahun
+                tanggal_lahir = st.date_input(
+                    "Tanggal Lahir",
+                    min_value=datetime.date(1950, 1, 1),
+                    max_value=datetime.date.today(),
+                    value=datetime.date(2000, 1, 1)
+                )
                 usia = datetime.now().year - tgl_lahir.year
                 st.text(f"Usia otomatis: {usia} tahun")
         
@@ -508,16 +515,25 @@ elif halaman == "🔐 Admin Panel":
                 opsi_jemaat = {f"{j['Nama']} ({j['ID']})": j['ID'] for j in daftar_jemaat}
             
                 selected = st.selectbox("Pilih Jemaat", options=list(opsi_jemaat.keys()), key="select_jemaat")
+                jemaat_id = opsi_jemaat[selected]
+                jemaat_data = next(j for j in daftar_jemaat if j["ID"] == jemaat_id)
+                baris_update = next(i + 2 for i, row in enumerate(daftar_jemaat) if row["ID"] == jemaat_id)
             
                 foto_file = st.file_uploader("📷 Upload Foto Jemaat (JPG/PNG)", type=["jpg", "jpeg", "png"], key="upload_foto")
                 ktp_file = st.file_uploader("🪪 Upload File KTP (JPG/PNG)", type=["jpg", "jpeg", "png"], key="ktp_file")
                 kk_file = st.file_uploader("🏠 Upload File KK (JPG/PNG)", type=["jpg", "jpeg", "png"], key="kk_file")
             
+                # ========== PREVIEW FILE ==========
+                cols = st.columns(3)
                 if foto_file:
-                    st.image(foto_file, caption="📷 Preview Foto", width=150)
+                    cols[0].image(foto_file, caption="📷 Foto", width=150)
+                if ktp_file:
+                    cols[1].image(ktp_file, caption="🪪 KTP", width=150)
+                if kk_file:
+                    cols[2].image(kk_file, caption="🏠 KK", width=150)
             
                 if st.button("📤 Upload Semua File"):
-                    if not (selected and foto_file and ktp_file and kk_file):
+                    if not (foto_file and ktp_file and kk_file):
                         st.warning("⚠️ Semua file (Foto, KTP, KK) wajib diunggah sebelum melanjutkan.")
                         st.stop()
             
@@ -528,59 +544,54 @@ elif halaman == "🔐 Admin Panel":
                     credentials = service_account.Credentials.from_service_account_info(st.secrets["gcp_service_account"])
                     drive_service = build("drive", "v3", credentials=credentials)
             
-                    jemaat_id = opsi_jemaat[selected]
-                    baris_update = next(i + 2 for i, row in enumerate(daftar_jemaat) if row["ID"] == jemaat_id)
-                    jemaat_data = next(j for j in daftar_jemaat if j["ID"] == jemaat_id)
+                    # ========== Fungsi Upload & Timpa ==========
+                    def upload_and_overwrite(file_data, nama_file, folder_id):
+                        # Cari file lama dengan nama sama
+                        query = f"name = '{nama_file}' and '{folder_id}' in parents and trashed = false"
+                        results = drive_service.files().list(q=query, fields="files(id)").execute()
+                        existing_files = results.get("files", [])
             
-                    # ==== CEK FILE SUDAH ADA ====
-                    if jemaat_data.get("File_ID_Foto"):
-                        st.warning("⚠️ Foto sudah pernah diunggah sebelumnya.")
-                    if jemaat_data.get("File_KTP"):
-                        st.warning("⚠️ File KTP sudah pernah diunggah sebelumnya.")
-                    if jemaat_data.get("File_KK"):
-                        st.warning("⚠️ File KK sudah pernah diunggah sebelumnya.")
+                        # Hapus file lama jika ada
+                        for f in existing_files:
+                            drive_service.files().delete(fileId=f["id"]).execute()
             
-                    # ==== UPLOAD FOTO ====
+                        # Upload ulang file
+                        media = MediaIoBaseUpload(file_data, mimetype="image/jpeg")
+                        uploaded = drive_service.files().create(
+                            body={"name": nama_file, "parents": [folder_id]},
+                            media_body=media,
+                            fields="id"
+                        ).execute()
+                        return uploaded["id"]
+            
+                    # ========== UPLOAD FOTO ==========
                     nama_foto = f"foto_{jemaat_id}.jpg"
-                    media_foto = MediaIoBaseUpload(foto_file, mimetype="image/jpeg")
-                    uploaded_foto = drive_service.files().create(
-                        body={"name": nama_foto, "parents": [st.secrets["drive_foto"]["folder_id_foto"]]},
-                        media_body=media_foto,
-                        fields="id"
-                    ).execute()
-                    file_id_foto = uploaded_foto.get("id")
+                    file_id_foto = upload_and_overwrite(foto_file, nama_foto, st.secrets["drive_foto"]["folder_id_foto"])
                     sheet_jemaat.update_cell(baris_update, 10, file_id_foto)
+                    if jemaat_data.get("File_ID_Foto"):
+                        st.warning("⚠️ Foto sudah pernah diunggah. File akan ditimpa.")
             
-                    # ==== UPLOAD KTP ====
+                    # ========== UPLOAD KTP ==========
                     nama_ktp = f"ktp_{jemaat_id}.jpg"
-                    media_ktp = MediaIoBaseUpload(ktp_file, mimetype="image/jpeg")
-                    uploaded_ktp = drive_service.files().create(
-                        body={"name": nama_ktp, "parents": [st.secrets["drive_foto"]["folder_id_ktp"]]},
-                        media_body=media_ktp,
-                        fields="id"
-                    ).execute()
-                    file_id_ktp = uploaded_ktp.get("id")
+                    file_id_ktp = upload_and_overwrite(ktp_file, nama_ktp, st.secrets["drive_foto"]["folder_id_ktp"])
                     link_ktp = f'=HYPERLINK("https://drive.google.com/file/d/{file_id_ktp}", "Lihat KTP")'
                     sheet_jemaat.update_cell(baris_update, 8, link_ktp)
+                    if jemaat_data.get("File_KTP"):
+                        st.warning("⚠️ File KTP sudah pernah diunggah. File akan ditimpa.")
             
-                    # ==== UPLOAD KK ====
+                    # ========== UPLOAD KK ==========
                     nama_kk = f"kk_{jemaat_id}.jpg"
-                    media_kk = MediaIoBaseUpload(kk_file, mimetype="image/jpeg")
-                    uploaded_kk = drive_service.files().create(
-                        body={"name": nama_kk, "parents": [st.secrets["drive_foto"]["folder_id_kk"]]},
-                        media_body=media_kk,
-                        fields="id"
-                    ).execute()
-                    file_id_kk = uploaded_kk.get("id")
+                    file_id_kk = upload_and_overwrite(kk_file, nama_kk, st.secrets["drive_foto"]["folder_id_kk"])
                     link_kk = f'=HYPERLINK("https://drive.google.com/file/d/{file_id_kk}", "Lihat KK")'
                     sheet_jemaat.update_cell(baris_update, 9, link_kk)
+                    if jemaat_data.get("File_KK"):
+                        st.warning("⚠️ File KK sudah pernah diunggah. File akan ditimpa.")
             
                     st.success("✅ Semua file berhasil diunggah dan disimpan ke database.")
-            
                     time.sleep(delay_foto)
+            
                     for key in ["select_jemaat", "upload_foto", "ktp_file", "kk_file", "slider_foto"]:
-                        if key in st.session_state:
-                            del st.session_state[key]
+                        st.session_state.pop(key, None)
                     st.experimental_rerun()
 
         # ========== TAB 3: Statistik Presensi ==========
