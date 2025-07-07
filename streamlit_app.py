@@ -7,7 +7,7 @@ from PIL import Image
 from pyzbar.pyzbar import decode
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-from datetime import datetime
+from datetime import date
 import time 
 from zoneinfo import ZoneInfo
 from reportlab.pdfgen import canvas
@@ -430,9 +430,9 @@ elif halaman == "🔐 Admin Panel":
                 # 🎂 Input Tanggal Lahir dengan batas tahun
                 st.date_input(
                     "Tanggal Lahir",
-                    min_value=datetime.datetime(1950, 1, 1).date(),
-                    max_value=datetime.datetime.today().date(),
-                    value=datetime.datetime(2000, 1, 1).date()
+                    min_value=date(1950, 1, 1),
+                    max_value=date.today(),
+                    value=date(2000, 1, 1)
                 )
                 usia = datetime.now().year - tgl_lahir.year
                 st.text(f"Usia otomatis: {usia} tahun")
