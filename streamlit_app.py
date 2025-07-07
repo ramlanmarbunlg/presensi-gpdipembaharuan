@@ -396,26 +396,17 @@ elif halaman == "🔐 Admin Panel":
 
         # Tabs Admin
         tab1, tab2, tab3 = st.tabs(["🆕 Tambah Jemaat", "🖼️ Upload Foto", "📊 Statistik Presensi"])
+        
         # Defenisikan fungsi menghasilkan NIJ Otomatis
-        def generate_nij(nik, gender, tgl_lahir, daftar_jemaat):
-            nik_part = nik[6:12]
+        def generate_nij(nik, gender, id_baru):
+            nik_part = nik[6:12]  # Ambil 6 digit tengah dari NIK
             gender_code = "01" if gender.lower() == "laki-laki" else "02"
-            bulan = f"{tgl_lahir.month:02d}"
-            tahun = str(tgl_lahir.year)[-2:]
-            base = f"{nik_part}-{gender_code}{bulan}{tahun}"
+            bulan_daftar = datetime.now().strftime("%m")
+            tahun_daftar = datetime.now().strftime("%y")
         
-            # Ambil semua nomor urut dari NIJ yang cocok dengan base
-            nij_list = []
-            for j in daftar_jemaat:
-                nij_raw = str(j.get("NIJ", "")).strip()
-                parts = nij_raw.split("-")
-                if len(parts) == 3:
-                    nij_base = f"{parts[0]}-{parts[1]}"
-                    if nij_base == base and parts[2].isdigit():
-                        nij_list.append(int(parts[2]))
-        
-            nomor_urut = max(nij_list, default=0) + 1
-            return f"{base}-{nomor_urut:04d}"
+            angka_id = f"{int(id_baru[1:]):04d}"  # Hilangkan huruf 'J', jadikan angka 4 digit
+            base = f"{nik_part}-{gender_code}{bulan_daftar}{tahun_daftar}-{angka_id}"
+            return base
 
         # ========== TAB 1: Tambah Jemaat ==========
         with tab1:
@@ -472,7 +463,7 @@ elif halaman == "🔐 Admin Panel":
                 elif any(str(j["NIK"]).strip() == nik.strip() for j in daftar_jemaat):
                     st.error("❌ NIK sudah terdaftar.")
                 else:
-                    nij = generate_nij(nik, jenis_kelamin, tgl_lahir, daftar_jemaat)
+                    nij = generate_nij(nik, jenis_kelamin, id_baru)
                     tgl_lahir_str = tgl_lahir.strftime("%Y-%m-%d")
         
                     sheet_jemaat.append_row([
