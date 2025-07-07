@@ -396,10 +396,7 @@ elif halaman == "🔐 Admin Panel":
 
         # Tabs Admin
         tab1, tab2, tab3 = st.tabs(["🆕 Tambah Jemaat", "🖼️ Upload Foto", "📊 Statistik Presensi"])
-
-        # Fungsi buat NIJ otomatis
-        from datetime import datetime
-
+        # Defenisikan fungsi menghasilkan NIJ Otomatis
         def generate_nij(nik, gender, tgl_lahir, daftar_jemaat):
             nik_part = nik[6:12]
             gender_code = "01" if gender.lower() == "laki-laki" else "02"
@@ -407,13 +404,15 @@ elif halaman == "🔐 Admin Panel":
             tahun = str(tgl_lahir.year)[-2:]
             base = f"{nik_part}-{gender_code}{bulan}{tahun}"
         
+            # Ambil semua nomor urut dari NIJ yang cocok dengan base
             nij_list = []
             for j in daftar_jemaat:
-                nij = str(j.get("NIJ", "")).strip()
-                if nij.startswith(base):
-                    parts = nij.split("-")
-                    if len(parts) == 3 and parts[-1].isdigit():
-                        nij_list.append(int(parts[-1]))
+                nij_raw = str(j.get("NIJ", "")).strip()
+                parts = nij_raw.split("-")
+                if len(parts) == 3:
+                    nij_base = f"{parts[0]}-{parts[1]}"
+                    if nij_base == base and parts[2].isdigit():
+                        nij_list.append(int(parts[2]))
         
             nomor_urut = max(nij_list, default=0) + 1
             return f"{base}-{nomor_urut:04d}"
