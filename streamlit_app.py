@@ -428,11 +428,11 @@ elif halaman == "🔐 Admin Panel":
                 nama_baru = st.text_input("Nama Lengkap")
                 jenis_kelamin = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
                 # 🎂 Input Tanggal Lahir dengan batas tahun
-                tanggal_lahir = st.date_input(
+                st.date_input(
                     "Tanggal Lahir",
-                    min_value=datetime.date(1950, 1, 1),
-                    max_value=datetime.date.today(),
-                    value=datetime.date(2000, 1, 1)
+                    min_value=datetime.datetime(1950, 1, 1).date(),
+                    max_value=datetime.datetime.today().date(),
+                    value=datetime.datetime(2000, 1, 1).date()
                 )
                 usia = datetime.now().year - tgl_lahir.year
                 st.text(f"Usia otomatis: {usia} tahun")
