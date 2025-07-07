@@ -428,7 +428,7 @@ elif halaman == "🔐 Admin Panel":
                 nama_baru = st.text_input("Nama Lengkap")
                 jenis_kelamin = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
                 # 🎂 Input Tanggal Lahir dengan batas tahun
-                st.date_input(
+                tgl_lahir = st.date_input(
                     "Tanggal Lahir",
                     min_value=date(1950, 1, 1),
                     max_value=date.today(),
