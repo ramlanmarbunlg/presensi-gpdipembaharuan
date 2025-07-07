@@ -28,7 +28,7 @@ st.markdown("""
     <style>
         /* 🔆 BACKGROUND GRADASI WARNA */
         .stApp {
-            background: linear-gradient(180deg, #007cf0, #ffffff);
+            background: linear-gradient(180deg, #ffffff, #007cf0);
             min-height: 100vh;
             background-attachment: fixed;
         }
@@ -526,16 +526,21 @@ elif halaman == "🔐 Admin Panel":
                 # ========== PREVIEW FILE ==========
                 cols = st.columns(3)
                 if foto_file:
-                    cols[0].image(foto_file, caption="📷 Foto", width=150)
+                    cols[0].image(foto_file, caption="📷 Foto", width=100)
                 if ktp_file:
-                    cols[1].image(ktp_file, caption="🪪 KTP", width=150)
+                    cols[1].image(ktp_file, caption="🪪 KTP", width=100)
                 if kk_file:
-                    cols[2].image(kk_file, caption="🏠 KK", width=150)
+                    cols[2].image(kk_file, caption="🏠 KK", width=100)
             
                 if st.button("📤 Upload Semua File"):
                     if not (foto_file and ktp_file and kk_file):
                         st.warning("⚠️ Semua file (Foto, KTP, KK) wajib diunggah sebelum melanjutkan.")
                         st.stop()
+                if st.button("🧹 Bersihkan Form"):
+                    for key in ["upload_foto", "ktp_file", "kk_file", "select_jemaat", "slider_foto"]:
+                        if key in st.session_state:
+                            del st.session_state[key]
+                    st.experimental_rerun()
             
                     from googleapiclient.discovery import build
                     from googleapiclient.http import MediaIoBaseUpload
@@ -591,7 +596,8 @@ elif halaman == "🔐 Admin Panel":
                     time.sleep(delay_foto)
             
                     for key in ["select_jemaat", "upload_foto", "ktp_file", "kk_file", "slider_foto"]:
-                        st.session_state.pop(key, None)
+                        if key in st.session_state:
+                       del st.session_state[key]
                     st.experimental_rerun()
 
         # ========== TAB 3: Statistik Presensi ==========
