@@ -430,9 +430,9 @@ elif halaman == "🔐 Admin Panel":
                 # 🎂 Input Tanggal Lahir dengan batas tahun
                 tgl_lahir = st.date_input(
                     "Tanggal Lahir",
-                    min_value=date(1950, 1, 1),
+                    min_value=date(1900, 1, 1),
                     max_value=date.today(),
-                    value=date(2000, 1, 1)
+                    value=date(2025, 1, 1)
                 )
                 usia = datetime.now().year - tgl_lahir.year
                 st.text(f"Usia otomatis: {usia} tahun")
