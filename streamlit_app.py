@@ -1,5 +1,5 @@
 # ============================================
-# PRESENSI JEMAAT STREAMLIT QR CAMERA (V2 + CAMERA MANUAL MODE + USB SCANNER MODE)
+# PRESENSI JEMAAT STREAMLIT QR CAMERA (V3 + CAMERA MANUAL MODE + USB SCANNER MODE)
 # ============================================
 
 import streamlit as st
@@ -499,89 +499,89 @@ elif halaman == "🔐 Admin Panel":
                     st.session_state.form_key = f"form_{datetime.now().timestamp()}"
                     st.experimental_rerun()
 
-    # ========== TAB 2: Upload Foto ==========
-    with tab2:
-        st.markdown("### 🖼️ Upload Foto dan Dokumen Jemaat")
-    
-        delay_foto = st.slider("⏱️ Lama tampil pesan sukses (detik)", 1, 5, 3, key="slider_foto")
-        daftar_jemaat = sheet_jemaat.get_all_records()
-        opsi_jemaat = {f"{j['Nama']} ({j['ID']})": j['ID'] for j in daftar_jemaat}
-    
-        selected = st.selectbox("Pilih Jemaat", options=list(opsi_jemaat.keys()), key="select_jemaat")
-    
-        foto_file = st.file_uploader("📷 Upload Foto Jemaat (JPG/PNG)", type=["jpg", "jpeg", "png"], key="upload_foto")
-        ktp_file = st.file_uploader("🪪 Upload File KTP (JPG/PNG)", type=["jpg", "jpeg", "png"], key="ktp_file")
-        kk_file = st.file_uploader("🏠 Upload File KK (JPG/PNG)", type=["jpg", "jpeg", "png"], key="kk_file")
-    
-        if foto_file:
-            st.image(foto_file, caption="📷 Preview Foto", width=150)
-    
-        if st.button("📤 Upload Semua File"):
-            if not (selected and foto_file and ktp_file and kk_file):
-                st.warning("⚠️ Semua file (Foto, KTP, KK) wajib diunggah sebelum melanjutkan.")
-                st.stop()
-    
-            from googleapiclient.discovery import build
-            from googleapiclient.http import MediaIoBaseUpload
-            from google.oauth2 import service_account
-    
-            credentials = service_account.Credentials.from_service_account_info(st.secrets["gcp_service_account"])
-            drive_service = build("drive", "v3", credentials=credentials)
-    
-            jemaat_id = opsi_jemaat[selected]
-            baris_update = next(i + 2 for i, row in enumerate(daftar_jemaat) if row["ID"] == jemaat_id)
-            jemaat_data = next(j for j in daftar_jemaat if j["ID"] == jemaat_id)
-    
-            # ==== CEK FILE SUDAH ADA ====
-            if jemaat_data.get("File_ID_Foto"):
-                st.warning("⚠️ Foto sudah pernah diunggah sebelumnya.")
-            if jemaat_data.get("File_KTP"):
-                st.warning("⚠️ File KTP sudah pernah diunggah sebelumnya.")
-            if jemaat_data.get("File_KK"):
-                st.warning("⚠️ File KK sudah pernah diunggah sebelumnya.")
-    
-            # ==== UPLOAD FOTO ====
-            nama_foto = f"foto_{jemaat_id}.jpg"
-            media_foto = MediaIoBaseUpload(foto_file, mimetype="image/jpeg")
-            uploaded_foto = drive_service.files().create(
-                body={"name": nama_foto, "parents": [st.secrets["drive_foto"]["folder_id_foto"]]},
-                media_body=media_foto,
-                fields="id"
-            ).execute()
-            file_id_foto = uploaded_foto.get("id")
-            sheet_jemaat.update_cell(baris_update, 10, file_id_foto)
-    
-            # ==== UPLOAD KTP ====
-            nama_ktp = f"ktp_{jemaat_id}.jpg"
-            media_ktp = MediaIoBaseUpload(ktp_file, mimetype="image/jpeg")
-            uploaded_ktp = drive_service.files().create(
-                body={"name": nama_ktp, "parents": [st.secrets["drive_foto"]["folder_id_ktp"]]},
-                media_body=media_ktp,
-                fields="id"
-            ).execute()
-            file_id_ktp = uploaded_ktp.get("id")
-            link_ktp = f'=HYPERLINK("https://drive.google.com/file/d/{file_id_ktp}", "Lihat KTP")'
-            sheet_jemaat.update_cell(baris_update, 8, link_ktp)
-    
-            # ==== UPLOAD KK ====
-            nama_kk = f"kk_{jemaat_id}.jpg"
-            media_kk = MediaIoBaseUpload(kk_file, mimetype="image/jpeg")
-            uploaded_kk = drive_service.files().create(
-                body={"name": nama_kk, "parents": [st.secrets["drive_foto"]["folder_id_kk"]]},
-                media_body=media_kk,
-                fields="id"
-            ).execute()
-            file_id_kk = uploaded_kk.get("id")
-            link_kk = f'=HYPERLINK("https://drive.google.com/file/d/{file_id_kk}", "Lihat KK")'
-            sheet_jemaat.update_cell(baris_update, 9, link_kk)
-    
-            st.success("✅ Semua file berhasil diunggah dan disimpan ke database.")
-    
-            time.sleep(delay_foto)
-            for key in ["select_jemaat", "upload_foto", "ktp_file", "kk_file", "slider_foto"]:
-                if key in st.session_state:
-                    del st.session_state[key]
-            st.experimental_rerun()
+            # ========== TAB 2: Upload Foto ==========
+            with tab2:
+                st.markdown("### 🖼️ Upload Foto dan Dokumen Jemaat")
+            
+                delay_foto = st.slider("⏱️ Lama tampil pesan sukses (detik)", 1, 5, 3, key="slider_foto")
+                daftar_jemaat = sheet_jemaat.get_all_records()
+                opsi_jemaat = {f"{j['Nama']} ({j['ID']})": j['ID'] for j in daftar_jemaat}
+            
+                selected = st.selectbox("Pilih Jemaat", options=list(opsi_jemaat.keys()), key="select_jemaat")
+            
+                foto_file = st.file_uploader("📷 Upload Foto Jemaat (JPG/PNG)", type=["jpg", "jpeg", "png"], key="upload_foto")
+                ktp_file = st.file_uploader("🪪 Upload File KTP (JPG/PNG)", type=["jpg", "jpeg", "png"], key="ktp_file")
+                kk_file = st.file_uploader("🏠 Upload File KK (JPG/PNG)", type=["jpg", "jpeg", "png"], key="kk_file")
+            
+                if foto_file:
+                    st.image(foto_file, caption="📷 Preview Foto", width=150)
+            
+                if st.button("📤 Upload Semua File"):
+                    if not (selected and foto_file and ktp_file and kk_file):
+                        st.warning("⚠️ Semua file (Foto, KTP, KK) wajib diunggah sebelum melanjutkan.")
+                        st.stop()
+            
+                    from googleapiclient.discovery import build
+                    from googleapiclient.http import MediaIoBaseUpload
+                    from google.oauth2 import service_account
+            
+                    credentials = service_account.Credentials.from_service_account_info(st.secrets["gcp_service_account"])
+                    drive_service = build("drive", "v3", credentials=credentials)
+            
+                    jemaat_id = opsi_jemaat[selected]
+                    baris_update = next(i + 2 for i, row in enumerate(daftar_jemaat) if row["ID"] == jemaat_id)
+                    jemaat_data = next(j for j in daftar_jemaat if j["ID"] == jemaat_id)
+            
+                    # ==== CEK FILE SUDAH ADA ====
+                    if jemaat_data.get("File_ID_Foto"):
+                        st.warning("⚠️ Foto sudah pernah diunggah sebelumnya.")
+                    if jemaat_data.get("File_KTP"):
+                        st.warning("⚠️ File KTP sudah pernah diunggah sebelumnya.")
+                    if jemaat_data.get("File_KK"):
+                        st.warning("⚠️ File KK sudah pernah diunggah sebelumnya.")
+            
+                    # ==== UPLOAD FOTO ====
+                    nama_foto = f"foto_{jemaat_id}.jpg"
+                    media_foto = MediaIoBaseUpload(foto_file, mimetype="image/jpeg")
+                    uploaded_foto = drive_service.files().create(
+                        body={"name": nama_foto, "parents": [st.secrets["drive_foto"]["folder_id_foto"]]},
+                        media_body=media_foto,
+                        fields="id"
+                    ).execute()
+                    file_id_foto = uploaded_foto.get("id")
+                    sheet_jemaat.update_cell(baris_update, 10, file_id_foto)
+            
+                    # ==== UPLOAD KTP ====
+                    nama_ktp = f"ktp_{jemaat_id}.jpg"
+                    media_ktp = MediaIoBaseUpload(ktp_file, mimetype="image/jpeg")
+                    uploaded_ktp = drive_service.files().create(
+                        body={"name": nama_ktp, "parents": [st.secrets["drive_foto"]["folder_id_ktp"]]},
+                        media_body=media_ktp,
+                        fields="id"
+                    ).execute()
+                    file_id_ktp = uploaded_ktp.get("id")
+                    link_ktp = f'=HYPERLINK("https://drive.google.com/file/d/{file_id_ktp}", "Lihat KTP")'
+                    sheet_jemaat.update_cell(baris_update, 8, link_ktp)
+            
+                    # ==== UPLOAD KK ====
+                    nama_kk = f"kk_{jemaat_id}.jpg"
+                    media_kk = MediaIoBaseUpload(kk_file, mimetype="image/jpeg")
+                    uploaded_kk = drive_service.files().create(
+                        body={"name": nama_kk, "parents": [st.secrets["drive_foto"]["folder_id_kk"]]},
+                        media_body=media_kk,
+                        fields="id"
+                    ).execute()
+                    file_id_kk = uploaded_kk.get("id")
+                    link_kk = f'=HYPERLINK("https://drive.google.com/file/d/{file_id_kk}", "Lihat KK")'
+                    sheet_jemaat.update_cell(baris_update, 9, link_kk)
+            
+                    st.success("✅ Semua file berhasil diunggah dan disimpan ke database.")
+            
+                    time.sleep(delay_foto)
+                    for key in ["select_jemaat", "upload_foto", "ktp_file", "kk_file", "slider_foto"]:
+                        if key in st.session_state:
+                            del st.session_state[key]
+                    st.experimental_rerun()
 
         # ========== TAB 3: Statistik Presensi ==========
         with tab3:
