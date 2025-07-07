@@ -396,81 +396,92 @@ elif halaman == "🔐 Admin Panel":
         # Tabs Admin
         tab1, tab2, tab3 = st.tabs(["🆕 Tambah Jemaat", "🖼️ Upload Foto", "📊 Statistik Presensi"])
 
-        # ========== TAB 1: Tambah Jemaat ==========
-        with tab1:
-            st.markdown("### ✨ Tambah Jemaat Baru")
-            delay = st.slider("⏱️ Tampilkan pesan sukses selama (detik):", 1, 5, 2)
+        def generate_nij(nik, gender, daftar_jemaat):
+            nik_part = nik[6:12]
+            gender_code = "01" if gender.lower() == "laki-laki" else "02"
+            bulan = datetime.now().strftime("%m")
+            tahun = datetime.now().strftime("%y")
+            base = f"{nik_part}.{gender_code}{bulan}{tahun}"
         
-            # Ambil semua data jemaat
-            daftar_jemaat = sheet_jemaat.get_all_records()
-        
-            # Buat ID baru
-            daftar_id = [j["ID"] for j in daftar_jemaat]
-            angka_terakhir = max([int(i[1:]) for i in daftar_id if i.startswith("J")], default=0)
-            id_baru = f"J{angka_terakhir + 1:03d}"
-        
-            form_key = st.session_state.get("form_key", "form_jemaat_default")
-            with st.form(key=form_key):
-                st.text_input("ID Jemaat", value=id_baru, disabled=True)
-                nik = st.text_input("NIK", max_chars=20)
-                nama_baru = st.text_input("Nama Lengkap")
-                jenis_kelamin = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
-                no_wa = st.text_input("No WhatsApp (Wajib format 628xxx)")
-                email_baru = st.text_input("Email (Wajib email aktif)")
-                simpan = st.form_submit_button("💾 Simpan")
-        
-            # Fungsi validasi regex
-            def is_valid_wa(no):
-                import re #untuk validasi no WA
-                # Valid: 628xxxxxxxxx (10–13 digit)
-                wa_regex = r"^(628\d{7,10})$"
-                return re.match(wa_regex, no)
-        
-            def is_valid_email(email):
-                import re #untuk validasi email
-                email_regex = r"^[\w\.-]+@[\w\.-]+\.\w+$"
-                return re.match(email_regex, email)
+            # Hitung urutan
+            existing = [j for j in daftar_jemaat if "NIJ" in j and str(j["NIJ"]).startswith(base)]
+            nomor_urut = f"{len(existing)+1:04d}"
+            return f"{base}.{nomor_urut}"
 
-            def is_valid_nik(nik):
-                return nik.isdigit() and len(nik) == 16
+    # ========== TAB 1: Tambah Jemaat ==========
+    with tab1:
+        st.markdown("### ✨ Tambah Jemaat Baru")
+        delay = st.slider("⏱️ Tampilkan pesan sukses selama (detik):", 1, 5, 2)
+    
+        daftar_jemaat = sheet_jemaat.get_all_records()
+    
+        # Buat ID baru
+        daftar_id = [j["ID"] for j in daftar_jemaat]
+        angka_terakhir = max([int(i[1:]) for i in daftar_id if i.startswith("J")], default=0)
+        id_baru = f"J{angka_terakhir + 1:03d}"
+    
+        form_key = st.session_state.get("form_key", "form_jemaat_default")
+        with st.form(key=form_key):
+            st.text_input("ID Jemaat", value=id_baru, disabled=True)
+            nik = st.text_input("NIK", max_chars=20)
+            nama_baru = st.text_input("Nama Lengkap")
+            jenis_kelamin = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
+            tgl_lahir = st.date_input("Tanggal Lahir")
+            usia = datetime.now().year - tgl_lahir.year
+            st.text(f"Usia otomatis: {usia} tahun")
+    
+            no_wa = st.text_input("No WhatsApp (format 628xxx)")
+            email_baru = st.text_input("Email aktif")
+            simpan = st.form_submit_button("💾 Simpan")
+    
+        def is_valid_wa(no):
+            import re
+            return re.match(r"^(628\d{7,10})$", no)
+    
+        def is_valid_email(email):
+            import re
+            return re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", email)
+    
+        def is_valid_nik(nik):
+            return nik.isdigit() and len(nik) == 16
+    
+        if simpan:
+            if not nik.strip() or not nama_baru.strip() or not no_wa.strip() or not email_baru.strip():
+                st.warning("⚠️ Semua isian wajib diisi.")
+            elif not is_valid_nik(nik.strip()):
+                st.error("❌ NIK harus 16 digit.")
+            elif not is_valid_wa(no_wa.strip()):
+                st.error("❌ Format nomor WhatsApp tidak valid.")
+            elif not is_valid_email(email_baru.strip()):
+                st.error("❌ Format email tidak valid.")
+            elif any(str(j["NIK"]).strip() == nik.strip() for j in daftar_jemaat):
+                st.error("❌ NIK sudah terdaftar.")
+            else:
+                nij = generate_nij(nik, jenis_kelamin, daftar_jemaat)
+                tgl_lahir_str = tgl_lahir.strftime("%Y-%m-%d")
+    
+                sheet_jemaat.append_row([
+                    id_baru,               # ID
+                    nik,                   # NIK
+                    nij,                   # NIJ
+                    nama_baru.strip(),     # Nama
+                    jenis_kelamin,         # Jenis Kelamin
+                    tgl_lahir_str,         # Tgl Lahir
+                    usia,                  # Usia
+                    "", "", "",            # File_KTP, File_KK, File_ID_Foto
+                    no_wa.strip(),         # No WhatsApp
+                    email_baru.strip(),    # Email
+                    ""                     # QR Code
+                ])
         
-            # Jika tombol simpan ditekan
-            if simpan:
-                if not nik.strip() or not nama_baru.strip() or not no_wa.strip() or not email_baru.strip():
-                    st.warning("⚠️ Semua isian wajib diisi.")
-                elif not is_valid_nik(nik.strip()):
-                    st.error("❌ NIK harus berupa 16 digit angka.")
-                elif not is_valid_wa(no_wa.strip()):
-                    st.error("❌ Format nomor WhatsApp tidak valid (harus 10-13 digit).")
-                elif not is_valid_email(email_baru.strip()):
-                    st.error("❌ Format email tidak valid.")
-                elif any(str(j["NIK"]).strip() == nik.strip() for j in daftar_jemaat):
-                    st.error("❌ NIK sudah terdaftar.")
-                elif any(str(j["Email"]).strip().lower() == email_baru.strip().lower() for j in daftar_jemaat):
-                    st.error("❌ Email sudah digunakan.")
-                elif any(str(j["No_WhatsApp"]).strip() == no_wa.strip() for j in daftar_jemaat):
-                    st.error("❌ Nomor WhatsApp sudah digunakan.")
-                else:
-                    # Simpan ke Sheet sesuai urutan kolom
-                    sheet_jemaat.append_row([
-                        id_baru,              # A: ID
-                        nik,                  # B: NIK
-                        nama_baru.strip(),    # C: Nama
-                        jenis_kelamin,        # D: Jenis Kelamin
-                        "",                   # E: File_ID_Foto (kosong dulu)
-                        no_wa.strip(),        # F: No_WhatsApp
-                        email_baru.strip(),   # G: Email
-                        ""                    # H: QR (kosong dulu)
-                    ])
-        
-                    st.success(f"✅ Jemaat '{nama_baru}' berhasil ditambahkan dengan ID: {id_baru}")
+                    st.success(f"✅ Jemaat '{nama_baru}' berhasil ditambahkan dengan NIJ: {nij}")
 
                     # Kirim email selamat datang (jika email diisi)
                     if email_baru.strip():
                         import smtplib
                         from email.mime.text import MIMEText
 
-                        msg = MIMEText(f"Syalom {nama_baru},\n\nSelamat datang di sistem presensi jemaat GPdI Pembaharuan.\n\nID Jemaat Anda: {id_baru}\n\nGunakan kartu atau QR Code Anda saat hadir di ibadah.\n\nTuhan Yesus Memberkati 🙏. \n\n-- IT & Media GPdI Pembaharuan.")
+                        msg = MIMEText(f"Syalom {nama_baru},\n\nSelamat datang di sistem presensi jemaat GPdI Pembaharuan.\n\nNIJ Jemaat Anda: {nij}\n\nGunakan kartu atau QR Code Anda saat hadir di ibadah.\n\nTuhan Yesus Memberkati 🙏. \n\n-- IT & Media GPdI Pembaharuan.")
                         msg["Subject"] = "Selamat Datang di GPdI Pembaharuan"
                         msg["From"] = st.secrets["email_smtp"]["sender"]
                         msg["To"] = email_baru
@@ -488,53 +499,89 @@ elif halaman == "🔐 Admin Panel":
                     st.session_state.form_key = f"form_{datetime.now().timestamp()}"
                     st.experimental_rerun()
 
-        # ========== TAB 2: Upload Foto ==========
-        with tab2:
-            st.markdown("### 🖼️ Upload Foto Jemaat")
-
-            delay_foto = st.slider("⏱️ Lama tampil pesan sukses (detik)", 1, 5, 3, key="slider_foto")
-            daftar_jemaat = sheet_jemaat.get_all_records()
-            opsi_jemaat = {f"{j['Nama']} ({j['ID']})": j['ID'] for j in daftar_jemaat}
-
-            selected = st.selectbox("Pilih Jemaat", options=list(opsi_jemaat.keys()), key="select_jemaat")
-            foto_file = st.file_uploader("Pilih File Foto (JPG/PNG)", type=["jpg", "jpeg", "png"], key="upload_foto")
-
-            if foto_file:
-                st.image(foto_file, caption="📷 Preview Foto", width=150)
-
-            if st.button("📤 Upload Foto"):
-                if selected and foto_file:
-                    from googleapiclient.discovery import build
-                    from googleapiclient.http import MediaIoBaseUpload
-                    from google.oauth2 import service_account
-
-                    credentials = service_account.Credentials.from_service_account_info(st.secrets["gcp_service_account"])
-                    drive_service = build("drive", "v3", credentials=credentials)
-
-                    nama_file = f"foto_{opsi_jemaat[selected]}.jpg"
-                    media = MediaIoBaseUpload(foto_file, mimetype="image/jpeg")
-                    file_metadata = {
-                        "name": nama_file,
-                        "parents": [st.secrets["drive"]["folder_id_foto"]]
-                    }
-                    uploaded = drive_service.files().create(body=file_metadata, media_body=media, fields="id").execute()
-                    file_id = uploaded.get("id")
-
-                    baris_update = next(
-                        i + 2 for i, row in enumerate(daftar_jemaat)
-                        if row["ID"] == opsi_jemaat[selected]
-                    )
-                    sheet_jemaat.update_cell(baris_update, 5, file_id)
-
-                    st.success(f"✅ Foto jemaat berhasil diunggah. ID File: {file_id}")
-                    time.sleep(delay_foto)
-
-                    for key in ["select_jemaat", "upload_foto", "slider_foto"]:
-                        if key in st.session_state:
-                            del st.session_state[key]
-                    st.experimental_rerun()
-                else:
-                    st.warning("⚠️ Lengkapi pilihan jemaat dan foto terlebih dahulu.")
+    # ========== TAB 2: Upload Foto ==========
+    with tab2:
+        st.markdown("### 🖼️ Upload Foto dan Dokumen Jemaat")
+    
+        delay_foto = st.slider("⏱️ Lama tampil pesan sukses (detik)", 1, 5, 3, key="slider_foto")
+        daftar_jemaat = sheet_jemaat.get_all_records()
+        opsi_jemaat = {f"{j['Nama']} ({j['ID']})": j['ID'] for j in daftar_jemaat}
+    
+        selected = st.selectbox("Pilih Jemaat", options=list(opsi_jemaat.keys()), key="select_jemaat")
+    
+        foto_file = st.file_uploader("📷 Upload Foto Jemaat (JPG/PNG)", type=["jpg", "jpeg", "png"], key="upload_foto")
+        ktp_file = st.file_uploader("🪪 Upload File KTP (JPG/PNG)", type=["jpg", "jpeg", "png"], key="ktp_file")
+        kk_file = st.file_uploader("🏠 Upload File KK (JPG/PNG)", type=["jpg", "jpeg", "png"], key="kk_file")
+    
+        if foto_file:
+            st.image(foto_file, caption="📷 Preview Foto", width=150)
+    
+        if st.button("📤 Upload Semua File"):
+            if not (selected and foto_file and ktp_file and kk_file):
+                st.warning("⚠️ Semua file (Foto, KTP, KK) wajib diunggah sebelum melanjutkan.")
+                st.stop()
+    
+            from googleapiclient.discovery import build
+            from googleapiclient.http import MediaIoBaseUpload
+            from google.oauth2 import service_account
+    
+            credentials = service_account.Credentials.from_service_account_info(st.secrets["gcp_service_account"])
+            drive_service = build("drive", "v3", credentials=credentials)
+    
+            jemaat_id = opsi_jemaat[selected]
+            baris_update = next(i + 2 for i, row in enumerate(daftar_jemaat) if row["ID"] == jemaat_id)
+            jemaat_data = next(j for j in daftar_jemaat if j["ID"] == jemaat_id)
+    
+            # ==== CEK FILE SUDAH ADA ====
+            if jemaat_data.get("File_ID_Foto"):
+                st.warning("⚠️ Foto sudah pernah diunggah sebelumnya.")
+            if jemaat_data.get("File_KTP"):
+                st.warning("⚠️ File KTP sudah pernah diunggah sebelumnya.")
+            if jemaat_data.get("File_KK"):
+                st.warning("⚠️ File KK sudah pernah diunggah sebelumnya.")
+    
+            # ==== UPLOAD FOTO ====
+            nama_foto = f"foto_{jemaat_id}.jpg"
+            media_foto = MediaIoBaseUpload(foto_file, mimetype="image/jpeg")
+            uploaded_foto = drive_service.files().create(
+                body={"name": nama_foto, "parents": [st.secrets["drive_foto"]["folder_id_foto"]]},
+                media_body=media_foto,
+                fields="id"
+            ).execute()
+            file_id_foto = uploaded_foto.get("id")
+            sheet_jemaat.update_cell(baris_update, 10, file_id_foto)
+    
+            # ==== UPLOAD KTP ====
+            nama_ktp = f"ktp_{jemaat_id}.jpg"
+            media_ktp = MediaIoBaseUpload(ktp_file, mimetype="image/jpeg")
+            uploaded_ktp = drive_service.files().create(
+                body={"name": nama_ktp, "parents": [st.secrets["drive_foto"]["folder_id_ktp"]]},
+                media_body=media_ktp,
+                fields="id"
+            ).execute()
+            file_id_ktp = uploaded_ktp.get("id")
+            link_ktp = f'=HYPERLINK("https://drive.google.com/file/d/{file_id_ktp}", "Lihat KTP")'
+            sheet_jemaat.update_cell(baris_update, 8, link_ktp)
+    
+            # ==== UPLOAD KK ====
+            nama_kk = f"kk_{jemaat_id}.jpg"
+            media_kk = MediaIoBaseUpload(kk_file, mimetype="image/jpeg")
+            uploaded_kk = drive_service.files().create(
+                body={"name": nama_kk, "parents": [st.secrets["drive_foto"]["folder_id_kk"]]},
+                media_body=media_kk,
+                fields="id"
+            ).execute()
+            file_id_kk = uploaded_kk.get("id")
+            link_kk = f'=HYPERLINK("https://drive.google.com/file/d/{file_id_kk}", "Lihat KK")'
+            sheet_jemaat.update_cell(baris_update, 9, link_kk)
+    
+            st.success("✅ Semua file berhasil diunggah dan disimpan ke database.")
+    
+            time.sleep(delay_foto)
+            for key in ["select_jemaat", "upload_foto", "ktp_file", "kk_file", "slider_foto"]:
+                if key in st.session_state:
+                    del st.session_state[key]
+            st.experimental_rerun()
 
         # ========== TAB 3: Statistik Presensi ==========
         with tab3:
