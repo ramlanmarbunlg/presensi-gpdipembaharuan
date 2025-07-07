@@ -186,10 +186,10 @@ import streamlit.components.v1 as components
 # ===================== FUNGSI PRESENSI =====================
 def proses_presensi(qr_data):
     daftar_jemaat = sheet_jemaat.get_all_records()
-    data_jemaat = next((j for j in daftar_jemaat if str(j["ID"]).strip() == qr_data), None)
+    data_jemaat = next((j for j in daftar_jemaat if str(j["NIJ"]).strip() == qr_data), None)
 
     if not data_jemaat:
-        st.error("🛑 ID Jemaat tidak ditemukan dalam database.")
+        st.error("🛑 ID/NIJ Jemaat tidak ditemukan dalam database.")
         return
 
     nama_jemaat = data_jemaat["Nama"]
@@ -206,10 +206,10 @@ def proses_presensi(qr_data):
 
     # ===== CEK SUDAH PRESENSI =====
     riwayat = sheet_presensi.get_all_records()
-    sudah_presensi = any(r["ID"] == qr_data and tanggal_hari_ini in r["Waktu"] for r in riwayat)
+    sudah_presensi = any(r["NIJ"] == qr_data and tanggal_hari_ini in r["Waktu"] for r in riwayat)
 
     if sudah_presensi:
-        waktu_terakhir = next(r["Waktu"] for r in riwayat if r["ID"] == qr_data and tanggal_hari_ini in r["Waktu"])
+        waktu_terakhir = next(r["Waktu"] for r in riwayat if r["NIJ"] == qr_data and tanggal_hari_ini in r["Waktu"])
         st.warning(f"⚠️ Anda sudah melakukan presensi hari ini pada {waktu_terakhir}")
         return
 
@@ -228,7 +228,7 @@ def proses_presensi(qr_data):
             warna = "#28a745" if i == 0 else "#007cf0" if i < 3 else "#ddd"
             st.markdown(f"""
                 <div style="padding:10px;margin:5px 0;background-color:{warna};color:white;font-size:18px;border-radius:5px;">
-                    🆔 {r['ID']} | 🙍 {r['Nama']} | ⏰ {r['Waktu'].split(' ')[1]} | 📌 {r.get('Keterangan', '')}
+                    🆔 {r['NIJ']} | 🙍 {r['Nama']} | ⏰ {r['Waktu'].split(' ')[1]} | 📌 {r.get('Keterangan', '')}
                 </div>
             """, unsafe_allow_html=True)
     else:
@@ -277,7 +277,7 @@ def proses_presensi(qr_data):
     c.drawString(100, 750, "SERTIFIKAT KEHADIRAN JEMAAT")
     c.setFont("Helvetica", 12)
     c.drawString(100, 700, f"Nama Jemaat : {nama_jemaat}")
-    c.drawString(100, 680, f"ID Jemaat   : {qr_data}")
+    c.drawString(100, 680, f"ID/NIJ Jemaat   : {qr_data}")
     c.drawString(100, 660, f"Waktu Hadir : {waktu_str}")
     c.drawString(100, 640, f"Keterangan  : {keterangan}")
     c.drawString(100, 620, "Lokasi      : GPdI Pembaharuan Medan")
@@ -295,7 +295,7 @@ if halaman == "📸 Presensi Jemaat":
     # ===================== MODE USB SCANNER =====================
     st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
 
-    qr_code_input = st.text_input("🆔 ID dari QR Code", placeholder="Scan QR di sini...", key="input_qr")
+    qr_code_input = st.text_input("🆔 NIJ dari QR Code", placeholder="Scan QR di sini...", key="input_qr")
 
     # Auto-focus fix dengan cari placeholder dari input_qr
     components.html(f"""
