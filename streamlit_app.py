@@ -401,15 +401,26 @@ elif halaman == "🔐 Admin Panel":
         def generate_nij(nik, gender, tgl_lahir, daftar_jemaat):
             nik_part = nik[6:12]
             gender_code = "01" if gender.lower() == "laki-laki" else "02"
-            bulan = tgl_lahir.strftime("%m")  # Pakai tgl_lahir
-            tahun = tgl_lahir.strftime("%y")  # Dua digit tahun
+            bulan = f"{tgl_lahir.month:02d}"
+            tahun = str(tgl_lahir.year)[-2:]  # 2 digit terakhir tahun
             base = f"{nik_part}-{gender_code}{bulan}{tahun}"
         
-            existing = [
-                j for j in daftar_jemaat
-                if j.get("NIJ") and str(j["NIJ"]).startswith(base)
+            # Ambil hanya NIJ yang sesuai prefix
+            nij_list = [
+                str(j.get("NIJ", "")).strip()
+                for j in daftar_jemaat
+                if str(j.get("NIJ", "")).startswith(base)
             ]
-            nomor_urut = f"{len(existing) + 1:04d}"
+        
+            # Ambil 4 digit terakhir sebagai nomor urut
+            last_numbers = [
+                int(nij.split("-")[-1])
+                for nij in nij_list
+                if nij.count("-") == 2 and nij.split("-")[-1].isdigit()
+            ]
+            next_number = max(last_numbers, default=0) + 1
+            nomor_urut = f"{next_number:04d}"
+        
             return f"{base}-{nomor_urut}"
 
         # ========== TAB 1: Tambah Jemaat ==========
