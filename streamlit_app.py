@@ -728,9 +728,6 @@ elif halaman == "🔐 Admin Panel":
         # ========== TAB 4: Tambah Ibadah ==========
         with tab4:
             st.markdown("### ➕ Tambah atau Edit Jenis Ibadah")
-            sheet_ibadah = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("Ibadah")
-            data_lama = sheet_ibadah.get_all_records()
-            df_ibadah = pd.DataFrame(data_lama)
         
             # ========== TAMBAH / EDIT FORM ==========
             mode = st.radio("📌 Mode Operasi", ["Tambah", "Edit"], horizontal=True)
@@ -757,8 +754,9 @@ elif halaman == "🔐 Admin Panel":
                 if not nama_ibadah.strip():
                     st.warning("⚠️ Nama ibadah wajib diisi.")
                 else:
-                    sheet_ibadah = client.open_by_key("...").worksheet("Ibadah")  # ganti sesuai ID sheet Anda
+                    sheet_ibadah = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("Ibadah")
                     data_lama = sheet_ibadah.get_all_records()
+                    df_ibadah = pd.DataFrame(data_lama)
                     
                     # Cek duplikat nama
                     if nama_ibadah.strip() in [r["Nama Ibadah"] for r in data_lama]:
