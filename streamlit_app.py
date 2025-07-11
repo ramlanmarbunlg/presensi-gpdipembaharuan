@@ -189,7 +189,7 @@ def proses_presensi(qr_data):
     data_jemaat = next((j for j in daftar_jemaat if str(j["NIJ"]).strip() == qr_data), None)
 
     if not data_jemaat:
-        st.error("🛑 ID/NIJ Jemaat tidak ditemukan dalam database.")
+        st.error("🛑 NIJ tidak ditemukan dalam database.")
         return
 
     nama_jemaat = data_jemaat["Nama"]
@@ -277,7 +277,7 @@ def proses_presensi(qr_data):
     c.drawString(100, 750, "SERTIFIKAT KEHADIRAN JEMAAT")
     c.setFont("Helvetica", 12)
     c.drawString(100, 700, f"Nama Jemaat : {nama_jemaat}")
-    c.drawString(100, 680, f"ID/NIJ Jemaat   : {qr_data}")
+    c.drawString(100, 680, f"NIJ (Nomor Induk Jemaat)   : {qr_data}")
     c.drawString(100, 660, f"Waktu Hadir : {waktu_str}")
     c.drawString(100, 640, f"Keterangan  : {keterangan}")
     c.drawString(100, 620, "Lokasi      : GPdI Pembaharuan Medan")
@@ -487,7 +487,7 @@ elif halaman == "🔐 Admin Panel":
                         import smtplib
                         from email.mime.text import MIMEText
 
-                        msg = MIMEText(f"Syalom {nama_baru},\n\nSelamat datang di sistem presensi jemaat GPdI Pembaharuan.\n\nNIJ Jemaat Anda: {nij}\n\nGunakan kartu atau QR Code Anda saat hadir di ibadah.\n\nTuhan Yesus Memberkati 🙏. \n\n-- IT & Media GPdI Pembaharuan.")
+                        msg = MIMEText(f"Syalom {nama_baru},\n\nSelamat datang di sistem presensi jemaat GPdI Pembaharuan.\n\nNIJ Anda: {nij}\n\nGunakan kartu atau QR Code Anda saat hadir di ibadah.\n\nTuhan Yesus Memberkati 🙏. \n\n-- IT & Media GPdI Pembaharuan.")
                         msg["Subject"] = "Selamat Datang di GPdI Pembaharuan"
                         msg["From"] = st.secrets["email_smtp"]["sender"]
                         msg["To"] = email_baru
