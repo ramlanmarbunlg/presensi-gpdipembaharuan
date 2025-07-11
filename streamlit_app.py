@@ -668,14 +668,14 @@ elif halaman == "🔐 Admin Panel":
             st.markdown("### 📊 Statistik Presensi")
         
             df_presensi = load_data_presensi()
-            if not data:
+            if not df_presensi:
                 st.warning("Belum ada data presensi.")
                 st.stop()
         
             import pandas as pd
             from datetime import datetime
         
-            df = pd.DataFrame(data)
+            df = pd.DataFrame(df_presensi)
             df["Tanggal"] = pd.to_datetime(df["Waktu"].str[:10], format="%d-%m-%Y")
         
             # 🌍 Filter Ibadah/Lokasi
