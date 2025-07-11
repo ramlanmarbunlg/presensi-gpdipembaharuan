@@ -628,7 +628,7 @@ elif halaman == "🔐 Admin Panel":
 
             # Filter presensi per tanggal
             tanggal_filter = st.date_input("📅 Pilih Tanggal Presensi")
-            tanggal_str = tanggal_filter.strftime("%Y-%m-%d")
+            tanggal_str = tanggal_filter.strftime("%d-%m-%Y")
             hasil_filter = [r for r in df_presensi if tanggal_str in r["Waktu"]]
 
             st.info(f"📌 Total Jemaat Hadir pada {tanggal_str}: {len(hasil_filter)}")
