@@ -728,6 +728,7 @@ elif halaman == "🔐 Admin Panel":
         # ========== TAB 4: Tambah Ibadah ==========
         with tab4:
             st.markdown("### ➕ Tambah atau Edit Jenis Ibadah")
+            sheet_ibadah = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("Ibadah")
         
             # ========== TAMBAH / EDIT FORM ==========
             mode = st.radio("📌 Mode Operasi", ["Tambah", "Edit"], horizontal=True)
