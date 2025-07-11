@@ -9,3 +9,4 @@ pandas
 google-api-python-client
 python-dateutil
 matplotlib
+seaborn
