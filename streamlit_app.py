@@ -636,45 +636,48 @@ elif halaman == "🔐 Admin Panel":
             # Tambah kolom bantu
             df["Tanggal"] = df["Waktu"].dt.date
             df["Tahun"] = df["Waktu"].dt.year
-            df["Bulan"] = df["Waktu"].dt.strftime("%Y-%m")
+            df["Bulan"] = df["Waktu"].dt.strftime("%m")
+            df["Bulan-Nama"] = df["Waktu"].dt.strftime("%B")
+            df["Tgl-String"] = df["Waktu"].dt.strftime("%d-%m-%Y")
         
-            # ========== TREN KEHADIRAN ==========
-            st.markdown("#### 📅 Tren Kehadiran Mingguan (7 Hari Terakhir)")
+            # ========== GRAFIK TREN ==========
+            st.markdown("#### 📈 Tren Kehadiran Mingguan (7 Hari Terakhir)")
             df_minggu = df[df["Waktu"] >= datetime.now() - timedelta(days=7)]
             mingguan = df_minggu["Tanggal"].value_counts().sort_index()
             st.line_chart(mingguan)
         
-            st.markdown("#### 🗓️ Tren Kehadiran Bulanan")
-            bulanan = df["Bulan"].value_counts().sort_index()
+            st.markdown("#### 📊 Tren Bulanan")
+            bulanan = df["Waktu"].dt.to_period("M").value_counts().sort_index()
             st.bar_chart(bulanan)
         
-            st.markdown("#### 📆 Tren Kehadiran Tahunan")
+            st.markdown("#### 📅 Tren Tahunan")
             tahunan = df["Tahun"].value_counts().sort_index()
             st.bar_chart(tahunan)
         
-            # ========== FILTER BERDASARKAN TAHUN DAN BULAN ==========
-            st.markdown("### 🔍 Filter Statistik Berdasarkan Tahun dan Bulan")
+            # ========== FILTER TAHUN > BULAN > TANGGAL ==========
+            st.markdown("### 🔍 Statistik Filter: Tahun → Bulan → Tanggal")
         
             tahun_opsi = sorted(df["Tahun"].dropna().unique())
             tahun_pilih = st.selectbox("Pilih Tahun", options=tahun_opsi)
         
             df_tahun = df[df["Tahun"] == tahun_pilih]
-            bulan_opsi = sorted(df_tahun["Bulan"].dropna().unique())
-            bulan_pilih = st.selectbox("Pilih Bulan", options=bulan_opsi)
+            bulan_opsi = sorted(df_tahun["Bulan"].unique())
+            bulan_pilih = st.selectbox("Pilih Bulan", options=bulan_opsi, format_func=lambda b: datetime.strptime(b, "%m").strftime("%B"))
         
-            df_bulan = df[df["Bulan"] == bulan_pilih]
+            df_bulan = df_tahun[df_tahun["Bulan"] == bulan_pilih]
+            tanggal_opsi = sorted(df_bulan["Tanggal"].unique())
+            tanggal_pilih = st.selectbox("Pilih Tanggal", options=tanggal_opsi, format_func=lambda d: d.strftime("%A, %d %B %Y"))
         
-            st.markdown(f"#### 📅 Kehadiran pada Bulan {bulan_pilih}")
-            harian = df_bulan["Tanggal"].value_counts().sort_index()
-            st.line_chart(harian)
+            df_tanggal = df_bulan[df_bulan["Tanggal"] == tanggal_pilih]
         
-            st.dataframe(df_bulan)
+            st.markdown(f"#### 📍 Kehadiran pada {tanggal_pilih.strftime('%A, %d %B %Y')}")
+            st.dataframe(df_tanggal)
         
-            # ======= EXPORT CSV HASIL FILTER BULAN =======
+            # ======= EXPORT CSV HASIL FILTER TANGGAL =======
             def convert_to_csv(dataframe): return dataframe.to_csv(index=False).encode('utf-8')
-            st.download_button("⬇️ Export Presensi Bulan Ini ke CSV",
-                               data=convert_to_csv(df_bulan),
-                               file_name=f"presensi_{bulan_pilih}.csv",
+            st.download_button("⬇️ Export Presensi Hari Ini ke CSV",
+                               data=convert_to_csv(df_tanggal),
+                               file_name=f"presensi_{tanggal_pilih}.csv",
                                mime="text/csv")
 
 # ===================== FOOTER =====================
