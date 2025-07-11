@@ -638,10 +638,13 @@ elif halaman == "🔐 Admin Panel":
             df["Tanggal"] = pd.to_datetime(df["Waktu"].str[:10], format="%d-%m-%Y")
         
             # 🌍 Filter Ibadah/Lokasi
-            ibadah_opsi = sorted(df["Ibadah"].dropna().unique())
-            ibadah_pilih = st.selectbox("🙏 Pilih Jenis Ibadah / Lokasi", ["Semua"] + ibadah_opsi)
-            if ibadah_pilih != "Semua":
-                df = df[df["Ibadah"] == ibadah_pilih]
+            if "Ibadah" in df.columns:
+                ibadah_opsi = sorted(df["Ibadah"].dropna().unique())
+                ibadah_pilih = st.selectbox("🙏 Pilih Jenis Ibadah / Lokasi", ["Semua"] + ibadah_opsi)
+                if ibadah_pilih != "Semua":
+                    df = df[df["Ibadah"] == ibadah_pilih]
+            else:
+                st.warning("⚠️ Kolom 'Ibadah' tidak ditemukan di data presensi.")
         
             # ========= FILTER TAHUN / BULAN / TANGGAL =========
             tahun_opsi = sorted(df["Tanggal"].dt.year.unique(), reverse=True)
