@@ -721,6 +721,39 @@ elif halaman == "🔐 Admin Panel":
             # Export CSV
             st.download_button("⬇️ Export CSV", data=df_tanggal.to_csv(index=False).encode("utf-8"),
                                file_name=f"presensi_{tanggal_final.strftime('%d%m%Y')}.csv", mime="text/csv")
+       
+        # ========== TAB 4: Tambah Ibadah ==========
+        with tab4:
+            st.markdown("### ➕ Tambah Jenis Ibadah Baru")
+            
+            with st.form("form_tambah_ibadah"):
+                nama_ibadah = st.text_input("🕊️ Nama Ibadah")
+                lokasi_ibadah = st.text_input("🏠 Lokasi Ibadah")
+                hari_ibadah = st.selectbox("📅 Hari Ibadah", [
+                    "Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Setiap Hari"
+                ])
+                jam_ibadah = st.time_input("🏠 Jam Ibadah")
+                keterangan = st.text_area("📝 Keterangan Tambahan")
+            
+                submit_ibadah = st.form_submit_button("💾 Simpan Ibadah")
+            
+            if submit_ibadah:
+                if not nama_ibadah.strip():
+                    st.warning("⚠️ Nama ibadah wajib diisi.")
+                else:
+                    sheet_ibadah = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("ibadah")
+                    data_lama = sheet_ibadah.get_all_records()
+                    nomor_terakhir = len(data_lama) + 1
+            
+                    sheet_ibadah.append_row([
+                        nomor_terakhir,
+                        nama_ibadah.strip(),
+                        lokasi_ibadah.strip(),
+                        hari_ibadah,
+                        jam_ibadah,
+                        keterangan.strip()
+                    ])
+                    st.success(f"✅ Ibadah '{nama_ibadah}' berhasil ditambahkan.")
 
 # ===================== FOOTER =====================
 st.markdown("""
