@@ -27,23 +27,6 @@ from email.message import EmailMessage
 import smtplib
 import streamlit.components.v1 as components
 
-def format_tanggal_indonesia(dt):
-    hari_dict = {
-        "Monday": "Senin", "Tuesday": "Selasa", "Wednesday": "Rabu",
-        "Thursday": "Kamis", "Friday": "Jumat", "Saturday": "Sabtu",
-        "Sunday": "Minggu"
-    }
-    bulan_dict = {
-        1: "Januari", 2: "Februari", 3: "Maret", 4: "April",
-        5: "Mei", 6: "Juni", 7: "Juli", 8: "Agustus",
-        9: "September", 10: "Oktober", 11: "November", 12: "Desember"
-    }
-    hari = hari_dict[dt.strftime("%A")]
-    tanggal = dt.day
-    bulan = bulan_dict[dt.month]
-    tahun = dt.year
-    return f"{hari}, {tanggal} {bulan} {tahun}"
-
 # ===================== KONFIGURASI APLIKASI =====================
 st.set_page_config(page_title="Presensi Jemaat", page_icon="🙏", layout="wide")
 
@@ -654,9 +637,15 @@ elif halaman == "🔐 Admin Panel":
             df = pd.DataFrame(data)
             df["Tanggal"] = pd.to_datetime(df["Waktu"].str[:10], format="%d-%m-%Y")
         
-            # ========= FILTER =========
+            # 🌍 Filter Ibadah/Lokasi
+            ibadah_opsi = sorted(df["Ibadah"].dropna().unique())
+            ibadah_pilih = st.selectbox("🙏 Pilih Jenis Ibadah / Lokasi", ["Semua"] + ibadah_opsi)
+            if ibadah_pilih != "Semua":
+                df = df[df["Ibadah"] == ibadah_pilih]
+        
+            # ========= FILTER TAHUN / BULAN / TANGGAL =========
             tahun_opsi = sorted(df["Tanggal"].dt.year.unique(), reverse=True)
-            tahun_pilih = st.selectbox("🗓️ Pilih Tahun", tahun_opsi, index=0)
+            tahun_pilih = st.selectbox("🗓️ Pilih Tahun", tahun_opsi)
         
             df_tahun = df[df["Tanggal"].dt.year == tahun_pilih]
         
@@ -673,13 +662,35 @@ elif halaman == "🔐 Admin Panel":
             tanggal_final = datetime(tahun_pilih, bulan_pilih, tanggal_pilih)
             df_tanggal = df_bulan[df_bulan["Tanggal"].dt.day == tanggal_pilih]
         
-            st.markdown(f"#### ✅ Total Jemaat Hadir pada **{format_tanggal_indonesia(tanggal_final)}**: {len(df_tanggal)}")
-            st.dataframe(df_tanggal)
+            # Format Bahasa Indonesia
+            def format_tanggal_indonesia(dt):
+                hari_dict = {
+                    "Monday": "Senin", "Tuesday": "Selasa", "Wednesday": "Rabu",
+                    "Thursday": "Kamis", "Friday": "Jumat", "Saturday": "Sabtu",
+                    "Sunday": "Minggu"
+                }
+                bulan_dict = {
+                    1: "Januari", 2: "Februari", 3: "Maret", 4: "April",
+                    5: "Mei", 6: "Juni", 7: "Juli", 8: "Agustus",
+                    9: "September", 10: "Oktober", 11: "November", 12: "Desember"
+                }
+                hari = hari_dict[dt.strftime("%A")]
+                tanggal = dt.day
+                bulan = bulan_dict[dt.month]
+                tahun = dt.year
+                return f"{hari}, {tanggal} {bulan} {tahun}"
         
-            # ========= GRAFIK =========
+            st.markdown(f"#### ✅ Total Jemaat Hadir pada **{format_tanggal_indonesia(tanggal_final)}**: {len(df_tanggal)}")
+        
+            # 🔢 Tampilkan Jumlah Per Jenis Ibadah
+            ibadah_count = df_bulan.groupby("Ibadah")["Nama"].count().reset_index(name="Jumlah Hadir")
+            st.markdown("#### 🙌 Jumlah Kehadiran per Ibadah (Bulan Ini)")
+            st.dataframe(ibadah_count)
+        
+            # ========= GRAFIK TREN =========
             col1, col2, col3 = st.columns(3)
         
-            # Mingguan
+            # Grafik Mingguan
             mingguan = df_bulan.copy()
             mingguan["Minggu Ke"] = mingguan["Tanggal"].dt.isocalendar().week
             mingguan_count = mingguan.groupby("Minggu Ke")["Nama"].count().reset_index(name="Jumlah")
@@ -687,7 +698,7 @@ elif halaman == "🔐 Admin Panel":
                 st.markdown("##### 📆 Grafik Mingguan")
                 st.bar_chart(mingguan_count.set_index("Minggu Ke"))
         
-            # Bulanan (hanya jika tahun dipilih saja)
+            # Grafik Bulanan
             bulanan = df[df["Tanggal"].dt.year == tahun_pilih].copy()
             bulanan["Bulan"] = bulanan["Tanggal"].dt.month.map(bulan_nama)
             bulanan_count = bulanan.groupby("Bulan")["Nama"].count().reindex(bulan_nama.values()).dropna().reset_index(name="Jumlah")
@@ -695,7 +706,7 @@ elif halaman == "🔐 Admin Panel":
                 st.markdown("##### 📅 Grafik Bulanan")
                 st.bar_chart(bulanan_count.set_index("Bulan"))
         
-            # Tahunan
+            # Grafik Tahunan
             tahunan = df.copy()
             tahunan["Tahun"] = tahunan["Tanggal"].dt.year
             tahunan_count = tahunan.groupby("Tahun")["Nama"].count().reset_index(name="Jumlah")
@@ -703,9 +714,13 @@ elif halaman == "🔐 Admin Panel":
                 st.markdown("##### 📊 Grafik Tahunan")
                 st.bar_chart(tahunan_count.set_index("Tahun"))
         
-            # Tombol Export
+            # ========= Tabel Presensi Detail =========
+            st.markdown("### 📋 Tabel Kehadiran (Tanggal Terpilih)")
+            st.dataframe(df_tanggal)
+        
+            # Export CSV
             st.download_button("⬇️ Export CSV", data=df_tanggal.to_csv(index=False).encode("utf-8"),
-                               file_name=f"presensi_{tanggal_final.strftime('%Y%m%d')}.csv", mime="text/csv")
+                               file_name=f"presensi_{tanggal_final.strftime('%d%m%Y')}.csv", mime="text/csv")
 
 # ===================== FOOTER =====================
 st.markdown("""
