@@ -7,8 +7,8 @@ from PIL import Image
 from pyzbar.pyzbar import decode
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-from datetime import datetime
 from datetime import date
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import time 
 from zoneinfo import ZoneInfo
@@ -18,6 +18,9 @@ from collections import Counter
 import base64
 import qrcode
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from collections import Counter
 from email.message import EmailMessage
 import smtplib
 import streamlit.components.v1 as components
@@ -621,24 +624,57 @@ elif halaman == "🔐 Admin Panel":
         with tab3:
             st.markdown("### 📊 Statistik Presensi")
             df_presensi = sheet_presensi.get_all_records()
-            st.metric("🧍 Total Presensi", len(df_presensi))
-
-            tanggal_list = [r["Waktu"][:10] for r in df_presensi]
-            st.bar_chart(Counter(tanggal_list))
-
-            # Filter presensi per tanggal
-            tanggal_filter = st.date_input("📅 Pilih Tanggal Presensi")
-            tanggal_str = tanggal_filter.strftime("%d-%m-%Y")
-            hasil_filter = [r for r in df_presensi if tanggal_str in r["Waktu"]]
-
-            st.info(f"📌 Total Jemaat Hadir pada {tanggal_str}: {len(hasil_filter)}")
-            st.dataframe(hasil_filter)
-
-            # Ekspor CSV
-            import pandas as pd
-            def convert_to_csv(data): return pd.DataFrame(data).to_csv(index=False).encode('utf-8')
-            st.download_button("⬇️ Export ke CSV", data=convert_to_csv(hasil_filter),
-                               file_name=f"presensi_{tanggal_str}.csv", mime="text/csv")
+            df = pd.DataFrame(df_presensi)
+        
+            # Konversi kolom "Waktu" ke datetime
+            df["Waktu"] = pd.to_datetime(df["Waktu"], dayfirst=True, errors="coerce")
+            df.dropna(subset=["Waktu"], inplace=True)
+        
+            st.metric("🧍 Total Presensi", len(df))
+        
+            # Tambah kolom bantu
+            df["Tanggal"] = df["Waktu"].dt.date
+            df["Tahun"] = df["Waktu"].dt.year
+            df["Bulan"] = df["Waktu"].dt.strftime("%Y-%m")
+        
+            # ========== TREN KEHADIRAN ==========
+            st.markdown("#### 📅 Tren Kehadiran Mingguan (7 Hari Terakhir)")
+            df_minggu = df[df["Waktu"] >= datetime.now() - timedelta(days=7)]
+            mingguan = df_minggu["Tanggal"].value_counts().sort_index()
+            st.line_chart(mingguan)
+        
+            st.markdown("#### 🗓️ Tren Kehadiran Bulanan")
+            bulanan = df["Bulan"].value_counts().sort_index()
+            st.bar_chart(bulanan)
+        
+            st.markdown("#### 📆 Tren Kehadiran Tahunan")
+            tahunan = df["Tahun"].value_counts().sort_index()
+            st.bar_chart(tahunan)
+        
+            # ========== FILTER BERDASARKAN TAHUN DAN BULAN ==========
+            st.markdown("### 🔍 Filter Statistik Berdasarkan Tahun dan Bulan")
+        
+            tahun_opsi = sorted(df["Tahun"].dropna().unique())
+            tahun_pilih = st.selectbox("Pilih Tahun", options=tahun_opsi)
+        
+            df_tahun = df[df["Tahun"] == tahun_pilih]
+            bulan_opsi = sorted(df_tahun["Bulan"].dropna().unique())
+            bulan_pilih = st.selectbox("Pilih Bulan", options=bulan_opsi)
+        
+            df_bulan = df[df["Bulan"] == bulan_pilih]
+        
+            st.markdown(f"#### 📅 Kehadiran pada Bulan {bulan_pilih}")
+            harian = df_bulan["Tanggal"].value_counts().sort_index()
+            st.line_chart(harian)
+        
+            st.dataframe(df_bulan)
+        
+            # ======= EXPORT CSV HASIL FILTER BULAN =======
+            def convert_to_csv(dataframe): return dataframe.to_csv(index=False).encode('utf-8')
+            st.download_button("⬇️ Export Presensi Bulan Ini ke CSV",
+                               data=convert_to_csv(df_bulan),
+                               file_name=f"presensi_{bulan_pilih}.csv",
+                               mime="text/csv")
 
 # ===================== FOOTER =====================
 st.markdown("""
