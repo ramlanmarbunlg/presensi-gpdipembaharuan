@@ -735,37 +735,54 @@ elif halaman == "🔐 Admin Panel":
             # ========== TAMBAH / EDIT FORM ==========
             mode = st.radio("📌 Mode Operasi", ["Tambah", "Edit"], horizontal=True)
         
-            if mode == "Tambah":
-                with st.form("form_tambah_ibadah"):
-                    nama_ibadah = st.text_input("🕊️ Nama Ibadah")
-                    lokasi_ibadah = st.text_input("🏠 Lokasi Ibadah")
-                    hari_ibadah = st.selectbox("📅 Hari Ibadah", [
-                        "Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Setiap Hari"
-                    ])
-                    jam_ibadah = st.time_input("⏰ Jam Ibadah")
-                    keterangan = st.text_area("📝 Keterangan Tambahan")
-                    submit_ibadah = st.form_submit_button("💾 Simpan Ibadah")
+            # Inisialisasi default nilai input menggunakan session_state
+            if "nama_ibadah" not in st.session_state:
+                st.session_state.nama_ibadah = ""
+                st.session_state.lokasi_ibadah = ""
+                st.session_state.hari_ibadah = "Minggu"
+                st.session_state.keterangan = ""
         
-                if submit_ibadah:
-                    nama_bersih = nama_ibadah.strip()
-                    if not nama_bersih:
-                        st.warning("⚠️ Nama ibadah wajib diisi.")
-                    elif nama_bersih in [r["Nama Ibadah"].strip() for r in data_lama]:
-                        st.error(f"❌ Ibadah '{nama_bersih}' sudah ada.")
+            with st.form("form_tambah_ibadah"):
+                nama_ibadah = st.text_input("🕊️ Nama Ibadah", value=st.session_state.nama_ibadah, key="nama_ibadah")
+                lokasi_ibadah = st.text_input("🏠 Lokasi Ibadah", value=st.session_state.lokasi_ibadah, key="lokasi_ibadah")
+                hari_ibadah = st.selectbox("📅 Hari Ibadah", [
+                    "Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Setiap Hari"
+                ], index=["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Setiap Hari"].index(st.session_state.hari_ibadah), key="hari_ibadah")
+                jam_ibadah = st.time_input("🕒 Jam Ibadah")
+                keterangan = st.text_area("📝 Keterangan Tambahan", value=st.session_state.keterangan, key="keterangan")
+        
+                submit_ibadah = st.form_submit_button("💾 Simpan Ibadah")
+        
+            if submit_ibadah:
+                if not nama_ibadah.strip():
+                    st.warning("⚠️ Nama ibadah wajib diisi.")
+                else:
+                    sheet_ibadah = client.open_by_key("...").worksheet("Ibadah")  # ganti sesuai ID sheet Anda
+                    data_lama = sheet_ibadah.get_all_records()
+                    
+                    # Cek duplikat nama
+                    if nama_ibadah.strip() in [r["Nama Ibadah"] for r in data_lama]:
+                        st.error("❌ Nama ibadah sudah ada.")
                     else:
                         nomor_terakhir = len(data_lama) + 1
-                        kode_baru = f"IBD-{nomor_terakhir:03d}"
+                        kode_ibadah = f"IBD-{nomor_terakhir:03d}"
         
                         sheet_ibadah.append_row([
                             nomor_terakhir,
-                            kode_baru,
-                            nama_bersih,
+                            kode_ibadah,
+                            nama_ibadah.strip(),
                             lokasi_ibadah.strip(),
                             hari_ibadah,
                             jam_ibadah.strftime("%H:%M"),
                             keterangan.strip()
                         ])
                         st.success(f"✅ Ibadah '{nama_bersih}' berhasil ditambahkan dengan kode {kode_baru}.")
+        
+                        # Reset form field
+                        st.session_state.nama_ibadah = ""
+                        st.session_state.lokasi_ibadah = ""
+                        st.session_state.hari_ibadah = "Minggu"
+                        st.session_state.keterangan = ""
                         st.experimental_rerun()
         
             # ========== MODE EDIT ==========
