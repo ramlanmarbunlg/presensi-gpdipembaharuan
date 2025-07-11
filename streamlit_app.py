@@ -9,6 +9,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 from datetime import date
+from dateutil.relativedelta import relativedelta
 import time 
 from zoneinfo import ZoneInfo
 from reportlab.pdfgen import canvas
@@ -433,8 +434,11 @@ elif halaman == "🔐 Admin Panel":
                     max_value=date.today(),
                     value=date(2025, 1, 1)
                 )
-                usia = datetime.now().year - tgl_lahir.year
-                st.text(f"Usia otomatis: {usia} tahun")
+                # Hitung usia detail
+                today = date.today()
+                usia_delta = relativedelta(today, tgl_lahir)
+                usia_str = f"{usia_delta.years} Tahun, {usia_delta.months} Bulan, {usia_delta.days} Hari"
+                st.text(f"Usia otomatis: {usia_str}")
         
                 no_wa = st.text_input("No WhatsApp (format 628xxx)")
                 email_baru = st.text_input("Email aktif")
@@ -474,6 +478,7 @@ elif halaman == "🔐 Admin Panel":
                 else:
                     nij = generate_nij(nik, jenis_kelamin, id_baru) 
                     tgl_lahir_str = tgl_lahir.strftime("%d-%m-%Y")
+                    
                     sheet_jemaat.append_row([
                         id_baru,               # ID
                         nik,                   # NIK
@@ -481,7 +486,7 @@ elif halaman == "🔐 Admin Panel":
                         nama_baru.strip(),     # Nama
                         jenis_kelamin,         # Jenis Kelamin
                         tgl_lahir_str,         # Tgl Lahir
-                        usia,                  # Usia
+                        usia_str,              # Usia lengkap
                         "", "", "",            # File_KTP, File_KK, File_ID_Foto
                         no_wa.strip(),         # No WhatsApp
                         email_baru.strip(),    # Email
