@@ -460,7 +460,7 @@ elif halaman == "🔐 Admin Panel":
             st.markdown("### ✨ Tambah Jemaat Baru")
             delay = st.slider("⏱️ Tampilkan pesan sukses selama (detik):", 1, 5, 2)
         
-            daftar_jemaat = sheet_jemaat.load_data_jemaat()
+            daftar_jemaat = load_data_jemaat()
         
             # Buat ID baru
             daftar_id = [j["ID"] for j in daftar_jemaat]
@@ -568,7 +568,7 @@ elif halaman == "🔐 Admin Panel":
             st.markdown("### 🖼️ Upload Foto dan Dokumen Jemaat")
         
             delay_foto = st.slider("⏱️ Lama tampil pesan sukses (detik)", 1, 5, 3, key="slider_foto")
-            daftar_jemaat = sheet_jemaat.load_data_jemaat()
+            daftar_jemaat = load_data_jemaat()
             opsi_jemaat = {f"{j['Nama']} ({j['ID']})": j['ID'] for j in daftar_jemaat}
         
             selected = st.selectbox("Pilih Jemaat", options=list(opsi_jemaat.keys()), key="select_jemaat")
