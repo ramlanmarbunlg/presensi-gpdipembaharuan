@@ -198,8 +198,8 @@ def proses_presensi(qr_data):
     foto_id = data_jemaat.get("File_ID_Foto", "").strip()
 
     waktu_wib = datetime.now(ZoneInfo("Asia/Jakarta"))
-    waktu_str = waktu_wib.strftime("%Y-%m-%d %H:%M:%S")
-    tanggal_hari_ini = waktu_wib.strftime("%Y-%m-%d")
+    waktu_str = waktu_wib.strftime("%d-%m-%Y %H:%M:%S")
+    tanggal_hari_ini = waktu_wib.strftime("%d-%m-%Y")
 
     # ===== CEK TERLAMBAT atau TIDAK (IBADAH 10.30)=====
     batas_waktu = waktu_wib.replace(hour=10, minute=30, second=0, microsecond=0)
