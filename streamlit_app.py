@@ -838,7 +838,7 @@ elif halaman == "🔐 Admin Panel":
         
             # ========== TABEL DAFTAR IBADAH ==========
             st.markdown("### 📋 Daftar Ibadah")
-            df_ibadah = pd.DataFrame(sheet_ibadah.load_data_ibadah())
+            df_ibadah = pd.DataFrame(df_ibadah.load_data_ibadah())
             st.dataframe(df_ibadah)
         
             # ========== HAPUS IBADAH ==========
