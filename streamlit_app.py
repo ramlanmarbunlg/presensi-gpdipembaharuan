@@ -27,6 +27,19 @@ from email.message import EmailMessage
 import smtplib
 import streamlit.components.v1 as components
 
+# fungsi cache untuk semua sheet
+@st.cache_data(ttl=60)
+def load_data_jemaat():
+    return sheet_jemaat.get_all_records()
+
+@st.cache_data(ttl=60)
+def load_data_ibadah():
+    return sheet_ibadah.get_all_records()
+
+@st.cache_data(ttl=60)
+def load_data_presensi():
+    return sheet_presensi.get_all_records()
+
 # ===================== KONFIGURASI APLIKASI =====================
 st.set_page_config(page_title="Presensi Jemaat", page_icon="🙏", layout="wide")
 
@@ -192,7 +205,7 @@ import streamlit.components.v1 as components
 
 # ===================== FUNGSI PRESENSI =====================
 def proses_presensi(qr_data):
-    daftar_jemaat = sheet_jemaat.get_all_records()
+    daftar_jemaat = load_data_jemaat()
     data_jemaat = next((j for j in daftar_jemaat if str(j["NIJ"]).strip() == qr_data), None)
 
     if not data_jemaat:
@@ -215,7 +228,7 @@ def proses_presensi(qr_data):
     hari_indonesia = hari_mapping.get(hari_eng, hari_eng)
 
     # Ambil daftar ibadah hari ini
-    data_ibadah = sheet_ibadah.get_all_records()
+    data_ibadah = load_data_ibadah()
     ibadah_hari_ini = [
         i for i in data_ibadah if i["Hari"].strip().lower() == hari_indonesia.lower()
     ]
@@ -240,7 +253,7 @@ def proses_presensi(qr_data):
     keterangan = "Tepat Waktu" if waktu_wib <= batas_waktu else "Terlambat"
 
     # ===== CEK SUDAH PRESENSI =====
-    riwayat = sheet_presensi.get_all_records()
+    riwayat = load_data_presensi()
     sudah_presensi = any(r["NIJ"] == qr_data and tanggal_hari_ini in r["Waktu"] for r in riwayat)
 
     if sudah_presensi:
@@ -256,7 +269,7 @@ def proses_presensi(qr_data):
     st.success(f"📝 Kehadiran {nama_jemaat} berhasil dicatat sebagai **{keterangan}** di ibadah **{nama_ibadah}**!")
 
     # Antrian Jemaat Hari Ini
-    riwayat_hari_ini = [r for r in sheet_presensi.get_all_records() if tanggal_hari_ini in r["Waktu"]]
+    riwayat_hari_ini = [r for r in sheet_presensi.load_data_presensi() if tanggal_hari_ini in r["Waktu"]]
     riwayat_hari_ini_sorted = sorted(riwayat_hari_ini, key=lambda x: x["Waktu"], reverse=True)
 
     st.markdown("### 🧑‍🤝‍🧑 Antrian Jemaat Hadir (Live)")
@@ -447,7 +460,7 @@ elif halaman == "🔐 Admin Panel":
             st.markdown("### ✨ Tambah Jemaat Baru")
             delay = st.slider("⏱️ Tampilkan pesan sukses selama (detik):", 1, 5, 2)
         
-            daftar_jemaat = sheet_jemaat.get_all_records()
+            daftar_jemaat = sheet_jemaat.load_data_jemaat()
         
             # Buat ID baru
             daftar_id = [j["ID"] for j in daftar_jemaat]
@@ -555,7 +568,7 @@ elif halaman == "🔐 Admin Panel":
             st.markdown("### 🖼️ Upload Foto dan Dokumen Jemaat")
         
             delay_foto = st.slider("⏱️ Lama tampil pesan sukses (detik)", 1, 5, 3, key="slider_foto")
-            daftar_jemaat = sheet_jemaat.get_all_records()
+            daftar_jemaat = sheet_jemaat.load_data_jemaat()
             opsi_jemaat = {f"{j['Nama']} ({j['ID']})": j['ID'] for j in daftar_jemaat}
         
             selected = st.selectbox("Pilih Jemaat", options=list(opsi_jemaat.keys()), key="select_jemaat")
@@ -654,7 +667,7 @@ elif halaman == "🔐 Admin Panel":
         with tab3:
             st.markdown("### 📊 Statistik Presensi")
         
-            data = sheet_presensi.get_all_records()
+            df_presensi = load_data_presensi()
             if not data:
                 st.warning("Belum ada data presensi.")
                 st.stop()
@@ -757,7 +770,7 @@ elif halaman == "🔐 Admin Panel":
         with tab4:
             st.markdown("### ➕ Tambah atau Edit Jenis Ibadah")
             sheet_ibadah = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("Ibadah")
-            data_lama = sheet_ibadah.get_all_records()
+            data_lama = load_data_ibadah()
             df_ibadah = pd.DataFrame(data_lama)
         
             # ========== TAMBAH / EDIT FORM ==========
@@ -825,7 +838,7 @@ elif halaman == "🔐 Admin Panel":
         
             # ========== TABEL DAFTAR IBADAH ==========
             st.markdown("### 📋 Daftar Ibadah")
-            df_ibadah = pd.DataFrame(sheet_ibadah.get_all_records())
+            df_ibadah = pd.DataFrame(sheet_ibadah.load_data_ibadah())
             st.dataframe(df_ibadah)
         
             # ========== HAPUS IBADAH ==========
