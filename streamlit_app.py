@@ -802,12 +802,19 @@ elif halaman == "🔐 Admin Panel":
         
             # ========== HAPUS IBADAH ==========
             st.markdown("### 🗑️ Hapus Ibadah")
-            if not df_ibadah.empty:
-                pilih_hapus = st.selectbox("🔽 Pilih Ibadah yang ingin dihapus", df_ibadah["Nama Ibadah"])
-                if st.button("❌ Hapus Ibadah"):
-                    idx_hapus = df_ibadah[df_ibadah["Nama Ibadah"] == pilih_hapus].index[0]
-                    sheet_ibadah.delete_row(idx_hapus + 2)
-                    st.success(f"✅ Ibadah '{pilih_hapus}' berhasil dihapus.")
+            # Pilihan hapus
+            nama_opsi = [r["Nama Ibadah"] for r in data_lama]
+            ibadah_hapus = st.selectbox("🗑️ Pilih Ibadah untuk Dihapus", nama_opsi)
+            hapus = st.button("🗑️ Hapus Ibadah Ini")
+            
+            if hapus:
+                index = next((i for i, r in enumerate(data_lama, start=2) if r["Nama Ibadah"] == ibadah_hapus), None)
+                if index:
+                    sheet_ibadah.delete_rows(index)  # ✅ Panggil dengan "s"
+                    st.success(f"✅ Ibadah '{ibadah_hapus}' berhasil dihapus.")
+                    st.experimental_rerun()
+                else:
+                    st.warning("⚠️ Tidak ditemukan baris untuk dihapus.")
                     st.experimental_rerun()
 
 # ===================== FOOTER =====================
