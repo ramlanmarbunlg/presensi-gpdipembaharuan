@@ -7,4 +7,4 @@ reportlab
 qrcode
 pandas
 google-api-python-client
-dateutil
+python-dateutil
