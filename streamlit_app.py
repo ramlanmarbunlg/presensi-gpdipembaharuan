@@ -401,7 +401,7 @@ elif halaman == "🔐 Admin Panel":
                 st.rerun()
 
         # Tabs Admin
-        tab1, tab2, tab3 = st.tabs(["🆕 Tambah Jemaat", "🖼️ Upload Foto", "📊 Statistik Presensi"])
+        tab1, tab2, tab3, tab4 = st.tabs(["🆕 Tambah Jemaat", "🖼️ Upload Foto", "📊 Statistik Presensi", "🏠 Tambah Ibadah"])
         
         # Defenisikan fungsi menghasilkan NIJ Otomatis
         def generate_nij(nik, gender, id_baru):
