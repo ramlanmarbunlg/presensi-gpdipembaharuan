@@ -26,6 +26,23 @@ from collections import Counter
 from email.message import EmailMessage
 import smtplib
 import streamlit.components.v1 as components
+//Fungsi untuk tanggal di statistik
+def format_tanggal_indonesia(dt):
+    hari_dict = {
+        "Monday": "Senin", "Tuesday": "Selasa", "Wednesday": "Rabu",
+        "Thursday": "Kamis", "Friday": "Jumat", "Saturday": "Sabtu",
+        "Sunday": "Minggu"
+    }
+    bulan_dict = {
+        1: "Januari", 2: "Februari", 3: "Maret", 4: "April",
+        5: "Mei", 6: "Juni", 7: "Juli", 8: "Agustus",
+        9: "September", 10: "Oktober", 11: "November", 12: "Desember"
+    }
+    hari = hari_dict[dt.strftime("%A")]
+    tanggal = dt.day
+    bulan = bulan_dict[dt.month]
+    tahun = dt.year
+    return f"{hari}, {tanggal} {bulan} {tahun}"
 
 # ===================== KONFIGURASI APLIKASI =====================
 st.set_page_config(page_title="Presensi Jemaat", page_icon="🙏", layout="wide")
@@ -623,86 +640,72 @@ elif halaman == "🔐 Admin Panel":
                 st.experimental_rerun()
 
         # ========== TAB 3: Statistik Presensi ==========
-        # Set ke bahasa Indonesia (jika didukung sistem)
-        try:
-            locale.setlocale(locale.LC_TIME, "id_ID.utf8")
-        except:
-            locale.setlocale(locale.LC_TIME, "ind")  # fallback Windows
         with tab3:
             st.markdown("### 📊 Statistik Presensi")
-            df_presensi = sheet_presensi.get_all_records()
-            df = pd.DataFrame(df_presensi)
         
-            # Konversi waktu
-            df["Waktu"] = pd.to_datetime(df["Waktu"], dayfirst=True, errors="coerce")
-            df.dropna(subset=["Waktu"], inplace=True)
+            data = sheet_presensi.get_all_records()
+            if not data:
+                st.warning("Belum ada data presensi.")
+                st.stop()
         
-            st.metric("🧍 Total Presensi", len(df))
+            import pandas as pd
+            from datetime import datetime
         
-            # Kolom bantu
-            df["Tanggal"] = df["Waktu"].dt.date
-            df["Tahun"] = df["Waktu"].dt.year
-            df["Bulan"] = df["Waktu"].dt.strftime("%m")
-            df["Bulan-Nama"] = df["Waktu"].dt.strftime("%B")
-            df["Hari-Tanggal"] = df["Waktu"].dt.strftime("%A, %d %B %Y")
+            df = pd.DataFrame(data)
+            df["Tanggal"] = pd.to_datetime(df["Waktu"].str[:10], format="%d-%m-%Y")
         
-            # ===== GRAFIK =====
-            st.markdown("#### 📈 Tren Kehadiran 7 Hari Terakhir")
-            df_mingguan = df[df["Waktu"] >= datetime.now() - timedelta(days=7)]
-            st.line_chart(df_mingguan["Tanggal"].value_counts().sort_index())
+            # ========= FILTER =========
+            tahun_opsi = sorted(df["Tanggal"].dt.year.unique(), reverse=True)
+            tahun_pilih = st.selectbox("🗓️ Pilih Tahun", tahun_opsi, index=0)
         
-            st.markdown("#### 📊 Tren Bulanan")
-            bulanan = df["Waktu"].dt.to_period("M").value_counts().sort_index()
-            st.bar_chart(bulanan)
+            df_tahun = df[df["Tanggal"].dt.year == tahun_pilih]
         
-            st.markdown("#### 📅 Tren Tahunan")
-            tahunan = df["Tahun"].value_counts().sort_index()
-            st.bar_chart(tahunan)
+            bulan_opsi = sorted(df_tahun["Tanggal"].dt.month.unique())
+            bulan_nama = {
+                1: "Januari", 2: "Februari", 3: "Maret", 4: "April", 5: "Mei", 6: "Juni",
+                7: "Juli", 8: "Agustus", 9: "September", 10: "Oktober", 11: "November", 12: "Desember"
+            }
+            bulan_pilih = st.selectbox("📅 Pilih Bulan", bulan_opsi, format_func=lambda x: bulan_nama[x])
+            df_bulan = df_tahun[df_tahun["Tanggal"].dt.month == bulan_pilih]
         
-            # ====== FILTER BERURUT: Tahun → Bulan → Tanggal + Filter Tambahan ======
-            st.markdown("### 🔍 Statistik Filter Berdasarkan Waktu dan Kategori")
+            tanggal_opsi = sorted(df_bulan["Tanggal"].dt.day.unique())
+            tanggal_pilih = st.selectbox("📍 Pilih Tanggal", tanggal_opsi)
+            tanggal_final = datetime(tahun_pilih, bulan_pilih, tanggal_pilih)
+            df_tanggal = df_bulan[df_bulan["Tanggal"].dt.day == tanggal_pilih]
         
-            tahun_opsi = sorted(df["Tahun"].dropna().unique())
-            tahun_pilih = st.selectbox("🗓️ Pilih Tahun", tahun_opsi)
-        
-            df_tahun = df[df["Tahun"] == tahun_pilih]
-            bulan_opsi = sorted(df_tahun["Bulan"].unique())
-            bulan_pilih = st.selectbox("📅 Pilih Bulan", bulan_opsi,
-                                       format_func=lambda b: datetime.strptime(b, "%m").strftime("%B"))
-        
-            df_bulan = df_tahun[df_tahun["Bulan"] == bulan_pilih]
-            tanggal_opsi = sorted(df_bulan["Tanggal"].unique())
-            tanggal_pilih = st.selectbox("📌 Pilih Tanggal", tanggal_opsi,
-                                         format_func=lambda d: d.strftime("%A, %d %B %Y"))
-        
-            df_tanggal = df_bulan[df_bulan["Tanggal"] == tanggal_pilih]
-        
-            # Filter tambahan: Jenis Ibadah & Lokasi
-            if "Jenis Ibadah" in df.columns:
-                ibadah_opsi = ["(Semua)"] + sorted(df["Jenis Ibadah"].dropna().unique())
-                ibadah_pilih = st.selectbox("🙏 Jenis Ibadah", ibadah_opsi)
-                if ibadah_pilih != "(Semua)":
-                    df_tanggal = df_tanggal[df_tanggal["Jenis Ibadah"] == ibadah_pilih]
-        
-            if "Lokasi" in df.columns:
-                lokasi_opsi = ["(Semua)"] + sorted(df["Lokasi"].dropna().unique())
-                lokasi_pilih = st.selectbox("📍 Lokasi", lokasi_opsi)
-                if lokasi_pilih != "(Semua)":
-                    df_tanggal = df_tanggal[df_tanggal["Lokasi"] == lokasi_pilih]
-        
-            # Tampilkan jumlah kehadiran
-            st.markdown(f"#### ✅ Total Kehadiran pada **{tanggal_pilih.strftime('%A, %d %B %Y')}**: {len(df_tanggal)}")
+            st.markdown(f"#### ✅ Total Jemaat Hadir pada **{format_tanggal_indonesia(tanggal_final)}**: {len(df_tanggal)}")
             st.dataframe(df_tanggal)
         
-            # Rekap jumlah per jenis ibadah
-            if "Jenis Ibadah" in df_tanggal.columns:
-                st.markdown("#### 📌 Jumlah per Jenis Ibadah")
-                st.dataframe(df_tanggal["Jenis Ibadah"].value_counts().rename_axis("Jenis Ibadah").reset_index(name="Jumlah"))
+            # ========= GRAFIK =========
+            col1, col2, col3 = st.columns(3)
         
-            # ===== Ekspor CSV =====
-            def convert_to_csv(df): return df.to_csv(index=False).encode("utf-8")
-            st.download_button("⬇️ Export ke CSV", data=convert_to_csv(df_tanggal),
-                               file_name=f"presensi_{tanggal_pilih}.csv", mime="text/csv")
+            # Mingguan
+            mingguan = df_bulan.copy()
+            mingguan["Minggu Ke"] = mingguan["Tanggal"].dt.isocalendar().week
+            mingguan_count = mingguan.groupby("Minggu Ke")["Nama"].count().reset_index(name="Jumlah")
+            with col1:
+                st.markdown("##### 📆 Grafik Mingguan")
+                st.bar_chart(mingguan_count.set_index("Minggu Ke"))
+        
+            # Bulanan (hanya jika tahun dipilih saja)
+            bulanan = df[df["Tanggal"].dt.year == tahun_pilih].copy()
+            bulanan["Bulan"] = bulanan["Tanggal"].dt.month.map(bulan_nama)
+            bulanan_count = bulanan.groupby("Bulan")["Nama"].count().reindex(bulan_nama.values()).dropna().reset_index(name="Jumlah")
+            with col2:
+                st.markdown("##### 📅 Grafik Bulanan")
+                st.bar_chart(bulanan_count.set_index("Bulan"))
+        
+            # Tahunan
+            tahunan = df.copy()
+            tahunan["Tahun"] = tahunan["Tanggal"].dt.year
+            tahunan_count = tahunan.groupby("Tahun")["Nama"].count().reset_index(name="Jumlah")
+            with col3:
+                st.markdown("##### 📊 Grafik Tahunan")
+                st.bar_chart(tahunan_count.set_index("Tahun"))
+        
+            # Tombol Export
+            st.download_button("⬇️ Export CSV", data=df_tanggal.to_csv(index=False).encode("utf-8"),
+                               file_name=f"presensi_{tanggal_final.strftime('%Y%m%d')}.csv", mime="text/csv")
 
 # ===================== FOOTER =====================
 st.markdown("""
