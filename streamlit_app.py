@@ -297,7 +297,7 @@ def proses_presensi(qr_data):
 
         body_email = (
             f"Syalom {nama_jemaat},\n\n"
-            f"Presensi Anda pada {waktu_str} telah tercatat sebagai **{keterangan}**.\n\n"
+            f"Presensi Anda pada {waktu_str} telah tercatat sebagai *{keterangan}* dalam *{nama_ibadah}*.\n\n"
             f"{pesan_tambahan}\n\n"
             "Tuhan Yesus Memberkati 🙏\n\n-- IT & Media GPdI Pembaharuan."
         )
