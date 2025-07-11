@@ -774,7 +774,7 @@ elif halaman == "🔐 Admin Panel":
                             jam_ibadah.strftime("%H:%M"),
                             keterangan.strip()
                         ])
-                        st.success(f"✅ Ibadah '{nama_bersih}' berhasil ditambahkan dengan kode {kode_baru}.")
+                        st.success(f"✅ Ibadah '{nama_ibadah}' berhasil ditambahkan dengan kode {kode_ibadah}.")
         
                         # Reset form field
                         st.session_state.nama_ibadah = ""
