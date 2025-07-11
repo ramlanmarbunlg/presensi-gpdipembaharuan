@@ -245,7 +245,7 @@ def proses_presensi(qr_data):
     # Foto
     if foto_id:
         foto_url = f"https://drive.google.com/thumbnail?id={foto_id}"
-        st.image(foto_url, width=200, caption=f"🡭 Foto Jemaat: {nama_jemaat}")
+        st.image(foto_url, width=100, caption=f"🡭 Foto Jemaat: {nama_jemaat}")
 
     # Email Notifikasi
     if email_jemaat:
