@@ -724,36 +724,88 @@ elif halaman == "🔐 Admin Panel":
        
         # ========== TAB 4: Tambah Ibadah ==========
         with tab4:
-            st.markdown("### ➕ Tambah Jenis Ibadah Baru")
-            
-            with st.form("form_tambah_ibadah"):
-                nama_ibadah = st.text_input("🕊️ Nama Ibadah")
-                lokasi_ibadah = st.text_input("🏠 Lokasi Ibadah")
-                hari_ibadah = st.selectbox("📅 Hari Ibadah", [
-                    "Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Setiap Hari"
-                ])
-                jam_ibadah = st.time_input("🏠 Jam Ibadah")
-                keterangan = st.text_area("📝 Keterangan Tambahan")
-            
-                submit_ibadah = st.form_submit_button("💾 Simpan Ibadah")
-            
-            if submit_ibadah:
-                if not nama_ibadah.strip():
-                    st.warning("⚠️ Nama ibadah wajib diisi.")
-                else:
-                    sheet_ibadah = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("Ibadah")
-                    data_lama = sheet_ibadah.get_all_records()
-                    nomor_terakhir = len(data_lama) + 1
-            
-                    sheet_ibadah.append_row([
-                        nomor_terakhir,
+            st.markdown("### ➕ Tambah atau Edit Jenis Ibadah")
+            sheet_ibadah = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("Ibadah")
+            data_lama = sheet_ibadah.get_all_records()
+            df_ibadah = pd.DataFrame(data_lama)
+        
+            # ========== TAMBAH / EDIT FORM ==========
+            mode = st.radio("📌 Mode Operasi", ["Tambah", "Edit"], horizontal=True)
+        
+            if mode == "Tambah":
+                with st.form("form_tambah_ibadah"):
+                    nama_ibadah = st.text_input("🕊️ Nama Ibadah")
+                    lokasi_ibadah = st.text_input("🏠 Lokasi Ibadah")
+                    hari_ibadah = st.selectbox("📅 Hari Ibadah", [
+                        "Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Setiap Hari"
+                    ])
+                    jam_ibadah = st.time_input("⏰ Jam Ibadah")
+                    keterangan = st.text_area("📝 Keterangan Tambahan")
+                    submit_ibadah = st.form_submit_button("💾 Simpan Ibadah")
+        
+                if submit_ibadah:
+                    nama_bersih = nama_ibadah.strip()
+                    if not nama_bersih:
+                        st.warning("⚠️ Nama ibadah wajib diisi.")
+                    elif nama_bersih in [r["Nama Ibadah"].strip() for r in data_lama]:
+                        st.error(f"❌ Ibadah '{nama_bersih}' sudah ada.")
+                    else:
+                        nomor_terakhir = len(data_lama) + 1
+                        kode_baru = f"IBD-{nomor_terakhir:03d}"
+        
+                        sheet_ibadah.append_row([
+                            nomor_terakhir,
+                            kode_baru,
+                            nama_bersih,
+                            lokasi_ibadah.strip(),
+                            hari_ibadah,
+                            jam_ibadah.strftime("%H:%M"),
+                            keterangan.strip()
+                        ])
+                        st.success(f"✅ Ibadah '{nama_bersih}' berhasil ditambahkan dengan kode {kode_baru}.")
+                        st.experimental_rerun()
+        
+            # ========== MODE EDIT ==========
+            if mode == "Edit" and not df_ibadah.empty:
+                pilih = st.selectbox("✏️ Pilih Ibadah untuk Diedit", df_ibadah["Nama Ibadah"])
+                row_edit = df_ibadah[df_ibadah["Nama Ibadah"] == pilih].iloc[0]
+                idx = df_ibadah[df_ibadah["Nama Ibadah"] == pilih].index[0]
+        
+                with st.form("form_edit_ibadah"):
+                    nama_ibadah = st.text_input("🕊️ Nama Ibadah", value=row_edit["Nama Ibadah"])
+                    lokasi_ibadah = st.text_input("🏠 Lokasi Ibadah", value=row_edit["Lokasi"])
+                    hari_ibadah = st.selectbox("📅 Hari Ibadah", [
+                        "Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Setiap Hari"
+                    ], index=["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Setiap Hari"].index(row_edit["Hari"]))
+                    jam_ibadah = st.time_input("⏰ Jam Ibadah", value=datetime.strptime(row_edit["Jam"], "%H:%M").time())
+                    keterangan = st.text_area("📝 Keterangan Tambahan", value=row_edit["Keterangan"])
+                    submit_edit = st.form_submit_button("✅ Update Ibadah")
+        
+                if submit_edit:
+                    sheet_ibadah.update(f"C{idx+2}:G{idx+2}", [[
                         nama_ibadah.strip(),
                         lokasi_ibadah.strip(),
                         hari_ibadah,
-                        jam_ibadah,
+                        jam_ibadah.strftime("%H:%M"),
                         keterangan.strip()
-                    ])
-                    st.success(f"✅ Ibadah '{nama_ibadah}' berhasil ditambahkan.")
+                    ]])
+                    st.success(f"✅ Data ibadah '{nama_ibadah}' berhasil diperbarui.")
+                    st.experimental_rerun()
+        
+            # ========== TABEL DAFTAR IBADAH ==========
+            st.markdown("### 📋 Daftar Ibadah")
+            df_ibadah = pd.DataFrame(sheet_ibadah.get_all_records())
+            st.dataframe(df_ibadah)
+        
+            # ========== HAPUS IBADAH ==========
+            st.markdown("### 🗑️ Hapus Ibadah")
+            if not df_ibadah.empty:
+                pilih_hapus = st.selectbox("🔽 Pilih Ibadah yang ingin dihapus", df_ibadah["Nama Ibadah"])
+                if st.button("❌ Hapus Ibadah"):
+                    idx_hapus = df_ibadah[df_ibadah["Nama Ibadah"] == pilih_hapus].index[0]
+                    sheet_ibadah.delete_row(idx_hapus + 2)
+                    st.success(f"✅ Ibadah '{pilih_hapus}' berhasil dihapus.")
+                    st.experimental_rerun()
 
 # ===================== FOOTER =====================
 st.markdown("""
