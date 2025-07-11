@@ -741,7 +741,7 @@ elif halaman == "🔐 Admin Panel":
                 if not nama_ibadah.strip():
                     st.warning("⚠️ Nama ibadah wajib diisi.")
                 else:
-                    sheet_ibadah = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("ibadah")
+                    sheet_ibadah = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("Ibadah")
                     data_lama = sheet_ibadah.get_all_records()
                     nomor_terakhir = len(data_lama) + 1
             
