@@ -443,29 +443,37 @@ elif halaman == "🔐 Admin Panel":
             def is_valid_wa(no):
                 import re
                 return re.match(r"^(628\d{7,10})$", no)
-        
+            
             def is_valid_email(email):
                 import re
                 return re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", email)
-        
+            
             def is_valid_nik(nik):
                 return nik.isdigit() and len(nik) == 16
-        
+            
             if simpan:
-                if not nik.strip() or not nama_baru.strip() or not no_wa.strip() or not email_baru.strip():
+                nik = nik.strip()
+                no_wa = no_wa.strip()
+                email_baru = email_baru.strip()
+                nama_baru = nama_baru.strip()
+            
+                if not nik or not nama_baru or not no_wa or not email_baru:
                     st.warning("⚠️ Semua isian wajib diisi.")
-                elif not is_valid_nik(nik.strip()):
+                elif not is_valid_nik(nik):
                     st.error("❌ NIK harus 16 digit.")
-                elif not is_valid_wa(no_wa.strip()):
+                elif not is_valid_wa(no_wa):
                     st.error("❌ Format nomor WhatsApp tidak valid.")
-                elif not is_valid_email(email_baru.strip()):
+                elif not is_valid_email(email_baru):
                     st.error("❌ Format email tidak valid.")
-                elif any(str(j["NIK"]).strip() == nik.strip() for j in daftar_jemaat):
+                elif any(str(j["NIK"]).strip() == nik for j in daftar_jemaat):
                     st.error("❌ NIK sudah terdaftar.")
+                elif any(str(j["No WhatsApp"]).strip() == no_wa for j in daftar_jemaat):
+                    st.error("❌ Nomor WhatsApp sudah terdaftar.")
+                elif any(str(j["Email"]).strip().lower() == email_baru.lower() for j in daftar_jemaat):
+                    st.error("❌ Email sudah terdaftar.")
                 else:
-                    nij = generate_nij(nik, jenis_kelamin, id_baru)
-                    tgl_lahir_str = tgl_lahir.strftime("%Y-%m-%d")
-        
+                    nij = generate_nij(nik, jenis_kelamin, id_baru) 
+                    tgl_lahir_str = tgl_lahir.strftime("%d-%m-%Y")
                     sheet_jemaat.append_row([
                         id_baru,               # ID
                         nik,                   # NIK
