@@ -467,7 +467,7 @@ elif halaman == "🔐 Admin Panel":
                     st.error("❌ Format email tidak valid.")
                 elif any(str(j["NIK"]).strip() == nik for j in daftar_jemaat):
                     st.error("❌ NIK sudah terdaftar.")
-                elif any(str(j["No WhatsApp"]).strip() == no_wa for j in daftar_jemaat):
+                elif any(str(j["No_WhatsApp"]).strip() == no_wa for j in daftar_jemaat):
                     st.error("❌ Nomor WhatsApp sudah terdaftar.")
                 elif any(str(j["Email"]).strip().lower() == email_baru.lower() for j in daftar_jemaat):
                     st.error("❌ Email sudah terdaftar.")
