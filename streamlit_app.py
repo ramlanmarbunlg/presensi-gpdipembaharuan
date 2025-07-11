@@ -205,9 +205,37 @@ def proses_presensi(qr_data):
     waktu_wib = datetime.now(ZoneInfo("Asia/Jakarta"))
     waktu_str = waktu_wib.strftime("%d-%m-%Y %H:%M:%S")
     tanggal_hari_ini = waktu_wib.strftime("%d-%m-%Y")
+    hari_eng = waktu_wib.strftime("%A")
 
-    # ===== CEK TERLAMBAT atau TIDAK (IBADAH 10.30)=====
-    batas_waktu = waktu_wib.replace(hour=10, minute=30, second=0, microsecond=0)
+    hari_mapping = {
+        "Sunday": "Minggu", "Monday": "Senin", "Tuesday": "Selasa",
+        "Wednesday": "Rabu", "Thursday": "Kamis", "Friday": "Jumat", "Saturday": "Sabtu"
+    }
+    hari_indonesia = hari_mapping.get(hari_eng, hari_eng)
+
+    # Ambil daftar ibadah hari ini
+    data_ibadah = sheet_ibadah.get_all_records()
+    ibadah_hari_ini = [
+        i for i in data_ibadah if i["Hari"].strip().lower() == hari_indonesia.lower()
+    ]
+
+    if not ibadah_hari_ini:
+        nama_ibadah = "Tidak Diketahui"
+        jam_ibadah_obj = waktu_wib.replace(hour=10, minute=30)
+    else:
+        # Cari ibadah terdekat dari sekarang
+        def waktu_ibadah_obj(i):
+            jam_str = str(i["Jam"]).strip()  # Contoh "10:30"
+            hour, minute = map(int, jam_str.split(":"))
+            return waktu_wib.replace(hour=hour, minute=minute, second=0, microsecond=0)
+
+        ibadah_hari_ini.sort(key=lambda i: abs((waktu_ibadah_obj(i) - waktu_wib).total_seconds()))
+        ibadah_terdekat = ibadah_hari_ini[0]
+        nama_ibadah = ibadah_terdekat["Nama Ibadah"]
+        jam_ibadah_obj = waktu_ibadah_obj(ibadah_terdekat)
+
+    # ===== CEK KETERANGAN (Tepat Waktu / Terlambat) =====
+    batas_waktu = jam_ibadah_obj
     keterangan = "Tepat Waktu" if waktu_wib <= batas_waktu else "Terlambat"
 
     # ===== CEK SUDAH PRESENSI =====
@@ -219,26 +247,25 @@ def proses_presensi(qr_data):
         st.warning(f"⚠️ Anda sudah melakukan presensi hari ini pada {waktu_terakhir}")
         return
 
-    # ✅ Tambahkan presensi
-    sheet_presensi.append_row([waktu_str, qr_data, nama_jemaat, keterangan])
-    st.success(f"📝 Kehadiran {nama_jemaat} berhasil dicatat sebagai **{keterangan}**!")
+    # ✅ Simpan ke sheet presensi (Waktu | NIJ | Nama | Keterangan | Ibadah)
+    sheet_presensi.append_row([
+        waktu_str, qr_data, nama_jemaat, keterangan, nama_ibadah
+    ])
 
-    # ========== DAFTAR ANTRIAN JEMAAT HADIR ==========
+    st.success(f"📝 Kehadiran {nama_jemaat} berhasil dicatat sebagai **{keterangan}** di ibadah **{nama_ibadah}**!")
+
+    # Antrian Jemaat Hari Ini
+    riwayat_hari_ini = [r for r in sheet_presensi.get_all_records() if tanggal_hari_ini in r["Waktu"]]
+    riwayat_hari_ini_sorted = sorted(riwayat_hari_ini, key=lambda x: x["Waktu"], reverse=True)
 
     st.markdown("### 🧑‍🤝‍🧑 Antrian Jemaat Hadir (Live)")
-    riwayat_hari_ini = [r for r in sheet_presensi.get_all_records() if tanggal_hari_ini in r["Waktu"]]
-    
-    if riwayat_hari_ini:
-        riwayat_hari_ini_sorted = sorted(riwayat_hari_ini, key=lambda x: x["Waktu"], reverse=True)
-        for i, r in enumerate(riwayat_hari_ini_sorted[:10]):  # Tampilkan 10 terakhir
-            warna = "#28a745" if i == 0 else "#007cf0" if i < 3 else "#ddd"
-            st.markdown(f"""
-                <div style="padding:10px;margin:5px 0;background-color:{warna};color:white;font-size:18px;border-radius:5px;">
-                    🆔 {r['NIJ']} | 🙍 {r['Nama']} | ⏰ {r['Waktu'].split(' ')[1]} | 📌 {r.get('Keterangan', '')}
-                </div>
-            """, unsafe_allow_html=True)
-    else:
-        st.info("Belum ada jemaat hadir hari ini.")
+    for i, r in enumerate(riwayat_hari_ini_sorted[:10]):
+        warna = "#28a745" if i == 0 else "#007cf0" if i < 3 else "#ddd"
+        st.markdown(f"""
+            <div style="padding:10px;margin:5px 0;background-color:{warna};color:white;font-size:18px;border-radius:5px;">
+                🆔 {r['NIJ']} | 🙍 {r['Nama']} | ⏰ {r['Waktu'].split(' ')[1]} | 📌 {r.get('Keterangan', '')} | 🙏 {r.get('Ibadah', '')}
+            </div>
+        """, unsafe_allow_html=True)
 
     # 🔔 Beep
     st.markdown("""
@@ -247,7 +274,7 @@ def proses_presensi(qr_data):
     </audio>
     """, unsafe_allow_html=True)
 
-    # Foto
+    # Foto Jemaat
     if foto_id:
         foto_url = f"https://drive.google.com/thumbnail?id={foto_id}"
         st.image(foto_url, width=100, caption=f"🡭 Foto Jemaat: {nama_jemaat}")
