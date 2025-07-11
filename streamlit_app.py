@@ -26,7 +26,7 @@ from collections import Counter
 from email.message import EmailMessage
 import smtplib
 import streamlit.components.v1 as components
-//Fungsi untuk tanggal di statistik
+
 def format_tanggal_indonesia(dt):
     hari_dict = {
         "Monday": "Senin", "Tuesday": "Selasa", "Wednesday": "Rabu",
