@@ -332,18 +332,12 @@ if "reset_qr" not in st.session_state:
     st.session_state["reset_qr"] = False
 if "presensi_berhasil" not in st.session_state:
     st.session_state["presensi_berhasil"] = False
+if "input_qr" not in st.session_state:
+    st.session_state["input_qr"] = ""
 
 if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
     st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
-
-    qr_code_input = st.text_input(
-        label="🆔 NIJ dari QR Code",
-        placeholder="Scan QR di sini...",
-        key="input_qr",
-        value="" if st.session_state["reset_qr"] else None,
-        label_visibility="collapsed"
-    )
 
     # ✅ Autofokus setiap load
     components.html("""
@@ -360,22 +354,20 @@ if halaman == "📸 Presensi Jemaat":
     </script>
     """, height=0)
 
-    # ⏳ Auto clear setelah presensi berhasil
-    if st.session_state["presensi_berhasil"]:
-        components.html("""
-        <script>
-        setTimeout(function() {
-            window.parent.location.reload();
-        }, 3000);
-        </script>
-        """, height=0)
-        # Hindari trigger berulang
-        st.session_state["presensi_berhasil"] = False
-        st.session_state["reset_qr"] = False
+    # 🧾 Input QR
+    qr_code_input = st.text_input(
+        label="🆔 NIJ dari QR Code",
+        placeholder="Scan QR di sini...",
+        key="input_qr",
+        label_visibility="collapsed"
+    )
 
     # ⛳ Proses input QR
-    if qr_code_input:
-        proses_presensi(qr_code_input.strip())
+    if st.session_state.input_qr:
+        proses_presensi(st.session_state.input_qr.strip())
+        # Set state kosong agar tidak re-trigger
+        st.session_state.input_qr = ""
+        st.experimental_rerun()
 
     # ========== MODE KAMERA MANUAL ==========
     st.markdown("### 📷 Gunakan Kamera Manual (Opsional)")
