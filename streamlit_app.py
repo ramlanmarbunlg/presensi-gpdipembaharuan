@@ -194,6 +194,11 @@ def kirim_email(to_email, subject, body):
     except Exception as e:
         st.warning(f"🚨 Gagal kirim email: {e}")
 
+# ===================== FUNGSI RESET INPUT =====================
+def reset_input_qr():
+    st.session_state["input_qr"] = ""
+    st.session_state["presensi_message"] = None
+    
 # ===================== FUNGSI PRESENSI =====================
 def proses_presensi(qr_data):
     # 🔐 Inisialisasi lock global 3 detik
@@ -334,24 +339,26 @@ def proses_presensi(qr_data):
     st.session_state["reset_qr"] = True
 
 # ===================== HALAMAN PRESENSI =====================
-if "reset_qr" not in st.session_state:
-    st.session_state["reset_qr"] = False
+# Inisialisasi session state
+if "input_qr" not in st.session_state:
+    st.session_state["input_qr"] = ""
 if "presensi_message" not in st.session_state:
     st.session_state["presensi_message"] = None
 
+# Halaman presensi
 if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
     st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
 
-    qr_code_input = st.text_input(
+    st.text_input(
         "🆔 NIJ dari QR Code",
         placeholder="Scan QR di sini...",
         key="input_qr",
-        value="" if st.session_state["reset_qr"] else None,
-        label_visibility="collapsed"
+        label_visibility="collapsed",
+        on_change=proses_presensi,
+        args=(st.session_state["input_qr"],)
     )
 
-    # Fokuskan kembali input setelah presensi
     components.html("""
     <script>
         window.addEventListener("load", function() {
@@ -366,7 +373,6 @@ if halaman == "📸 Presensi Jemaat":
     </script>
     """, height=0)
 
-    # Tampilkan pesan sukses jika ada
     msg = st.session_state["presensi_message"]
     if msg:
         warna_teks = "green" if msg["keterangan"] == "TEPAT WAKTU" else "red"
@@ -379,22 +385,16 @@ if halaman == "📸 Presensi Jemaat":
         </div>
         """, unsafe_allow_html=True)
 
-        # Auto clear pesan dalam 3 detik via JS
         components.html("""
         <script>
-        setTimeout(function() {
-            const parentDoc = window.parent.document;
-            parentDoc.querySelector("iframe").contentWindow.location.reload();
+        setTimeout(() => {
+            const alert = window.parent.document.querySelector('iframe')?.contentDocument?.querySelector('.stAlert');
+            if (alert) alert.style.display = 'none';
         }, 3000);
         </script>
         """, height=0)
 
-    # Reset flag QR supaya tidak clear terus
-    st.session_state["reset_qr"] = False
-
-    # Proses jika ada input QR
-    if qr_code_input:
-        proses_presensi(qr_code_input.strip())
+        reset_input_qr()
 
     # ========== MODE KAMERA MANUAL ==========
     st.markdown("### 📷 Gunakan Kamera Manual (Opsional)")
