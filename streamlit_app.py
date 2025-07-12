@@ -205,10 +205,22 @@ import streamlit.components.v1 as components
 
 # ===================== FUNGSI PRESENSI =====================
 def proses_presensi(qr_data):
-    # 🛡️ Cegah spam presensi berulang dalam 3 detik
-    if st.session_state.get("presensi_locked"):
+    now = time.time()
+
+    # Cek session_state untuk user terakhir
+    if "presensi_locked" not in st.session_state:
+        st.session_state["presensi_locked"] = False
+    if "terakhir_presensi" not in st.session_state:
+        st.session_state["terakhir_presensi"] = {}
+
+    # Cegah spam untuk QR yang sama dalam 3 detik
+    terakhir = st.session_state["terakhir_presensi"].get(qr_data)
+    if terakhir and now - terakhir < 3:
         st.warning("⌛ Tunggu sebentar sebelum presensi berikutnya...")
         return
+
+    # 🚫 Kunci sementara (tidak tergantung rerun)
+    st.session_state["terakhir_presensi"][qr_data] = now
 
     daftar_jemaat = load_data_jemaat()
     data_jemaat = next((j for j in daftar_jemaat if str(j["NIJ"]).strip() == qr_data), None)
@@ -336,11 +348,6 @@ def proses_presensi(qr_data):
     c.save()
     buffer.seek(0)
     st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
-
-    # ⏳ Delay dan rerun
-    time.sleep(3)
-    st.session_state["presensi_locked"] = False
-    st.experimental_rerun()
 
 # ===================== HALAMAN PRESENSI =====================
 if halaman == "📸 Presensi Jemaat":
