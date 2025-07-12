@@ -193,7 +193,7 @@ def kirim_email(to_email, subject, body):
         server.quit()
     except Exception as e:
         st.warning(f"🚨 Gagal kirim email: {e}")
-    
+
 # ===================== FUNGSI PRESENSI =====================
 def proses_presensi(qr_data):
     # 🔐 Inisialisasi lock global 3 detik
@@ -302,7 +302,7 @@ def proses_presensi(qr_data):
 
         body_email = (
             f"Syalom {nama_jemaat},\n\n"
-            f"Presensi Anda pada {waktu_str} dalam {nama_ibadah} telah tercatat disistem sebagai {keterangan}.\n\n"
+            f"Presensi Anda pada {waktu_str} telah tercatat sebagai *{keterangan}* dalam *{nama_ibadah}*.\n\n"
             f"{pesan_tambahan}\n\n"
             "Tuhan Yesus Memberkati 🙏\n\n-- IT & Media GPdI Pembaharuan."
         )
@@ -324,31 +324,28 @@ def proses_presensi(qr_data):
     buffer.seek(0)
     st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
 
-     # Di akhir fungsi:
-    st.session_state["input_qr"] = ""
+    st.session_state["presensi_berhasil"] = True
     st.session_state["reset_qr"] = True
-        
+
 # ===================== HALAMAN PRESENSI =====================
-def proses_presensi():
-    qr_data = st.session_state["input_qr"].strip()
-    if not qr_data:
-        return
 if "reset_qr" not in st.session_state:
     st.session_state["reset_qr"] = False
+if "presensi_berhasil" not in st.session_state:
+    st.session_state["presensi_berhasil"] = False
 
 if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
     st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
 
-    st.text_input(
-    "🆔 NIJ dari QR Code",
-    placeholder="Scan QR di sini...",
-    key="input_qr",
-    label_visibility="collapsed",
-    on_change=proses_presensi
+    qr_code_input = st.text_input(
+        label="🆔 NIJ dari QR Code",
+        placeholder="Scan QR di sini...",
+        key="input_qr",
+        value="" if st.session_state["reset_qr"] else None,
+        label_visibility="collapsed"
     )
 
-    # ✅ Autofokus input setelah komponen dirender
+    # ✅ Autofokus setiap load
     components.html("""
     <script>
     window.requestAnimationFrame(() => {
@@ -363,13 +360,22 @@ if halaman == "📸 Presensi Jemaat":
     </script>
     """, height=0)
 
-    # Reset hanya dilakukan sekali
-    if st.session_state["reset_qr"]:
+    # ⏳ Auto clear setelah presensi berhasil
+    if st.session_state["presensi_berhasil"]:
+        components.html("""
+        <script>
+        setTimeout(function() {
+            window.parent.location.reload();
+        }, 3000);
+        </script>
+        """, height=0)
+        # Hindari trigger berulang
+        st.session_state["presensi_berhasil"] = False
         st.session_state["reset_qr"] = False
 
+    # ⛳ Proses input QR
     if qr_code_input:
         proses_presensi(qr_code_input.strip())
-        
 
     # ========== MODE KAMERA MANUAL ==========
     st.markdown("### 📷 Gunakan Kamera Manual (Opsional)")
