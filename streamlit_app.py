@@ -194,20 +194,9 @@ def kirim_email(to_email, subject, body):
     except Exception as e:
         st.warning(f"🚨 Gagal kirim email: {e}")
 
-import streamlit as st
-from PIL import Image
-from datetime import datetime
-from zoneinfo import ZoneInfo
-import time
-from io import BytesIO
-from reportlab.pdfgen import canvas
-import streamlit.components.v1 as components
-
 # ===================== FUNGSI PRESENSI =====================
 def proses_presensi(qr_data):
-    import time  # boleh juga ditaruh di atas file
-
-    # 🛡️ Lock global selama 3 detik untuk mencegah spam input
+    # 🔐 Inisialisasi lock global 3 detik
     if "global_lock_time" not in st.session_state:
         st.session_state["global_lock_time"] = 0
 
@@ -215,9 +204,10 @@ def proses_presensi(qr_data):
         st.warning("⌛ Silakan tunggu sebentar sebelum melakukan presensi lagi...")
         return
 
-    # Set waktu terkini sebagai waktu lock
+    # Set waktu lock saat ini
     st.session_state["global_lock_time"] = time.time()
 
+    # Ambil data jemaat
     daftar_jemaat = load_data_jemaat()
     data_jemaat = next((j for j in daftar_jemaat if str(j["NIJ"]).strip() == qr_data), None)
 
@@ -260,11 +250,11 @@ def proses_presensi(qr_data):
         nama_ibadah = ibadah_terdekat["Nama Ibadah"]
         jam_ibadah_obj = waktu_ibadah_obj(ibadah_terdekat)
 
-    # ===== CEK KETERANGAN =====
+    # Cek keterlambatan
     batas_waktu = jam_ibadah_obj
     keterangan = "Tepat Waktu" if waktu_wib <= batas_waktu else "Terlambat"
 
-    # ===== CEK SUDAH PRESENSI =====
+    # Cek sudah presensi
     riwayat = load_data_presensi()
     sudah_presensi = any(r["NIJ"] == qr_data and tanggal_hari_ini in r["Waktu"] for r in riwayat)
 
@@ -273,14 +263,24 @@ def proses_presensi(qr_data):
         st.warning(f"⚠️ Anda sudah melakukan presensi hari ini pada {waktu_terakhir}")
         return
 
-    # ✅ Simpan presensi
+    # Simpan ke sheet presensi
     sheet_presensi.append_row([
         waktu_str, qr_data, nama_jemaat, keterangan, nama_ibadah
     ])
-    st.success(f"📝 Kehadiran {nama_jemaat} berhasil dicatat sebagai **{keterangan}** di ibadah **{nama_ibadah}**!")
 
-    # Kunci presensi sementara selama 3 detik
-    st.session_state["presensi_locked"] = True
+    st.success(f"📝 Kehadiran {nama_jemaat} dicatat sebagai **{keterangan}** di ibadah **{nama_ibadah}**!")
+
+    # 🔊 Suara beep
+    st.markdown("""
+    <audio autoplay>
+        <source src="https://www.soundjay.com/buttons/sounds/beep-08b.mp3" type="audio/mpeg">
+    </audio>
+    """, unsafe_allow_html=True)
+
+    # 📸 Foto Jemaat
+    if foto_id:
+        foto_url = f"https://drive.google.com/thumbnail?id={foto_id}"
+        st.image(foto_url, width=100, caption=f"🡭 Foto Jemaat: {nama_jemaat}")
 
     # ========== Tampilkan Antrian Jemaat ========== #
     presensi_data = load_data_presensi()
@@ -295,18 +295,6 @@ def proses_presensi(qr_data):
                 🆔 {r['NIJ']} | 🙍 {r['Nama']} | ⏰ {r['Waktu'].split(' ')[1]} | 📌 {r.get('Keterangan', '')} | 🙏 {r.get('Ibadah', '')}
             </div>
         """, unsafe_allow_html=True)
-
-    # 🔔 Beep
-    st.markdown("""
-    <audio autoplay>
-        <source src="https://www.soundjay.com/buttons/sounds/beep-08b.mp3" type="audio/mpeg">
-    </audio>
-    """, unsafe_allow_html=True)
-
-    # 🖼️ Foto Jemaat
-    if foto_id:
-        foto_url = f"https://drive.google.com/thumbnail?id={foto_id}"
-        st.image(foto_url, width=100, caption=f"🡭 Foto Jemaat: {nama_jemaat}")
 
     # 📧 Email Notifikasi
     if email_jemaat:
@@ -344,6 +332,9 @@ def proses_presensi(qr_data):
     c.save()
     buffer.seek(0)
     st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
+    # 🔁 Clear input QR & auto-refresh 3 detik
+    st.session_state["input_qr"] = ""
+    st.markdown("<meta http-equiv='refresh' content='3'>", unsafe_allow_html=True)
 
 # ===================== HALAMAN PRESENSI =====================
 if halaman == "📸 Presensi Jemaat":
