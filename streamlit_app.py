@@ -268,7 +268,7 @@ def proses_presensi(qr_data):
         waktu_str, qr_data, nama_jemaat, keterangan, nama_ibadah
     ])
 
-    st.success(f"📝 Kehadiran {nama_jemaat} sudah dicatat sebagai **{keterangan}** di ibadah **{nama_ibadah}**!")
+    st.success(f"📝 Kehadiran {nama_jemaat} sudah dicatat sebagai **{keterangan}** dalam **{nama_ibadah}** pada tanggal **{waktu_str}**!")
 
     # 🔊 Suara beep
     st.markdown("""
@@ -281,20 +281,6 @@ def proses_presensi(qr_data):
     if foto_id:
         foto_url = f"https://drive.google.com/thumbnail?id={foto_id}"
         st.image(foto_url, width=100, caption=f"🡭 Foto Jemaat: {nama_jemaat}")
-
-    # ========== Tampilkan Antrian Jemaat ========== #
-    presensi_data = load_data_presensi()
-    riwayat_hari_ini = [r for r in presensi_data if tanggal_hari_ini in r["Waktu"]]
-    riwayat_hari_ini_sorted = sorted(riwayat_hari_ini, key=lambda x: x["Waktu"], reverse=True)
-
-    st.markdown("### 🧑‍🤝‍🧑 Antrian Jemaat Hadir (Live)")
-    for i, r in enumerate(riwayat_hari_ini_sorted[:10]):
-        warna = "#28a745" if i == 0 else "#007cf0" if i < 2 else "#ddd"
-        st.markdown(f"""
-            <div style="padding:10px;margin:5px 0;background-color:{warna};color:white;font-size:18px;border-radius:5px;">
-                🆔 {r['NIJ']} | 🙍 {r['Nama']} | ⏰ {r['Waktu'].split(' ')[1]} | 📌 {r.get('Keterangan', '')} | 🙏 {r.get('Ibadah', '')}
-            </div>
-        """, unsafe_allow_html=True)
 
     # 📧 Email Notifikasi
     if email_jemaat:
