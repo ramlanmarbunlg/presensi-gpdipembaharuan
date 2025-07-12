@@ -324,16 +324,15 @@ def proses_presensi(qr_data):
     buffer.seek(0)
     st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
 
-    def proses_presensi():
-        qr_data = st.session_state["input_qr"].strip()
-        if not qr_data:
-            return
-        ...
-        # Di akhir fungsi:
-        st.session_state["input_qr"] = ""
-        st.session_state["reset_qr"] = True
+     # Di akhir fungsi:
+    st.session_state["input_qr"] = ""
+    st.session_state["reset_qr"] = True
         
 # ===================== HALAMAN PRESENSI =====================
+def proses_presensi():
+    qr_data = st.session_state["input_qr"].strip()
+    if not qr_data:
+        return
 if "reset_qr" not in st.session_state:
     st.session_state["reset_qr"] = False
 
@@ -370,6 +369,7 @@ if halaman == "📸 Presensi Jemaat":
 
     if qr_code_input:
         proses_presensi(qr_code_input.strip())
+        
 
     # ========== MODE KAMERA MANUAL ==========
     st.markdown("### 📷 Gunakan Kamera Manual (Opsional)")
