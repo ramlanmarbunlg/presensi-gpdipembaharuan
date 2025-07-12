@@ -1,3 +1,4 @@
+
 # ============================================
 # PRESENSI JEMAAT STREAMLIT QR CAMERA (V3 + CAMERA MANUAL MODE + USB SCANNER MODE)
 # ============================================
@@ -342,24 +343,21 @@ if halaman == "📸 Presensi Jemaat":
         label_visibility="collapsed"
     )
 
-    # ✅ Autofokus input setelah komponen dirender
-    components.html("""
-    <script>
-    window.requestAnimationFrame(() => {
-        const inputs = window.parent.document.querySelectorAll('input');
-        for (let i = 0; i < inputs.length; i++) {
-            if (inputs[i].placeholder === "Scan QR di sini...") {
-                inputs[i].focus();
-                break;
-            }
-        }
-    });
-    </script>
-    """, height=0)
-
-    # Reset hanya dilakukan sekali
     if st.session_state["reset_qr"]:
         st.session_state["reset_qr"] = False
+        components.html("""
+        <script>
+            setTimeout(function() {
+                const inputs = window.parent.document.querySelectorAll('input');
+                for (let i = 0; i < inputs.length; i++) {
+                    if (inputs[i].placeholder === "Scan QR di sini...") {
+                        inputs[i].focus();
+                        break;
+                    }
+                }
+            }, 500);
+        </script>
+        """, height=0)
 
     if qr_code_input:
         proses_presensi(qr_code_input.strip())
