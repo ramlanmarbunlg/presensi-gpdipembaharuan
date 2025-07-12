@@ -173,9 +173,9 @@ scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/au
 creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service_account"], scope)
 client = gspread.authorize(creds)
 
-sheet_presensi = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("presensi")
-sheet_jemaat = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("data_jemaat")
-sheet_ibadah = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("Ibadah")
+sheet_presensi = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("presensi")     #Ganti dengan key/ID Sheet dan nama sheet
+sheet_jemaat = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("data_jemaat")    #Ganti dengan key/ID Sheet dan nama sheet
+sheet_ibadah = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("Ibadah")         #Ganti dengan key/ID Sheet dan nama sheet
 
 # ===================== FUNGSI KIRIM EMAIL =====================
 def kirim_email(to_email, subject, body):
@@ -269,7 +269,8 @@ def proses_presensi(qr_data):
     st.success(f"📝 Kehadiran {nama_jemaat} berhasil dicatat sebagai **{keterangan}** di ibadah **{nama_ibadah}**!")
 
     # Antrian Jemaat Hari Ini
-    riwayat_hari_ini = [r for r in sheet_presensi.load_data_presensi() if tanggal_hari_ini in r["Waktu"]]
+    presensi_data = load_data_presensi()
+    riwayat_hari_ini = [r for r in presensi_data if tanggal_hari_ini in r["Waktu"]]
     riwayat_hari_ini_sorted = sorted(riwayat_hari_ini, key=lambda x: x["Waktu"], reverse=True)
 
     st.markdown("### 🧑‍🤝‍🧑 Antrian Jemaat Hadir (Live)")
