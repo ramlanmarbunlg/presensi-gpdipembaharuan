@@ -263,7 +263,7 @@ def proses_presensi(qr_data):
         waktu_str, qr_data, nama_jemaat, keterangan, nama_ibadah
     ])
 
-    st.success(f"📝 Kehadiran {nama_jemaat} sudah dicatat sebagai **{keterangan}** dalam **{nama_ibadah}** pada tanggal **{waktu_str}**!")
+    st.success(f"📝 Kehadiran **{nama_jemaat}** sudah dicatat sebagai **{keterangan}** dalam **{nama_ibadah}** pada tanggal **{waktu_str}**!")
 
     warna_teks = "green" if keterangan == "TEPAT WAKTU" else "red"
     ikon = "✅" if keterangan == "TEPAT WAKTU" else "❌"
