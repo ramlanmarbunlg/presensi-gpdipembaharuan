@@ -337,15 +337,16 @@ def proses_presensi(qr_data):
     st.markdown("<meta http-equiv='refresh' content='3'>", unsafe_allow_html=True)
 
 # ===================== HALAMAN PRESENSI =====================
+    # Reset input QR jika flag aktif
+if st.session_state.get("reset_qr_input"):
+    st.session_state["input_qr"] = ""
+    st.session_state["reset_qr_input"] = False
+    
 if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
 
     # ===================== MODE USB SCANNER =====================
     st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
-    # Reset input QR jika flag aktif
-if st.session_state.get("reset_qr_input"):
-    st.session_state["input_qr"] = ""
-    st.session_state["reset_qr_input"] = False
 
     qr_code_input = st.text_input("🆔 NIJ dari QR Code", placeholder="Scan QR di sini...", key="input_qr")
 
