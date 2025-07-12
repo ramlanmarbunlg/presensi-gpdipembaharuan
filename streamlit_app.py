@@ -324,12 +324,6 @@ def proses_presensi(qr_data):
     buffer.seek(0)
     st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
 
-    st.session_state["presensi_message"] = {
-    "nama": nama_jemaat,
-    "waktu": waktu_str,
-    "ibadah": nama_ibadah,
-    "keterangan": keterangan
-    }
     st.session_state["input_qr"] = ""
     st.session_state["reset_qr"] = True
         
