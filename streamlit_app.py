@@ -193,11 +193,6 @@ def kirim_email(to_email, subject, body):
         server.quit()
     except Exception as e:
         st.warning(f"🚨 Gagal kirim email: {e}")
-
-# ===================== FUNGSI RESET INPUT =====================
-def reset_input_qr():
-    st.session_state["input_qr"] = ""
-    st.session_state["presensi_message"] = None
     
 # ===================== FUNGSI PRESENSI =====================
 def proses_presensi(qr_data):
@@ -273,7 +268,26 @@ def proses_presensi(qr_data):
         waktu_str, qr_data, nama_jemaat, keterangan, nama_ibadah
     ])
 
-    # Paste disini
+    st.success(f"📝 Kehadiran {nama_jemaat} sudah dicatat sebagai **{keterangan}** dalam **{nama_ibadah}** pada tanggal **{waktu_str}**!")
+
+    warna_teks = "green" if keterangan == "TEPAT WAKTU" else "red"
+    ikon = "✅" if keterangan == "TEPAT WAKTU" else "❌"
+
+    st.markdown(f"""
+    <div style="font-size:30px; font-weight:bold; color:{warna_teks}; text-align:center;">
+        {ikon} {keterangan}
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <audio autoplay>
+        <source src="https://www.soundjay.com/buttons/sounds/beep-08b.mp3" type="audio/mpeg">
+    </audio>
+    """, unsafe_allow_html=True)
+
+    if foto_id:
+        foto_url = f"https://drive.google.com/thumbnail?id={foto_id}"
+        st.image(foto_url, width=100, caption=f"🡭 Foto Jemaat: {nama_jemaat}")
 
     if email_jemaat:
         pesan_tambahan = (
@@ -318,7 +332,12 @@ def proses_presensi(qr_data):
     }
     st.session_state["input_qr"] = ""
     st.session_state["reset_qr"] = True
-
+    
+# ===================== FUNGSI RESET INPUT =====================
+def reset_input_qr():
+    st.session_state["input_qr"] = ""
+    st.session_state["presensi_message"] = None
+    
 # ===================== HALAMAN PRESENSI =====================
 # Inisialisasi session state
 if "input_qr" not in st.session_state:
