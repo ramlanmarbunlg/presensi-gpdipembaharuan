@@ -260,7 +260,11 @@ def proses_presensi(qr_data):
     for r in riwayat:
         if r["NIJ"].strip() == qr_data and tanggal_hari_ini in r["Waktu"]:
             waktu_terakhir = r["Waktu"]
-            st.warning(f"⚠️ Anda sudah melakukan presensi hari ini pada {waktu_terakhir}")
+            st.session_state["pesan"] = {
+                "jenis": "warning",
+                "isi": f"⚠️ Anda sudah melakukan presensi hari ini pada {waktu_terakhir}"
+            }
+            st.session_state["pesan_waktu"] = time.time()
             return
 
     # Simpan ke sheet presensi
@@ -268,7 +272,11 @@ def proses_presensi(qr_data):
         waktu_str, qr_data, nama_jemaat, keterangan, nama_ibadah
     ])
 
-    st.success(f"📝 Kehadiran {nama_jemaat} sudah dicatat sebagai **{keterangan}** dalam **{nama_ibadah}** pada tanggal **{waktu_str}**!")
+    st.session_state["pesan"] = {
+        "jenis": "success",
+        "isi": f"📝 Kehadiran {nama_jemaat} sudah dicatat sebagai **{keterangan}** dalam **{nama_ibadah}** pada tanggal **{waktu_str}**!"
+    }
+    st.session_state["pesan_waktu"] = time.time()
 
     warna_teks = "green" if keterangan == "TEPAT WAKTU" else "red"
     ikon = "✅" if keterangan == "TEPAT WAKTU" else "❌"
@@ -335,8 +343,26 @@ if "presensi_berhasil" not in st.session_state:
 if "input_qr" not in st.session_state:
     st.session_state["input_qr"] = ""
 
+# 🆕 Tambahkan di sini:
+if "pesan" not in st.session_state:
+    st.session_state["pesan"] = None
+if "pesan_waktu" not in st.session_state:
+    st.session_state["pesan_waktu"] = 0
+
 if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
+    # Tampilkan pesan (jika masih dalam 3 detik)
+    pesan = st.session_state.get("pesan")
+    pesan_waktu = st.session_state.get("pesan_waktu", 0)
+    if pesan and time.time() - pesan_waktu < 3:
+        if pesan["jenis"] == "success":
+            st.success(pesan["isi"])
+        elif pesan["jenis"] == "warning":
+            st.warning(pesan["isi"])
+    else:
+        st.session_state["pesan"] = None
+        st.session_state["pesan_waktu"] = 0
+
     st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
 
     # ✅ Autofokus setiap load
