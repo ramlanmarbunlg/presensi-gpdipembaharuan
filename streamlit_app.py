@@ -338,13 +338,13 @@ def proses_presensi(qr_data):
 
 # ===================== HALAMAN PRESENSI =====================
     # Inisialisasi state
-if "input_qr" not in st.session_state:
-    st.session_state["input_qr"] = ""
-if "reset_focus" not in st.session_state:
-    st.session_state["reset_focus"] = False
-    
-if halaman == "📸 Presensi Jemaat":
-    st.title("📸 Scan QR Kehadiran Jemaat")
+    if "input_qr" not in st.session_state:
+        st.session_state["input_qr"] = ""
+    if "reset_focus" not in st.session_state:
+        st.session_state["reset_focus"] = False
+        
+    if halaman == "📸 Presensi Jemaat":
+        st.title("📸 Scan QR Kehadiran Jemaat")
 
     # ===================== MODE USB SCANNER =====================
     st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
@@ -352,26 +352,26 @@ if halaman == "📸 Presensi Jemaat":
     qr_code_input = st.text_input("🆔 NIJ dari QR Code", placeholder="Scan QR di sini...", key="input_qr")
 
     # Auto-focus pakai JS hanya jika reset_focus aktif
-if st.session_state["reset_focus"]:
-    components.html("""
-    <script>
-        window.onload = function() {
-            const inputs = window.parent.document.querySelectorAll('input');
-            for (let i = 0; i < inputs.length; i++) {
-                if (inputs[i].placeholder === "Scan QR di sini...") {
-                    inputs[i].focus();
-                    break;
+    if st.session_state["reset_focus"]:
+        components.html("""
+        <script>
+            window.onload = function() {
+                const inputs = window.parent.document.querySelectorAll('input');
+                for (let i = 0; i < inputs.length; i++) {
+                    if (inputs[i].placeholder === "Scan QR di sini...") {
+                        inputs[i].focus();
+                        break;
+                    }
                 }
-            }
-        };
-    </script>
-    """, height=0)
-    # Reset flag agar JS hanya jalan 1x
-    st.session_state["reset_focus"] = False
-
-# Kalau ada input QR, proses
-if qr_code_input:
-    proses_presensi(qr_code_input.strip())
+            };
+        </script>
+        """, height=0)
+        # Reset flag agar JS hanya jalan 1x
+        st.session_state["reset_focus"] = False
+    
+    # Kalau ada input QR, proses
+    if qr_code_input:
+        proses_presensi(qr_code_input.strip())
 
     # ===================== MODE KAMERA MANUAL =====================
     st.markdown("### 📷 Gunakan Kamera Manual (Opsional)")
