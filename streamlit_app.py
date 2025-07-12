@@ -289,7 +289,7 @@ def proses_presensi(qr_data):
 
     st.markdown("### 🧑‍🤝‍🧑 Antrian Jemaat Hadir (Live)")
     for i, r in enumerate(riwayat_hari_ini_sorted[:10]):
-        warna = "#28a745" if i == 0 else "#007cf0" if i < 3 else "#ddd"
+        warna = "#28a745" if i == 0 else "#007cf0" if i < 2 else "#ddd"
         st.markdown(f"""
             <div style="padding:10px;margin:5px 0;background-color:{warna};color:white;font-size:18px;border-radius:5px;">
                 🆔 {r['NIJ']} | 🙍 {r['Nama']} | ⏰ {r['Waktu'].split(' ')[1]} | 📌 {r.get('Keterangan', '')} | 🙏 {r.get('Ibadah', '')}
