@@ -49,7 +49,7 @@ st.markdown("""
         /* 🔆 BACKGROUND GRADASI WARNA */
         .stApp {
             # Brand Color GPdI == #f9d423 (kuning), #ff4e50(merah), #007cf0(biru), #ffffff(putih) ==
-            background: linear-gradient(180deg, #F09410, #BC430D); 
+            background: linear-gradient(180deg, #F09410, #ffffff); 
             min-height: 100vh;
             background-attachment: fixed;
         }
