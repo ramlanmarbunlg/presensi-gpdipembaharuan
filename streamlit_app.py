@@ -194,21 +194,24 @@ def kirim_email(to_email, subject, body):
         server.quit()
     except Exception as e:
         st.warning(f"🚨 Gagal kirim email: {e}")
+        
+# ===================== INISIALISASI SESSION STATE =====================
+for k, v in {
+    "reset_qr": False,
+    "presensi_berhasil": False,
+    "global_lock_time": 0,
+}.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
 
 # ===================== FUNGSI PRESENSI =====================
 def proses_presensi(qr_data):
-    # 🔐 Inisialisasi lock global 3 detik
-    if "global_lock_time" not in st.session_state:
-        st.session_state["global_lock_time"] = 0
-
     if time.time() - st.session_state["global_lock_time"] < 3:
         st.warning("⌛ Silakan tunggu sebentar sebelum melakukan presensi lagi...")
         return
 
-    # Set waktu lock saat ini
     st.session_state["global_lock_time"] = time.time()
 
-    # Ambil data jemaat
     daftar_jemaat = load_data_jemaat()
     qr_data = qr_data.strip()
     data_jemaat = next((j for j in daftar_jemaat if str(j["NIJ"]).strip() == qr_data), None)
@@ -224,19 +227,15 @@ def proses_presensi(qr_data):
     waktu_wib = datetime.now(ZoneInfo("Asia/Jakarta"))
     waktu_str = waktu_wib.strftime("%d-%m-%Y %H:%M:%S")
     tanggal_hari_ini = waktu_wib.strftime("%d-%m-%Y")
-    hari_eng = waktu_wib.strftime("%A")
-
+    hari_indonesia = waktu_wib.strftime("%A")
     hari_mapping = {
         "Sunday": "Minggu", "Monday": "Senin", "Tuesday": "Selasa",
         "Wednesday": "Rabu", "Thursday": "Kamis", "Friday": "Jumat", "Saturday": "Sabtu"
     }
-    hari_indonesia = hari_mapping.get(hari_eng, hari_eng)
+    hari_indonesia = hari_mapping.get(hari_indonesia, hari_indonesia)
 
-    # Ambil daftar ibadah hari ini
     data_ibadah = load_data_ibadah()
-    ibadah_hari_ini = [
-        i for i in data_ibadah if i["Hari"].strip().lower() == hari_indonesia.lower()
-    ]
+    ibadah_hari_ini = [i for i in data_ibadah if i["Hari"].strip().lower() == hari_indonesia.lower()]
 
     if not ibadah_hari_ini:
         nama_ibadah = "Tidak Diketahui"
@@ -246,17 +245,13 @@ def proses_presensi(qr_data):
             jam_str = str(i["Jam"]).strip()
             hour, minute = map(int, jam_str.split(":"))
             return waktu_wib.replace(hour=hour, minute=minute, second=0, microsecond=0)
-
         ibadah_hari_ini.sort(key=lambda i: abs((waktu_ibadah_obj(i) - waktu_wib).total_seconds()))
         ibadah_terdekat = ibadah_hari_ini[0]
         nama_ibadah = ibadah_terdekat["Nama Ibadah"]
         jam_ibadah_obj = waktu_ibadah_obj(ibadah_terdekat)
 
-    # Cek keterlambatan
-    batas_waktu = jam_ibadah_obj
-    keterangan = "TEPAT WAKTU" if waktu_wib <= batas_waktu else "TERLAMBAT"
+    keterangan = "TEPAT WAKTU" if waktu_wib <= jam_ibadah_obj else "TERLAMBAT"
 
-    # Cek sudah presensi secara ketat
     riwayat = load_data_presensi()
     for r in riwayat:
         if r["NIJ"].strip() == qr_data and tanggal_hari_ini in r["Waktu"]:
@@ -264,7 +259,6 @@ def proses_presensi(qr_data):
             st.warning(f"⚠️ Anda sudah melakukan presensi hari ini pada {waktu_terakhir}")
             return
 
-    # Simpan ke sheet presensi
     sheet_presensi.append_row([
         waktu_str, qr_data, nama_jemaat, keterangan, nama_ibadah
     ])
@@ -325,28 +319,15 @@ def proses_presensi(qr_data):
     buffer.seek(0)
     st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
 
+    # Tandai bahwa presensi sukses → agar halaman reload untuk clear form
     st.session_state["presensi_berhasil"] = True
-    st.session_state["reset_qr"] = True
 
 # ===================== HALAMAN PRESENSI =====================
-if "reset_qr" not in st.session_state:
-    st.session_state["reset_qr"] = False
-if "presensi_berhasil" not in st.session_state:
-    st.session_state["presensi_berhasil"] = False
-
 if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
     st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
 
-    qr_code_input = st.text_input(
-        label="🆔 NIJ dari QR Code",
-        placeholder="Scan QR di sini...",
-        key="input_qr",
-        value="" if st.session_state["reset_qr"] else None,
-        label_visibility="collapsed"
-    )
-
-    # ✅ Autofokus setiap load
+    # ✅ Autofokus JS
     components.html("""
     <script>
     window.requestAnimationFrame(() => {
@@ -361,22 +342,26 @@ if halaman == "📸 Presensi Jemaat":
     </script>
     """, height=0)
 
-    # ⏳ Auto clear setelah presensi berhasil
+    # 🧾 Input QR (gunakan widget value sekali saja)
+    qr_code_input = st.text_input(
+        label="🆔 NIJ dari QR Code",
+        placeholder="Scan QR di sini...",
+        key="input_qr",
+        label_visibility="collapsed"
+    )
+
+    # ⛳ Proses QR
+    if qr_code_input:
+        proses_presensi(qr_code_input)
+
+    # 🔁 Jika presensi berhasil, reload halaman
     if st.session_state["presensi_berhasil"]:
+        st.session_state["presensi_berhasil"] = False
         components.html("""
         <script>
-        setTimeout(function() {
-            window.parent.location.reload();
-        }, 3000);
+        setTimeout(() => window.parent.location.reload(), 3000);
         </script>
         """, height=0)
-        # Hindari trigger berulang
-        st.session_state["presensi_berhasil"] = False
-        st.session_state["reset_qr"] = False
-
-    # ⛳ Proses input QR
-    if qr_code_input:
-        proses_presensi(qr_code_input.strip())
 
     # ========== MODE KAMERA MANUAL ==========
     st.markdown("### 📷 Gunakan Kamera Manual (Opsional)")
