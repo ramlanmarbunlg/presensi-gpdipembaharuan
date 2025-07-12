@@ -332,30 +332,30 @@ def proses_presensi(qr_data):
     c.save()
     buffer.seek(0)
     st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
-    # Kosongkan QR input dan beri sinyal untuk auto-focus ulang
-    st.session_state["input_qr"] = ""
-    st.session_state["reset_focus"] = True
+    # ✅ Trigger reset QR input (tanpa crash)
+    st.session_state["reset_qr"] = True
 
 # ===================== HALAMAN PRESENSI =====================
-# Inisialisasi state
-if "input_qr" not in st.session_state:
-    st.session_state["input_qr"] = ""
-if "reset_focus" not in st.session_state:
-    st.session_state["reset_focus"] = False
-    
+if "reset_qr" not in st.session_state:
+    st.session_state["reset_qr"] = False
+
 if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
-
-    # ===================== MODE USB SCANNER =====================
     st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
 
-    qr_code_input = st.text_input("🆔 NIJ dari QR Code", placeholder="Scan QR di sini...", key="input_qr")
+    qr_code_input = st.text_input(
+        "🆔 NIJ dari QR Code",
+        placeholder="Scan QR di sini...",
+        key="input_qr",
+        value="" if st.session_state["reset_qr"] else None
+    )
 
-    # Auto-focus pakai JS hanya jika reset_focus aktif
-    if st.session_state["reset_focus"]:
+    # Fokus ulang input QR bila perlu
+    if st.session_state["reset_qr"]:
+        st.session_state["reset_qr"] = False
         components.html("""
         <script>
-            window.onload = function() {
+            setTimeout(function() {
                 const inputs = window.parent.document.querySelectorAll('input');
                 for (let i = 0; i < inputs.length; i++) {
                     if (inputs[i].placeholder === "Scan QR di sini...") {
@@ -363,42 +363,36 @@ if halaman == "📸 Presensi Jemaat":
                         break;
                     }
                 }
-            };
+            }, 100);
         </script>
         """, height=0)
-        # Reset flag agar JS hanya jalan 1x
-        st.session_state["reset_focus"] = False
-    
-    # Kalau ada input QR, proses
+
     if qr_code_input:
         proses_presensi(qr_code_input.strip())
 
-    # ===================== MODE KAMERA MANUAL =====================
+    # ========== MODE KAMERA MANUAL ==========
     st.markdown("### 📷 Gunakan Kamera Manual (Opsional)")
-    # Inisialisasi session_state kamera
     if "kamera_manual_aktif" not in st.session_state:
         st.session_state.kamera_manual_aktif = False
-    
+
     if not st.session_state.kamera_manual_aktif:
         if st.button("Aktifkan Kamera Manual"):
             st.session_state.kamera_manual_aktif = True
             st.experimental_rerun()
-    
+
     if st.session_state.kamera_manual_aktif:
         with st.form("kamera_manual_form"):
             img = st.camera_input("📸 Ambil Gambar QR Code dari Kamera")
-    
-            # Dua tombol: Proses & Nonaktifkan Kamera
             col1, col2 = st.columns([1, 1])
             with col1:
                 submit_camera = st.form_submit_button("✅ Proses dari Kamera")
             with col2:
                 nonaktif = st.form_submit_button("❌ Nonaktifkan Kamera")
-    
+
         if nonaktif:
             st.session_state.kamera_manual_aktif = False
             st.experimental_rerun()
-    
+
         if submit_camera and img:
             from pyzbar.pyzbar import decode
             image = Image.open(img)
