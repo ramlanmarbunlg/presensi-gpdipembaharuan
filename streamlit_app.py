@@ -348,19 +348,6 @@ for k, v in {
         st.session_state[k] = v
 
 # ===================== HALAMAN PRESENSI =====================
-if "reset_qr" not in st.session_state:
-    st.session_state["reset_qr"] = False
-if "presensi_berhasil" not in st.session_state:
-    st.session_state["presensi_berhasil"] = False
-if "input_qr" not in st.session_state:
-    st.session_state["input_qr"] = ""
-
-# 🆕 Tambahkan di sini:
-if "pesan" not in st.session_state:
-    st.session_state["pesan"] = None
-if "pesan_waktu" not in st.session_state:
-    st.session_state["pesan_waktu"] = 0
-
 if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
     st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
