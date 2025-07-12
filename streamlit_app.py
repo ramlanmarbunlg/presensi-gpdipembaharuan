@@ -334,49 +334,42 @@ def proses_presensi(qr_data):
     st.session_state["reset_qr"] = True
         
 # ===================== HALAMAN PRESENSI =====================
-# Inisialisasi session state
-if "input_qr" not in st.session_state:
-    st.session_state["input_qr"] = ""
-if "presensi_message" not in st.session_state:
-    st.session_state["presensi_message"] = None
+if "reset_qr" not in st.session_state:
+    st.session_state["reset_qr"] = False
 
-# Halaman presensi
 if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
     st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
 
-    st.text_input(
+    qr_code_input = st.text_input(
         "🆔 NIJ dari QR Code",
         placeholder="Scan QR di sini...",
         key="input_qr",
-        label_visibility="collapsed",
-        on_change=proses_presensi,
-        args=(st.session_state["input_qr"],)
+        value="" if st.session_state["reset_qr"] else None,
+        label_visibility="collapsed"
     )
 
+    # ✅ Autofokus input setelah komponen dirender
     components.html("""
     <script>
-        window.addEventListener("load", function() {
-            const inputs = window.parent.document.querySelectorAll('input');
-            for (let i = 0; i < inputs.length; i++) {
-                if (inputs[i].placeholder === "Scan QR di sini...") {
-                    inputs[i].focus();
-                    break;
-                }
+    window.requestAnimationFrame(() => {
+        const inputs = window.parent.document.querySelectorAll('input');
+        for (let i = 0; i < inputs.length; i++) {
+            if (inputs[i].placeholder === "Scan QR di sini...") {
+                inputs[i].focus();
+                break;
             }
-        });
+        }
+    });
     </script>
     """, height=0)
-        components.html("""
-        <script>
-        setTimeout(() => {
-            const alert = window.parent.document.querySelector('iframe')?.contentDocument?.querySelector('.stAlert');
-            if (alert) alert.style.display = 'none';
-        }, 3000);
-        </script>
-        """, height=0)
 
-        reset_input_qr()
+    # Reset hanya dilakukan sekali
+    if st.session_state["reset_qr"]:
+        st.session_state["reset_qr"] = False
+
+    if qr_code_input:
+        proses_presensi(qr_code_input.strip())
 
     # ========== MODE KAMERA MANUAL ==========
     st.markdown("### 📷 Gunakan Kamera Manual (Opsional)")
