@@ -104,14 +104,16 @@ Silakan fork dan gunakan untuk pelayanan Anda. Mohon tetap mencantumkan kredit p
 
 ---
 
+## 📬 Kontak
+Jika ingin mengembangkan bersama atau butuh bantuan:
+📧 Email: [ramlanmediakreatif@gmail.com]
+📞 WA: 628xxxxxxxxxx
+
+---
+
 ## 🛠️ Cara Deploy
 1. Clone repo ini
 2. Atur Google Sheets dan aktifkan API
 3. Jalankan dengan:
 ```bash
 streamlit run streamlit_app.py
-
-**## 📬 Kontak**
-Jika ingin mengembangkan bersama atau butuh bantuan:
-📧 Email: [ramlanmediakreatif@gmail.com]
-📞 WA: 628xxxxxxxxxx
