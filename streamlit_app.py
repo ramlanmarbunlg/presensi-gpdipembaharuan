@@ -205,6 +205,11 @@ import streamlit.components.v1 as components
 
 # ===================== FUNGSI PRESENSI =====================
 def proses_presensi(qr_data):
+    # 🛡️ Cegah spam presensi berulang dalam 3 detik
+    if st.session_state.get("presensi_locked"):
+        st.warning("⌛ Tunggu sebentar sebelum presensi berikutnya...")
+        return
+
     daftar_jemaat = load_data_jemaat()
     data_jemaat = next((j for j in daftar_jemaat if str(j["NIJ"]).strip() == qr_data), None)
 
@@ -237,9 +242,8 @@ def proses_presensi(qr_data):
         nama_ibadah = "Tidak Diketahui"
         jam_ibadah_obj = waktu_wib.replace(hour=10, minute=30)
     else:
-        # Cari ibadah terdekat dari sekarang
         def waktu_ibadah_obj(i):
-            jam_str = str(i["Jam"]).strip()  # Contoh "10:30"
+            jam_str = str(i["Jam"]).strip()
             hour, minute = map(int, jam_str.split(":"))
             return waktu_wib.replace(hour=hour, minute=minute, second=0, microsecond=0)
 
@@ -248,7 +252,7 @@ def proses_presensi(qr_data):
         nama_ibadah = ibadah_terdekat["Nama Ibadah"]
         jam_ibadah_obj = waktu_ibadah_obj(ibadah_terdekat)
 
-    # ===== CEK KETERANGAN (Tepat Waktu / Terlambat) =====
+    # ===== CEK KETERANGAN =====
     batas_waktu = jam_ibadah_obj
     keterangan = "Tepat Waktu" if waktu_wib <= batas_waktu else "Terlambat"
 
@@ -261,14 +265,16 @@ def proses_presensi(qr_data):
         st.warning(f"⚠️ Anda sudah melakukan presensi hari ini pada {waktu_terakhir}")
         return
 
-    # ✅ Simpan ke sheet presensi (Waktu | NIJ | Nama | Keterangan | Ibadah)
+    # ✅ Simpan presensi
     sheet_presensi.append_row([
         waktu_str, qr_data, nama_jemaat, keterangan, nama_ibadah
     ])
-
     st.success(f"📝 Kehadiran {nama_jemaat} berhasil dicatat sebagai **{keterangan}** di ibadah **{nama_ibadah}**!")
 
-    # Antrian Jemaat Hari Ini
+    # Kunci presensi sementara selama 3 detik
+    st.session_state["presensi_locked"] = True
+
+    # ========== Tampilkan Antrian Jemaat ========== #
     presensi_data = load_data_presensi()
     riwayat_hari_ini = [r for r in presensi_data if tanggal_hari_ini in r["Waktu"]]
     riwayat_hari_ini_sorted = sorted(riwayat_hari_ini, key=lambda x: x["Waktu"], reverse=True)
@@ -289,25 +295,22 @@ def proses_presensi(qr_data):
     </audio>
     """, unsafe_allow_html=True)
 
-    # Foto Jemaat
+    # 🖼️ Foto Jemaat
     if foto_id:
         foto_url = f"https://drive.google.com/thumbnail?id={foto_id}"
         st.image(foto_url, width=100, caption=f"🡭 Foto Jemaat: {nama_jemaat}")
 
-    # Email Notifikasi
+    # 📧 Email Notifikasi
     if email_jemaat:
-        if keterangan == "Tepat Waktu":
-            pesan_tambahan = (
-                "Selamat datang di rumah Tuhan! Kami sangat menghargai kedatangan Saudara tepat waktu, "
-                "karena hal ini menunjukkan rasa hormat kita kepada Tuhan dan kepada sesama jemaat. "
-                "Mari kita bersama-sama memulai ibadah dengan hati yang tenang dan penuh sukacita."
-            )
-        else:
-            pesan_tambahan = (
-                "Mari bersama-sama kita hadir tepat waktu dalam ibadah sebagai bentuk penghormatan kepada Tuhan "
-                "dan persekutuan yang kudus. Keterlambatan dapat mengurangi hadirat Tuhan dan menghalangi kita "
-                "untuk sepenuhnya terlibat dalam penyembahan."
-            )
+        pesan_tambahan = (
+            "Selamat datang di rumah Tuhan! Kami sangat menghargai kedatangan Saudara tepat waktu, "
+            "karena hal ini menunjukkan rasa hormat kita kepada Tuhan dan kepada sesama jemaat. "
+            "Mari kita bersama-sama memulai ibadah dengan hati yang tenang dan penuh sukacita."
+        ) if keterangan == "Tepat Waktu" else (
+            "Mari bersama-sama kita hadir tepat waktu dalam ibadah sebagai bentuk penghormatan kepada Tuhan "
+            "dan persekutuan yang kudus. Keterlambatan dapat mengurangi hadirat Tuhan dan menghalangi kita "
+            "untuk sepenuhnya terlibat dalam penyembahan."
+        )
 
         body_email = (
             f"Syalom {nama_jemaat},\n\n"
@@ -318,7 +321,7 @@ def proses_presensi(qr_data):
 
         kirim_email(email_jemaat, "Kehadiran Jemaat GPdI Pembaharuan", body_email)
 
-    # Sertifikat PDF
+    # 🧾 Sertifikat PDF
     buffer = BytesIO()
     c = canvas.Canvas(buffer)
     c.setFont("Helvetica-Bold", 18)
@@ -329,12 +332,14 @@ def proses_presensi(qr_data):
     c.drawString(100, 660, f"Waktu Hadir              : {waktu_str}")
     c.drawString(100, 640, f"Jenis Ibadah             : {nama_ibadah}")
     c.drawString(100, 620, f"Keterangan               : {keterangan}")
-    c.drawString(100, 610, "Lokasi                    : GPdI Pembaharuan Medan")
+    c.drawString(100, 610, "Lokasi                   : GPdI Pembaharuan Medan")
     c.save()
     buffer.seek(0)
     st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
 
+    # ⏳ Delay dan rerun
     time.sleep(3)
+    st.session_state["presensi_locked"] = False
     st.experimental_rerun()
 
 # ===================== HALAMAN PRESENSI =====================
