@@ -325,13 +325,13 @@ def proses_presensi(qr_data):
     st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
 
     def proses_presensi():
-    qr_data = st.session_state["input_qr"].strip()
-    if not qr_data:
-        return
-    ...
-    # Di akhir fungsi:
-    st.session_state["input_qr"] = ""
-    st.session_state["reset_qr"] = True
+        qr_data = st.session_state["input_qr"].strip()
+        if not qr_data:
+            return
+        ...
+        # Di akhir fungsi:
+        st.session_state["input_qr"] = ""
+        st.session_state["reset_qr"] = True
         
 # ===================== HALAMAN PRESENSI =====================
 if "reset_qr" not in st.session_state:
