@@ -205,22 +205,18 @@ import streamlit.components.v1 as components
 
 # ===================== FUNGSI PRESENSI =====================
 def proses_presensi(qr_data):
-    now = time.time()
+    import time  # boleh juga ditaruh di atas file
 
-    # Cek session_state untuk user terakhir
-    if "presensi_locked" not in st.session_state:
-        st.session_state["presensi_locked"] = False
-    if "terakhir_presensi" not in st.session_state:
-        st.session_state["terakhir_presensi"] = {}
+    # 🛡️ Lock global selama 3 detik untuk mencegah spam input
+    if "global_lock_time" not in st.session_state:
+        st.session_state["global_lock_time"] = 0
 
-    # Cegah spam untuk QR yang sama dalam 3 detik
-    terakhir = st.session_state["terakhir_presensi"].get(qr_data)
-    if terakhir and now - terakhir < 3:
-        st.warning("⌛ Tunggu sebentar sebelum presensi berikutnya...")
+    if time.time() - st.session_state["global_lock_time"] < 3:
+        st.warning("⌛ Silakan tunggu sebentar sebelum melakukan presensi lagi...")
         return
 
-    # 🚫 Kunci sementara (tidak tergantung rerun)
-    st.session_state["terakhir_presensi"][qr_data] = now
+    # Set waktu terkini sebagai waktu lock
+    st.session_state["global_lock_time"] = time.time()
 
     daftar_jemaat = load_data_jemaat()
     data_jemaat = next((j for j in daftar_jemaat if str(j["NIJ"]).strip() == qr_data), None)
