@@ -332,12 +332,7 @@ def proses_presensi(qr_data):
     }
     st.session_state["input_qr"] = ""
     st.session_state["reset_qr"] = True
-    
-# ===================== FUNGSI RESET INPUT =====================
-def reset_input_qr():
-    st.session_state["input_qr"] = ""
-    st.session_state["presensi_message"] = None
-    
+        
 # ===================== HALAMAN PRESENSI =====================
 # Inisialisasi session state
 if "input_qr" not in st.session_state:
@@ -372,19 +367,6 @@ if halaman == "📸 Presensi Jemaat":
         });
     </script>
     """, height=0)
-
-    msg = st.session_state["presensi_message"]
-    if msg:
-        warna_teks = "green" if msg["keterangan"] == "TEPAT WAKTU" else "red"
-        ikon = "✅" if msg["keterangan"] == "TEPAT WAKTU" else "❌"
-
-        st.success(f"📝 Kehadiran {msg['nama']} sudah dicatat sebagai **{msg['keterangan']}** dalam **{msg['ibadah']}** pada tanggal **{msg['waktu']}**!")
-        st.markdown(f"""
-        <div style="font-size:30px; font-weight:bold; color:{warna_teks}; text-align:center;">
-            {ikon} {msg['keterangan']}
-        </div>
-        """, unsafe_allow_html=True)
-
         components.html("""
         <script>
         setTimeout(() => {
