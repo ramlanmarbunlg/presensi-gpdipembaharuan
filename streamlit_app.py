@@ -332,7 +332,7 @@ def proses_presensi(qr_data):
     c.drawString(100, 660, f"Waktu Hadir              : {waktu_str}")
     c.drawString(100, 640, f"Jenis Ibadah             : {nama_ibadah}")
     c.drawString(100, 620, f"Keterangan               : {keterangan}")
-    c.drawString(100, 610, "Lokasi                   : GPdI Pembaharuan Medan")
+    c.drawString(100, 600, "Lokasi                   : GPdI Pembaharuan Medan")
     c.save()
     buffer.seek(0)
     st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
