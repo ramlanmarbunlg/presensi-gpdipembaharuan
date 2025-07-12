@@ -324,6 +324,12 @@ def proses_presensi(qr_data):
     buffer.seek(0)
     st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
 
+    def proses_presensi():
+    qr_data = st.session_state["input_qr"].strip()
+    if not qr_data:
+        return
+    ...
+    # Di akhir fungsi:
     st.session_state["input_qr"] = ""
     st.session_state["reset_qr"] = True
         
@@ -335,12 +341,12 @@ if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
     st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
 
-    qr_code_input = st.text_input(
-        "🆔 NIJ dari QR Code",
-        placeholder="Scan QR di sini...",
-        key="input_qr",
-        value="" if st.session_state["reset_qr"] else None,
-        label_visibility="collapsed"
+    st.text_input(
+    "🆔 NIJ dari QR Code",
+    placeholder="Scan QR di sini...",
+    key="input_qr",
+    label_visibility="collapsed",
+    on_change=proses_presensi
     )
 
     # ✅ Autofokus input setelah komponen dirender
