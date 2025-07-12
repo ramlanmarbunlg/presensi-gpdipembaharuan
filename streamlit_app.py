@@ -1,3 +1,4 @@
+
 # ============================================
 # PRESENSI JEMAAT STREAMLIT QR CAMERA (V3 + CAMERA MANUAL MODE + USB SCANNER MODE)
 # ============================================
@@ -260,11 +261,7 @@ def proses_presensi(qr_data):
     for r in riwayat:
         if r["NIJ"].strip() == qr_data and tanggal_hari_ini in r["Waktu"]:
             waktu_terakhir = r["Waktu"]
-            st.session_state["pesan"] = {
-                "jenis": "warning",
-                "isi": f"⚠️ Anda sudah melakukan presensi hari ini pada {waktu_terakhir}"
-            }
-            st.session_state["pesan_waktu"] = time.time()
+            st.warning(f"⚠️ Anda sudah melakukan presensi hari ini pada {waktu_terakhir}")
             return
 
     # Simpan ke sheet presensi
@@ -272,11 +269,7 @@ def proses_presensi(qr_data):
         waktu_str, qr_data, nama_jemaat, keterangan, nama_ibadah
     ])
 
-    st.session_state["pesan"] = {
-        "jenis": "success",
-        "isi": f"📝 Kehadiran {nama_jemaat} sudah dicatat sebagai **{keterangan}** dalam **{nama_ibadah}** pada tanggal **{waktu_str}**!"
-    }
-    st.session_state["pesan_waktu"] = time.time()
+    st.success(f"📝 Kehadiran {nama_jemaat} sudah dicatat sebagai **{keterangan}** dalam **{nama_ibadah}** pada tanggal **{waktu_str}**!")
 
     warna_teks = "green" if keterangan == "TEPAT WAKTU" else "red"
     ikon = "✅" if keterangan == "TEPAT WAKTU" else "❌"
@@ -331,25 +324,29 @@ def proses_presensi(qr_data):
     c.save()
     buffer.seek(0)
     st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
-    
-# ===================== INISIALISASI SESSION STATE =====================
-for k, v in {
-    "reset_qr": False,
-    "presensi_berhasil": False,
-    "input_qr": "",
-    "pesan": None,
-    "pesan_waktu": 0,
-    "form_submitted": False
-}.items():
-    if k not in st.session_state:
-        st.session_state[k] = v
+
+    st.session_state["presensi_berhasil"] = True
+    st.session_state["reset_qr"] = True
 
 # ===================== HALAMAN PRESENSI =====================
+if "reset_qr" not in st.session_state:
+    st.session_state["reset_qr"] = False
+if "presensi_berhasil" not in st.session_state:
+    st.session_state["presensi_berhasil"] = False
+
 if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
     st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
 
-    # ✅ Autofokus input saat load
+    qr_code_input = st.text_input(
+        label="🆔 NIJ dari QR Code",
+        placeholder="Scan QR di sini...",
+        key="input_qr",
+        value="" if st.session_state["reset_qr"] else None,
+        label_visibility="collapsed"
+    )
+
+    # ✅ Autofokus setiap load
     components.html("""
     <script>
     window.requestAnimationFrame(() => {
@@ -364,35 +361,22 @@ if halaman == "📸 Presensi Jemaat":
     </script>
     """, height=0)
 
-    # 🧾 FORM Input QR
-    with st.form("form_presensi"):
-        qr_code_input = st.text_input(
-            label="🆔 NIJ dari QR Code",
-            placeholder="Scan QR di sini...",
-            key="input_qr",
-            label_visibility="collapsed"
-        )
-        submitted = st.form_submit_button("✅ Submit")
+    # ⏳ Auto clear setelah presensi berhasil
+    if st.session_state["presensi_berhasil"]:
+        components.html("""
+        <script>
+        setTimeout(function() {
+            window.parent.location.reload();
+        }, 3000);
+        </script>
+        """, height=0)
+        # Hindari trigger berulang
+        st.session_state["presensi_berhasil"] = False
+        st.session_state["reset_qr"] = False
 
-    # ⛳ Tangani Submit QR
-    if submitted:
-        if qr_code_input.strip() != "":
-            proses_presensi(qr_code_input.strip())
-            st.session_state["form_submitted"] = True
-            st.session_state["input_qr"] = ""  # reset input state untuk form berikutnya
-            st.experimental_rerun()
-
-    # 🟨 Tampilkan pesan sementara (3 detik)
-    pesan = st.session_state.get("pesan")
-    pesan_waktu = st.session_state.get("pesan_waktu", 0)
-    if pesan and time.time() - pesan_waktu < 3:
-        if pesan["jenis"] == "success":
-            st.success(pesan["isi"])
-        elif pesan["jenis"] == "warning":
-            st.warning(pesan["isi"])
-    else:
-        st.session_state["pesan"] = None
-        st.session_state["pesan_waktu"] = 0
+    # ⛳ Proses input QR
+    if qr_code_input:
+        proses_presensi(qr_code_input.strip())
 
     # ========== MODE KAMERA MANUAL ==========
     st.markdown("### 📷 Gunakan Kamera Manual (Opsional)")
