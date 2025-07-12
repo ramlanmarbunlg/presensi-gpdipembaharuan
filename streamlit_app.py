@@ -267,8 +267,18 @@ def proses_presensi(qr_data):
     sheet_presensi.append_row([
         waktu_str, qr_data, nama_jemaat, keterangan, nama_ibadah
     ])
-
+    
+    # Pesan sukses utama
     st.success(f"📝 Kehadiran {nama_jemaat} sudah dicatat sebagai **{keterangan}** dalam **{nama_ibadah}** pada tanggal **{waktu_str}**!")
+    # Tambahan keterangan besar + warna + ikon
+    warna_teks = "green" if keterangan == "TEPAT WAKTU!" else "red"
+    ikon = "✅" if keterangan == "TERLAMBAT!" else "❌"
+    
+    st.markdown(f"""
+    <div style="font-size:30px; font-weight:bold; color:{warna_teks}; text-align:center;">
+        {ikon} {keterangan}
+    </div>
+    """, unsafe_allow_html=True)
 
     # 🔊 Suara beep
     st.markdown("""
