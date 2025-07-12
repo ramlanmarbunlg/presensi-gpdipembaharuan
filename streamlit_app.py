@@ -268,7 +268,7 @@ def proses_presensi(qr_data):
         waktu_str, qr_data, nama_jemaat, keterangan, nama_ibadah
     ])
 
-    st.success(f"📝 Kehadiran {nama_jemaat} dicatat sebagai **{keterangan}** di ibadah **{nama_ibadah}**!")
+    st.success(f"📝 Kehadiran {nama_jemaat} sudah dicatat sebagai **{keterangan}** di ibadah **{nama_ibadah}**!")
 
     # 🔊 Suara beep
     st.markdown("""
@@ -332,15 +332,16 @@ def proses_presensi(qr_data):
     c.save()
     buffer.seek(0)
     st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
-    # 🔁 Clear input QR & auto-refresh 3 detik
-    st.session_state["reset_qr_input"] = True
-    st.markdown("<meta http-equiv='refresh' content='3'>", unsafe_allow_html=True)
+    # Kosongkan QR input dan beri sinyal untuk auto-focus ulang
+    st.session_state["input_qr"] = ""
+    st.session_state["reset_focus"] = True
 
 # ===================== HALAMAN PRESENSI =====================
-    # Reset input QR jika flag aktif
-if st.session_state.get("reset_qr_input"):
+    # Inisialisasi state
+if "input_qr" not in st.session_state:
     st.session_state["input_qr"] = ""
-    st.session_state["reset_qr_input"] = False
+if "reset_focus" not in st.session_state:
+    st.session_state["reset_focus"] = False
     
 if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
@@ -350,23 +351,27 @@ if halaman == "📸 Presensi Jemaat":
 
     qr_code_input = st.text_input("🆔 NIJ dari QR Code", placeholder="Scan QR di sini...", key="input_qr")
 
-    # Auto-focus fix dengan cari placeholder dari input_qr
-    components.html(f"""
+    # Auto-focus pakai JS hanya jika reset_focus aktif
+if st.session_state["reset_focus"]:
+    components.html("""
     <script>
-        window.onload = function() {{
+        window.onload = function() {
             const inputs = window.parent.document.querySelectorAll('input');
-            for (let i = 0; i < inputs.length; i++) {{
-                if (inputs[i].placeholder === "Scan QR di sini...") {{
+            for (let i = 0; i < inputs.length; i++) {
+                if (inputs[i].placeholder === "Scan QR di sini...") {
                     inputs[i].focus();
                     break;
-                }}
-            }}
-        }};
+                }
+            }
+        };
     </script>
     """, height=0)
+    # Reset flag agar JS hanya jalan 1x
+    st.session_state["reset_focus"] = False
 
-    if qr_code_input:
-        proses_presensi(qr_code_input.strip())
+# Kalau ada input QR, proses
+if qr_code_input:
+    proses_presensi(qr_code_input.strip())
 
     # ===================== MODE KAMERA MANUAL =====================
     st.markdown("### 📷 Gunakan Kamera Manual (Opsional)")
