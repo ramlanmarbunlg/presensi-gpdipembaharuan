@@ -1,4 +1,3 @@
-
 # ============================================
 # PRESENSI JEMAAT STREAMLIT QR CAMERA (V3 + CAMERA MANUAL MODE + USB SCANNER MODE)
 # ============================================
@@ -325,40 +324,56 @@ def proses_presensi(qr_data):
     buffer.seek(0)
     st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
 
+    st.session_state["presensi_berhasil"] = True
     st.session_state["reset_qr"] = True
 
 # ===================== HALAMAN PRESENSI =====================
 if "reset_qr" not in st.session_state:
     st.session_state["reset_qr"] = False
+if "presensi_berhasil" not in st.session_state:
+    st.session_state["presensi_berhasil"] = False
 
 if halaman == "📸 Presensi Jemaat":
     st.title("📸 Scan QR Kehadiran Jemaat")
     st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
 
     qr_code_input = st.text_input(
-        "🆔 NIJ dari QR Code",
+        label="🆔 NIJ dari QR Code",
         placeholder="Scan QR di sini...",
         key="input_qr",
         value="" if st.session_state["reset_qr"] else None,
         label_visibility="collapsed"
     )
 
-    if st.session_state["reset_qr"]:
-        st.session_state["reset_qr"] = False
+    # ✅ Autofokus setiap load
+    components.html("""
+    <script>
+    window.requestAnimationFrame(() => {
+        const inputs = window.parent.document.querySelectorAll('input');
+        for (let i = 0; i < inputs.length; i++) {
+            if (inputs[i].placeholder === "Scan QR di sini...") {
+                inputs[i].focus();
+                break;
+            }
+        }
+    });
+    </script>
+    """, height=0)
+
+    # ⏳ Auto clear setelah presensi berhasil
+    if st.session_state["presensi_berhasil"]:
         components.html("""
         <script>
-            setTimeout(function() {
-                const inputs = window.parent.document.querySelectorAll('input');
-                for (let i = 0; i < inputs.length; i++) {
-                    if (inputs[i].placeholder === "Scan QR di sini...") {
-                        inputs[i].focus();
-                        break;
-                    }
-                }
-            }, 500);
+        setTimeout(function() {
+            window.parent.location.reload();
+        }, 3000);
         </script>
         """, height=0)
+        # Hindari trigger berulang
+        st.session_state["presensi_berhasil"] = False
+        st.session_state["reset_qr"] = False
 
+    # ⛳ Proses input QR
     if qr_code_input:
         proses_presensi(qr_code_input.strip())
 
