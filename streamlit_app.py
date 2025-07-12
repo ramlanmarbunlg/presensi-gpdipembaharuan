@@ -337,14 +337,14 @@ def proses_presensi(qr_data):
     st.session_state["reset_focus"] = True
 
 # ===================== HALAMAN PRESENSI =====================
-    # Inisialisasi state
-    if "input_qr" not in st.session_state:
-        st.session_state["input_qr"] = ""
-    if "reset_focus" not in st.session_state:
-        st.session_state["reset_focus"] = False
-        
-    if halaman == "📸 Presensi Jemaat":
-        st.title("📸 Scan QR Kehadiran Jemaat")
+# Inisialisasi state
+if "input_qr" not in st.session_state:
+    st.session_state["input_qr"] = ""
+if "reset_focus" not in st.session_state:
+    st.session_state["reset_focus"] = False
+    
+if halaman == "📸 Presensi Jemaat":
+    st.title("📸 Scan QR Kehadiran Jemaat")
 
     # ===================== MODE USB SCANNER =====================
     st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
