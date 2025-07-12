@@ -252,7 +252,7 @@ def proses_presensi(qr_data):
 
     # Cek keterlambatan
     batas_waktu = jam_ibadah_obj
-    keterangan = "Tepat Waktu" if waktu_wib <= batas_waktu else "Terlambat"
+    keterangan = "TEPAT WAKTU" if waktu_wib <= batas_waktu else "TERLAMBAT"
 
     # Cek sudah presensi
     riwayat = load_data_presensi()
@@ -271,8 +271,8 @@ def proses_presensi(qr_data):
     # Pesan sukses utama
     st.success(f"📝 Kehadiran {nama_jemaat} sudah dicatat sebagai **{keterangan}** dalam **{nama_ibadah}** pada tanggal **{waktu_str}**!")
     # Tambahan keterangan besar + warna + ikon
-    warna_teks = "green" if keterangan == "TEPAT WAKTU!" else "red"
-    ikon = "✅" if keterangan == "TERLAMBAT!" else "❌"
+    warna_teks = "green" if keterangan == "Tepat Waktu" else "red"
+    ikon = "✅" if keterangan == "Tepat Waktu" else "❌"
     
     st.markdown(f"""
     <div style="font-size:30px; font-weight:bold; color:{warna_teks}; text-align:center;">
