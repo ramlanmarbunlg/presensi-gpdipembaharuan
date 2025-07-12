@@ -209,6 +209,7 @@ def proses_presensi(qr_data):
 
     # Ambil data jemaat
     daftar_jemaat = load_data_jemaat()
+    qr_data = qr_data.strip()
     data_jemaat = next((j for j in daftar_jemaat if str(j["NIJ"]).strip() == qr_data), None)
 
     if not data_jemaat:
@@ -254,51 +255,46 @@ def proses_presensi(qr_data):
     batas_waktu = jam_ibadah_obj
     keterangan = "TEPAT WAKTU" if waktu_wib <= batas_waktu else "TERLAMBAT"
 
-    # Cek sudah presensi
+    # Cek sudah presensi secara ketat
     riwayat = load_data_presensi()
-    sudah_presensi = any(r["NIJ"] == qr_data and tanggal_hari_ini in r["Waktu"] for r in riwayat)
-
-    if sudah_presensi:
-        waktu_terakhir = next(r["Waktu"] for r in riwayat if r["NIJ"] == qr_data and tanggal_hari_ini in r["Waktu"])
-        st.warning(f"⚠️ Anda sudah melakukan presensi hari ini pada {waktu_terakhir}")
-        return
+    for r in riwayat:
+        if r["NIJ"].strip() == qr_data and tanggal_hari_ini in r["Waktu"]:
+            waktu_terakhir = r["Waktu"]
+            st.warning(f"⚠️ Anda sudah melakukan presensi hari ini pada {waktu_terakhir}")
+            return
 
     # Simpan ke sheet presensi
     sheet_presensi.append_row([
         waktu_str, qr_data, nama_jemaat, keterangan, nama_ibadah
     ])
-    
-    # Pesan sukses utama
+
     st.success(f"📝 Kehadiran {nama_jemaat} sudah dicatat sebagai **{keterangan}** dalam **{nama_ibadah}** pada tanggal **{waktu_str}**!")
-    # Tambahan keterangan besar + warna + ikon
+
     warna_teks = "green" if keterangan == "TEPAT WAKTU" else "red"
     ikon = "✅" if keterangan == "TEPAT WAKTU" else "❌"
-    
+
     st.markdown(f"""
     <div style="font-size:30px; font-weight:bold; color:{warna_teks}; text-align:center;">
         {ikon} {keterangan}
     </div>
     """, unsafe_allow_html=True)
 
-    # 🔊 Suara beep
     st.markdown("""
     <audio autoplay>
         <source src="https://www.soundjay.com/buttons/sounds/beep-08b.mp3" type="audio/mpeg">
     </audio>
     """, unsafe_allow_html=True)
 
-    # 📸 Foto Jemaat
     if foto_id:
         foto_url = f"https://drive.google.com/thumbnail?id={foto_id}"
         st.image(foto_url, width=100, caption=f"🡭 Foto Jemaat: {nama_jemaat}")
 
-    # 📧 Email Notifikasi
     if email_jemaat:
         pesan_tambahan = (
             "Selamat datang di rumah Tuhan! Kami sangat menghargai kedatangan Saudara tepat waktu, "
             "karena hal ini menunjukkan rasa hormat kita kepada Tuhan dan kepada sesama jemaat. "
             "Mari kita bersama-sama memulai ibadah dengan hati yang tenang dan penuh sukacita."
-        ) if keterangan == "Tepat Waktu" else (
+        ) if keterangan == "TEPAT WAKTU" else (
             "Mari bersama-sama kita hadir tepat waktu dalam ibadah sebagai bentuk penghormatan kepada Tuhan "
             "dan persekutuan yang kudus. Keterlambatan dapat mengurangi hadirat Tuhan dan menghalangi kita "
             "untuk sepenuhnya terlibat dalam penyembahan."
@@ -313,7 +309,6 @@ def proses_presensi(qr_data):
 
         kirim_email(email_jemaat, "Kehadiran Jemaat GPdI Pembaharuan", body_email)
 
-    # 🧾 Sertifikat PDF
     buffer = BytesIO()
     c = canvas.Canvas(buffer)
     c.setFont("Helvetica-Bold", 18)
@@ -328,7 +323,7 @@ def proses_presensi(qr_data):
     c.save()
     buffer.seek(0)
     st.download_button("📅 Download Sertifikat Kehadiran", buffer, f"sertifikat_{qr_data}.pdf", "application/pdf")
-    # ✅ Trigger reset QR input (tanpa crash)
+
     st.session_state["reset_qr"] = True
 
 # ===================== HALAMAN PRESENSI =====================
@@ -343,10 +338,10 @@ if halaman == "📸 Presensi Jemaat":
         "🆔 NIJ dari QR Code",
         placeholder="Scan QR di sini...",
         key="input_qr",
-        value="" if st.session_state["reset_qr"] else None
+        value="" if st.session_state["reset_qr"] else None,
+        label_visibility="collapsed"
     )
 
-    # Fokus ulang input QR bila perlu
     if st.session_state["reset_qr"]:
         st.session_state["reset_qr"] = False
         components.html("""
@@ -359,7 +354,7 @@ if halaman == "📸 Presensi Jemaat":
                         break;
                     }
                 }
-            }, 100);
+            }, 500);
         </script>
         """, height=0)
 
