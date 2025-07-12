@@ -110,9 +110,8 @@ Silakan fork dan gunakan untuk pelayanan Anda. Mohon tetap mencantumkan kredit p
 3. Jalankan dengan:
 ```bash
 streamlit run streamlit_app.py
----
 
-## 📬 Kontak
+**## 📬 Kontak**
 Jika ingin mengembangkan bersama atau butuh bantuan:
 📧 Email: [ramlanmediakreatif@gmail.com]
 📞 WA: 628xxxxxxxxxx
