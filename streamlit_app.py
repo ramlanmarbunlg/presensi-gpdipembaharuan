@@ -7,6 +7,7 @@ import streamlit as st
 from PIL import Image
 from pyzbar.pyzbar import decode
 import gspread
+import re
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import date
 from datetime import datetime
