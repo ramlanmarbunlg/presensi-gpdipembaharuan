@@ -1,3 +1,4 @@
+
 # ============================================
 # PRESENSI JEMAAT STREAMLIT QR CAMERA (V3 + CAMERA MANUAL MODE + USB SCANNER MODE)
 # ============================================
@@ -458,91 +459,52 @@ elif halaman == "🔐 Admin Panel":
             st.markdown("### ✨ Tambah Jemaat Baru")
             delay = st.slider("⏱️ Tampilkan pesan sukses selama (detik):", 1, 5, 2)
         
-           # --- Load data jemaat dan buat ID baru ---
             daftar_jemaat = load_data_jemaat()
-
+        
             # Buat ID baru
             daftar_id = [j["ID"] for j in daftar_jemaat]
             angka_terakhir = max([int(i[1:]) for i in daftar_id if i.startswith("J")], default=0)
             id_baru = f"J{angka_terakhir + 1:03d}"
-            
-            # --- Inisialisasi session state (jika belum ada) ---
-            for key in ["nik", "nama_baru", "no_wa", "email_baru"]:
-                if key not in st.session_state:
-                    st.session_state[key] = ""
-            
-            # --- Fungsi Validasi ---
-            def is_valid_nik(nik):
-                return bool(re.fullmatch(r'\d{16}', nik))
-            
-            def is_valid_wa(no):
-                return bool(re.match(r"^628\d{7,10}$", no))
-            
-            def is_valid_email(email):
-                return bool(re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", email))
-            
-            # --- Validasi Real-time ---
-            def show_validation_icon(is_valid):
-                if is_valid:
-                    st.markdown("✅", unsafe_allow_html=True)
-                else:
-                    st.markdown("❌", unsafe_allow_html=True)
-            
-            # --- Formulir Utama ---
+        
             form_key = st.session_state.get("form_key", "form_jemaat_default")
             with st.form(key=form_key):
                 st.text_input("ID Jemaat", value=id_baru, disabled=True)
-            
-                # Kolom NIK (Hanya angka, real-time validasi)
-                nik = st.text_input("NIK", max_chars=16, key="nik")
-                nik_clean = ''.join(filter(str.isdigit, nik))
-                if nik != nik_clean:
-                    st.session_state["nik"] = nik_clean
-                    st.rerun()
-                col1, col2 = st.columns([0.9, 0.1])
-                with col1:
-                    pass  # Biarkan input di atas
-                with col2:
-                    show_validation_icon(is_valid_nik(nik_clean))
-            
-                # Nama
-                nama_baru = st.text_input("Nama Lengkap", key="nama_baru")
-            
-                # Jenis Kelamin
+                nik = st.text_input("NIK", max_chars=20)
+                nama_baru = st.text_input("Nama Lengkap")
                 jenis_kelamin = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
-            
-                # Tanggal Lahir + Usia
-                tgl_lahir = st.date_input("Tanggal Lahir", min_value=date(1900,1,1), max_value=date.today(), value=date(2025,1,1))
+                # 🎂 Input Tanggal Lahir dengan batas tahun
+                tgl_lahir = st.date_input(
+                    "Tanggal Lahir",
+                    min_value=date(1900, 1, 1),
+                    max_value=date.today(),
+                    value=date(2025, 1, 1)
+                )
+                # Hitung usia detail
                 today = date.today()
                 usia_delta = relativedelta(today, tgl_lahir)
                 usia_str = f"{usia_delta.years} Tahun, {usia_delta.months} Bulan, {usia_delta.days} Hari"
                 st.text(f"Usia otomatis: {usia_str}")
-            
-                # Nomor WA
-                no_wa = st.text_input("No WhatsApp (format 628xxx)", key="no_wa")
-                col1, col2 = st.columns([0.9, 0.1])
-                with col1:
-                    pass
-                with col2:
-                    show_validation_icon(is_valid_wa(no_wa))
-            
-                # Email
-                email_baru = st.text_input("Email aktif", key="email_baru")
-                col1, col2 = st.columns([0.9, 0.1])
-                with col1:
-                    pass
-                with col2:
-                    show_validation_icon(is_valid_email(email_baru))
-            
-                # Tombol Simpan
+        
+                no_wa = st.text_input("No WhatsApp (format 628xxx)")
+                email_baru = st.text_input("Email aktif")
                 simpan = st.form_submit_button("💾 Simpan")
+        
+            def is_valid_wa(no):
+                import re
+                return re.match(r"^(628\d{7,10})$", no)
             
-            # --- Setelah Klik Simpan ---
+            def is_valid_email(email):
+                import re
+                return re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", email)
+            # Cek bahwa NIK hanya terdiri dari 16 digit angka
+            def is_valid_nik(nik):
+                return bool(re.fullmatch(r'\d{16}', nik))
+            
             if simpan:
                 nik = nik.strip()
-                nama_baru = nama_baru.strip()
                 no_wa = no_wa.strip()
                 email_baru = email_baru.strip()
+                nama_baru = nama_baru.strip()
             
                 if not nik or not nama_baru or not no_wa or not email_baru:
                     st.warning("⚠️ Semua isian wajib diisi.")
@@ -559,10 +521,9 @@ elif halaman == "🔐 Admin Panel":
                 elif any(str(j["Email"]).strip().lower() == email_baru.lower() for j in daftar_jemaat):
                     st.error("❌ Email sudah terdaftar.")
                 else:
-                    nij = generate_nij(nik, jenis_kelamin, id_baru)
+                    nij = generate_nij(nik, jenis_kelamin, id_baru) 
                     tgl_lahir_str = tgl_lahir.strftime("%d-%m-%Y")
-            
-                    # Simpan data ke sheet
+                    
                     sheet_jemaat.append_row([
                         id_baru,               # ID
                         nik,                   # NIK
@@ -576,14 +537,8 @@ elif halaman == "🔐 Admin Panel":
                         email_baru.strip(),    # Email
                         ""                     # QR Code
                     ])
-            
+        
                     st.success(f"✅ Jemaat '{nama_baru}' berhasil ditambahkan dengan NIJ: {nij}")
-            
-                    # Reset kolom input
-                    for key in ["nik", "nama_baru", "no_wa", "email_baru"]:
-                        st.session_state[key] = ""
-            
-                    st.rerun()
 
                     # Kirim email selamat datang (jika email diisi)
                     if email_baru.strip():
@@ -606,7 +561,7 @@ elif halaman == "🔐 Admin Panel":
 
                     time.sleep(delay)
                     st.session_state.form_key = f"form_{datetime.now().timestamp()}"
-                    st.rerun()
+                    st.experimental_rerun()
         # ========== TAB 2: Upload Foto ==========
         with tab2:
             st.markdown("### 🖼️ Upload Foto dan Dokumen Jemaat")
