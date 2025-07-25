@@ -907,20 +907,20 @@ elif halaman == "🔐 Admin Panel":
             st.subheader("🎂 Daftar Ulang Tahun Jemaat")
             
             df_jemaat = pd.DataFrame(daftar_jemaat)
-            df_jemaat["Tanggal_Lahir"] = pd.to_datetime(df_jemaat["Tgl Lahir"], format="%d-%m-%Y", errors="coerce")
+            df_jemaat["Tgl Lahir"] = pd.to_datetime(df_jemaat["Tgl Lahir"], format="%d-%m-%Y", errors="coerce")
             
             def filter_ulang_tahun(df, mode="hari"):
                 today = date.today()
                 if mode == "hari":
-                    return df[(df["Tanggal_Lahir"].dt.day == today.day) & (df["Tanggal_Lahir"].dt.month == today.month)]
+                    return df[(df["Tanggal_Lahir"].dt.day == today.day) & (df["Tgl Lahir"].dt.month == today.month)]
                 elif mode == "minggu":
                     week_start = today - timedelta(days=today.weekday())
                     week_end = week_start + timedelta(days=6)
-                    return df[(df["Tanggal_Lahir"].dt.month == today.month) &
-                              (df["Tanggal_Lahir"].dt.day >= week_start.day) &
-                              (df["Tanggal_Lahir"].dt.day <= week_end.day)]
+                    return df[(df["Tgl Lahir"].dt.month == today.month) &
+                              (df["Tgl Lahir"].dt.day >= week_start.day) &
+                              (df["Tgl Lahir"].dt.day <= week_end.day)]
                 elif mode == "bulan":
-                    return df[df["Tanggal_Lahir"].dt.month == today.month]
+                    return df[df["Tgl Lahir"].dt.month == today.month]
                 return df.iloc[0:0]
             
             def kirim_email_ulang_tahun(nama, email_tujuan):
