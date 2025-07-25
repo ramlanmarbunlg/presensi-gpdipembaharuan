@@ -183,7 +183,7 @@ sheet_jemaat = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ"
 sheet_ibadah = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("Ibadah")         #Ganti dengan key/ID Sheet dan nama sheet
 
 # URL ini akan dipanggil oleh cronjob eksternal (cron-job.org)
-from utils import kirim_email_ultah, filter_ulang_tahun_hari_ini, parse_tanggal_lahir, hitung_usia
+from utils import kirim_email_ultah, filter_ulang_tahun_hari_ini, parse_tanggal_lahir
 
 if st.query_params.get("trigger") == "ultah":
     jemaat = st.session_state["data_jemaat"]
