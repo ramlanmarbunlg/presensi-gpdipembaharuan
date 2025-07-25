@@ -468,7 +468,7 @@ elif halaman == "🔐 Admin Panel":
             form_key = st.session_state.get("form_key", "form_jemaat_default")
             with st.form(key=form_key):
                 st.text_input("ID Jemaat", value=id_baru, disabled=True)
-                nik = st.text_input("NIK", max_chars=20)
+                nik = st.text_input("NIK", max_chars=16)
                 nama_baru = st.text_input("Nama Lengkap")
                 jenis_kelamin = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
                 # 🎂 Input Tanggal Lahir dengan batas tahun
