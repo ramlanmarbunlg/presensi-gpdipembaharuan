@@ -477,7 +477,7 @@ elif halaman == "🔐 Admin Panel":
             st.text_input("ID Jemaat", value=id_baru, disabled=True)
             
             # Real-time NIK input
-            st.session_state.nik = st.text_input("NIK", value=st.session_state.nik, max_chars=16)
+            st.session_state.nik = st.text_input("NIK", value=st.session_state.nik, max_chars=16, key="nik")
             if st.session_state.nik:
                 if is_valid_nik(st.session_state.nik):
                     st.success("✅ NIK valid")
@@ -485,10 +485,10 @@ elif halaman == "🔐 Admin Panel":
                     st.warning("❌ NIK harus 16 digit angka")
             
             # Nama di luar form agar bisa digunakan di bawah juga
-            nama_baru = st.text_input("Nama Lengkap")
+            nama_baru = st.text_input("Nama Lengkap", key="nama_baru")
             
             # Real-time WhatsApp
-            st.session_state.no_wa = st.text_input("No WhatsApp (format 628xxx)", value=st.session_state.no_wa)
+            st.session_state.no_wa = st.text_input("No WhatsApp (format 628xxx)", value=st.session_state.no_wa, key="no_wa")
             if st.session_state.no_wa:
                 if is_valid_wa(st.session_state.no_wa):
                     st.success("✅ Nomor WhatsApp valid")
@@ -496,7 +496,7 @@ elif halaman == "🔐 Admin Panel":
                     st.warning("❌ Format No. WA tidak valid")
             
             # Real-time Email
-            st.session_state.email_baru = st.text_input("Email aktif", value=st.session_state.email_baru)
+            st.session_state.email_baru = st.text_input("Email aktif", value=st.session_state.email_baru, key="email_baru")
             if st.session_state.email_baru:
                 if is_valid_email(st.session_state.email_baru):
                     st.success("✅ Email valid")
@@ -558,6 +558,10 @@ elif halaman == "🔐 Admin Panel":
                     ])
             
                     st.success(f"✅ Jemaat '{nama_baru}' berhasil ditambahkan dengan NIJ: {nij}")
+                    # Kosongkan input setelah simpan
+                    for key in ["nik", "nama_baru", "no_wa", "email_baru"]:
+                        st.session_state[key] = ""
+                    st.rerun()
 
                     # Kirim email selamat datang (jika email diisi)
                     if email_baru.strip():
