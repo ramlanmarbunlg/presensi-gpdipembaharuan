@@ -182,26 +182,34 @@ sheet_presensi = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1k
 sheet_jemaat = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("data_jemaat")    #Ganti dengan key/ID Sheet dan nama sheet
 sheet_ibadah = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("Ibadah")         #Ganti dengan key/ID Sheet dan nama sheet
 
-# ===================== FUNGSI KIRIM ULTAH JEMAAT =====================
+# ===================== KIRIM EMAIL ULANG TAHUN JEMAAT =====================
 # URL ini akan dipanggil oleh cronjob eksternal (cron-job.org)
 from utils import kirim_email_ultah, filter_ulang_tahun_hari_ini
 
 if st.query_params.get("trigger") == "ultah":
-    jemaat = st.session_state.get("data_jemaat", [])
-    
-    if not jemaat:
-        st.error("❌ Data jemaat belum dimuat! Silakan upload atau ambil data terlebih dahulu.")
-        st.stop()
-        
-    st.write(f"📋 Jumlah total jemaat terdata: {len(jemaat)}")
-    st.write("🔍 Mengecek siapa saja yang ulang tahun hari ini...")
+    # ⏳ Ambil dari cache (akan otomatis refresh tiap 60 detik)
+    jemaat = st.session_state.get("data_jemaat")
 
+    if not jemaat:
+        try:
+            jemaat = load_data_jemaat()
+            st.session_state["data_jemaat"] = jemaat
+            st.success(f"✅ Data jemaat berhasil dimuat dari Google Sheets. Jumlah: {len(jemaat)}")
+        except Exception as e:
+            st.error(f"❌ Gagal memuat data jemaat dari Google Sheets: {e}")
+            st.stop()
+
+    if not jemaat:
+        st.error("❌ Data jemaat kosong. Silakan periksa sheet 'data_jemaat' Anda.")
+        st.stop()
+
+    st.write("🔍 Mengecek siapa saja yang ulang tahun hari ini...")
     jemaat_ultah = filter_ulang_tahun_hari_ini()
     st.write(f"📌 Menemukan {len(jemaat_ultah)} jemaat ulang tahun hari ini.")
 
     for j in jemaat_ultah:
         if j.get("Email"):
-            usia = j.get("Usia")  # Ambil dari kolom langsung
+            usia = j.get("Usia") or "-"  # fallback kalau kolom kosong
             success = kirim_email_ultah(j["Nama"], j["Email"], usia)
             if success:
                 st.write(f"✅ Email terkirim ke: {j['Nama']} ({j['Email']}) - Usia: {usia}")
@@ -209,6 +217,7 @@ if st.query_params.get("trigger") == "ultah":
                 st.write(f"❌ Gagal kirim ke: {j['Nama']} ({j['Email']})")
         else:
             st.write(f"⚠️ Data tidak lengkap: {j['Nama']} (Email atau Usia kosong)")
+
     st.stop()
 
 # ===================== FUNGSI KIRIM EMAIL BERHASIL DAFTAR =====================
