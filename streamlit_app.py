@@ -11,7 +11,6 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime, date, timedelta
 from dateutil.relativedelta import relativedelta
-from utils import kirim_email_ultah, load_data_jemaat, filter_ulang_tahun_hari_ini
 import time 
 import locale
 from zoneinfo import ZoneInfo
@@ -29,6 +28,20 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import smtplib
 import streamlit.components.v1 as components
+
+# URL ini akan dipanggil oleh cronjob eksternal
+from utils import kirim_email_ultah, load_data_jemaat, filter_ulang_tahun_hari_ini
+if st.query_params.get("trigger") == "ultah":
+    jemaat_ultah = filter_ulang_tahun_hari_ini()
+    st.write(f"Menemukan {len(jemaat_ultah)} jemaat ulang tahun hari ini.")
+    for j in jemaat_ultah:
+        if j.get("Email"):
+            success = kirim_email_ultah(j["Nama"], j["Email"])
+            if success:
+                st.write(f"✅ Email ulang tahun terkirim ke: {j['Nama']} ({j['Email']})")
+            else:
+                st.write(f"❌ Gagal kirim ke: {j['Nama']} ({j['Email']})")
+    st.stop()
 
 # fungsi cache untuk semua sheet
 @st.cache_data(ttl=60)
@@ -641,17 +654,6 @@ elif halaman == "🔐 Admin Panel":
                     if gagal:
                         st.error(f"❌ Gagal kirim ke: {', '.join(gagal)}")
                         
-        # URL ini akan dipanggil oleh cronjob eksternal
-        if st.query_params.get("trigger") == "ultah":
-            jemaat_ultah = filter_ulang_tahun_hari_ini()
-            if jemaat_ultah:
-                for j in jemaat_ultah:
-                    kirim_email_ultah(j["Nama"], j["Email"])
-                st.write(f"✅ {len(jemaat_ultah)} ucapan ulang tahun terkirim.")
-            else:
-                st.write("Tidak ada jemaat yang berulang tahun hari ini.")
-            st.stop()
-                
         # ========== TAB 2: Upload Foto ==========
         with tab2:
             st.markdown("### 🖼️ Upload Foto dan Dokumen Jemaat")
