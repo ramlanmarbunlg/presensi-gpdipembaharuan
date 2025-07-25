@@ -912,7 +912,7 @@ elif halaman == "🔐 Admin Panel":
             def filter_ulang_tahun(df, mode="hari"):
                 today = date.today()
                 if mode == "hari":
-                    return df[(df["Tanggal_Lahir"].dt.day == today.day) & (df["Tgl Lahir"].dt.month == today.month)]
+                    return df[(df["Tgl Lahir"].dt.day == today.day) & (df["Tgl Lahir"].dt.month == today.month)]
                 elif mode == "minggu":
                     week_start = today - timedelta(days=today.weekday())
                     week_end = week_start + timedelta(days=6)
