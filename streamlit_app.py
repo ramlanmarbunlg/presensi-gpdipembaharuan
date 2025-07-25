@@ -184,7 +184,7 @@ sheet_ibadah = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ"
 
 # URL ini akan dipanggil oleh cronjob eksternal (cron-job.org)
 from utils import kirim_email_ultah, load_data_jemaat, filter_ulang_tahun_hari_ini
-# ===================== KIRIM EMAIL ULTIMATE =====================
+# ===================== KIRIM EMAIL ULTAH JEMAAT =====================
 if "data_jemaat" not in st.session_state:
     st.session_state["data_jemaat"] = sheet_jemaat.get_all_records()
 
@@ -198,7 +198,7 @@ if st.query_params.get("trigger") == "ultah":
 
     for j in jemaat_ultah:
         if j.get("Email"):
-            success = kirim_email_ultah(j["Nama"], j["Email"])
+            success = kirim_email_ultah(j["Nama"], j["Usia"], j["Email"])
             if success:
                 st.write(f"✅ Email terkirim ke: {j['Nama']} ({j['Email']})")
             else:
