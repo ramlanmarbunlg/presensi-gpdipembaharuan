@@ -11,6 +11,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime, date, timedelta
 from dateutil.relativedelta import relativedelta
+from utils import kirim_email_ultah, load_data_jemaat, filter_ulang_tahun_hari_ini
 import time 
 import locale
 from zoneinfo import ZoneInfo
@@ -639,6 +640,17 @@ elif halaman == "🔐 Admin Panel":
                     st.success(f"✅ Email berhasil dikirim ke: {', '.join(berhasil)}")
                     if gagal:
                         st.error(f"❌ Gagal kirim ke: {', '.join(gagal)}")
+                        
+        # URL ini akan dipanggil oleh cronjob eksternal
+        if st.query_params.get("trigger") == "ultah":
+            jemaat_ultah = filter_ulang_tahun_hari_ini()
+            if jemaat_ultah:
+                for j in jemaat_ultah:
+                    kirim_email_ultah(j["Nama"], j["Email"])
+                st.write(f"✅ {len(jemaat_ultah)} ucapan ulang tahun terkirim.")
+            else:
+                st.write("Tidak ada jemaat yang berulang tahun hari ini.")
+            st.stop()
                 
         # ========== TAB 2: Upload Foto ==========
         with tab2:
