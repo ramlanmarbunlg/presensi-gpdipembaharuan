@@ -2,9 +2,19 @@ from datetime import date, datetime
 import smtplib
 from email.message import EmailMessage
 import streamlit as st
+import logging
+
+# Setup logger (untuk logging alternatif)
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 def load_data_jemaat():
-    return st.session_state.get("data_jemaat", [])
+    data = st.session_state.get("data_jemaat", [])
+    if not isinstance(data, list):
+        st.warning("Data jemaat tidak dalam format list.")
+        logger.warning("Data jemaat bukan list. Ditemukan: %s", type(data))
+        return []
+    return data
 
 def parse_tanggal_lahir(tgl_str):
     if not tgl_str or tgl_str.strip() == "":
@@ -13,6 +23,7 @@ def parse_tanggal_lahir(tgl_str):
         return datetime.strptime(tgl_str.strip(), "%d-%m-%Y").date()
     except Exception as e:
         st.warning(f"Gagal parsing tanggal: '{tgl_str}' | Error: {e}")
+        logger.warning("Gagal parsing tanggal: '%s' | Error: %s", tgl_str, e)
         return None
 
 def filter_ulang_tahun_hari_ini():
@@ -35,9 +46,15 @@ def filter_ulang_tahun_hari_ini():
             invalid += 1
 
     st.info(f"📊 Tanggal valid: {valid}, Tanggal tidak valid/kosong: {invalid}")
+    logger.info("Jumlah tanggal valid: %d, tidak valid/kosong: %d", valid, invalid)
     return hasil
 
 def kirim_email_ultah(nama, email_penerima, usia):
+    if not email_penerima:
+        st.warning(f"Alamat email kosong untuk {nama}")
+        logger.warning("Email kosong saat mengirim ke: %s", nama)
+        return False
+
     sender = st.secrets["email_smtp"]["sender"]
     password = st.secrets["email_smtp"]["app_password"]
 
@@ -60,7 +77,9 @@ def kirim_email_ultah(nama, email_penerima, usia):
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
             smtp.login(sender, password)
             smtp.send_message(msg)
+        logger.info("Email berhasil dikirim ke %s", email_penerima)
         return True
     except Exception as e:
         st.warning(f"Gagal kirim email ke {email_penerima}: {e}")
+        logger.warning("Gagal kirim email ke %s: %s", email_penerima, e)
         return False
