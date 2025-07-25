@@ -962,7 +962,7 @@ elif halaman == "🔐 Admin Panel":
                 st.info("Tidak ada jemaat yang ulang tahun " + pilihan.lower())
             else:
                 st.success(f"🎉 {len(df_ulangtahun)} jemaat ulang tahun {pilihan.lower()}")
-                st.dataframe(df_ulangtahun[["Nama", "Tanggal_Lahir", "Usia", "Email"]])
+                st.dataframe(df_ulangtahun[["Nama", "Tgl Lahir", "Usia", "Email"]])
             
                 if mode == "hari":
                     if st.button("📧 Kirim Ucapan via Email"):
