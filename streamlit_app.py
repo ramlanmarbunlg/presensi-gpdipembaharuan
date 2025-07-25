@@ -41,11 +41,6 @@ def load_data_ibadah():
 @st.cache_data(ttl=60)
 def load_data_presensi():
     return sheet_presensi.get_all_records()
-    
-# Panggil sekali di awal, gunakan nanti di tab mana pun
-daftar_jemaat = load_data_jemaat()
-daftar_ibadah = load_data_ibadah()
-daftar_presensi = load_data_presensi()
 
 # ===================== KONFIGURASI APLIKASI =====================
 st.set_page_config(page_title="Presensi Jemaat", page_icon="🙏", layout="wide")
