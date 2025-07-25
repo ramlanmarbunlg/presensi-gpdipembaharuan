@@ -31,6 +31,29 @@ import streamlit.components.v1 as components
 
 # URL ini akan dipanggil oleh cronjob eksternal
 from utils import kirim_email_ultah, load_data_jemaat, filter_ulang_tahun_hari_ini
+from your_data_loader import load_data_jemaat_from_sheet  # misalnya dari gspread
+
+# Step 1: Muat data jemaat ke session_state (WAJIB, walau trigger=ultah)
+if "data_jemaat" not in st.session_state:
+    st.session_state["data_jemaat"] = load_data_jemaat_from_sheet()
+
+# Step 2: Jalankan trigger ulang tahun
+if st.query_params.get("trigger") == "ultah":
+    jemaat = st.session_state["data_jemaat"]
+    st.write(f"📋 Jumlah total jemaat terdata: {len(jemaat)}")
+    st.write("🔍 Mengecek siapa saja yang ulang tahun hari ini...")
+
+    jemaat_ultah = filter_ulang_tahun_hari_ini()
+    st.write(f"📌 Menemukan {len(jemaat_ultah)} jemaat ulang tahun hari ini.")
+
+    for j in jemaat_ultah:
+        if j.get("Email"):
+            success = kirim_email_ultah(j["Nama"], j["Email"])
+            if success:
+                st.write(f"✅ Email terkirim ke: {j['Nama']} ({j['Email']})")
+            else:
+                st.write(f"❌ Gagal kirim ke: {j['Nama']} ({j['Email']})")
+    st.stop()
 
 # fungsi cache untuk semua sheet
 @st.cache_data(ttl=60)
@@ -642,44 +665,6 @@ elif halaman == "🔐 Admin Panel":
                     st.success(f"✅ Email berhasil dikirim ke: {', '.join(berhasil)}")
                     if gagal:
                         st.error(f"❌ Gagal kirim ke: {', '.join(gagal)}")
-                    
-
-if st.query_params.get("trigger") == "ultah":
-    today = date.today()
-    jemaat = load_data_jemaat()
-    jemaat_ultah = []
-
-    st.write(f"🧾 Jumlah total jemaat terdata: {len(jemaat)}")
-    st.write("🔍 Mengecek siapa saja yang ulang tahun hari ini...\n")
-
-    for j in jemaat:
-        nama = j.get("Nama", "Tanpa Nama")
-        email = j.get("Email", "")
-        tgl_raw = j.get("Tgl Lahir", "").strip()
-
-        try:
-            tgl_lahir = datetime.strptime(tgl_raw, "%d-%m-%Y")
-            if tgl_lahir.day == today.day and tgl_lahir.month == today.month:
-                jemaat_ultah.append(j)
-                st.write(f"🎉 {nama} ulang tahun hari ini. Tgl Lahir: {tgl_raw}")
-        except Exception as e:
-            st.warning(f"⚠️ Format salah: {nama} – '{tgl_raw}' (error: {e})")
-
-    st.write(f"\n📌 Menemukan {len(jemaat_ultah)} jemaat ulang tahun hari ini.")
-
-    for j in jemaat_ultah:
-        nama = j.get("Nama", "Tanpa Nama")
-        email = j.get("Email", "")
-        if email:
-            success = kirim_email_ultah(nama, email)
-            if success:
-                st.success(f"✅ Email ulang tahun terkirim ke: {nama} ({email})")
-            else:
-                st.error(f"❌ Gagal kirim ke: {nama} ({email})")
-        else:
-            st.warning(f"⚠️ Tidak ada email untuk: {nama}")
-
-    st.stop()
                         
         # ========== TAB 2: Upload Foto ==========
         with tab2:
