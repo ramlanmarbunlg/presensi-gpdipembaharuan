@@ -10,10 +10,11 @@ import re
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime, date, timedelta
-from dateutil.relativedelta import relativedelta
+from datetime import datetime
+from zoneinfo import ZoneInfo
 import time 
 import locale
-from zoneinfo import ZoneInfo
+from dateutil.relativedelta import relativedelta
 from reportlab.pdfgen import canvas
 from io import BytesIO
 from collections import Counter
@@ -909,33 +910,41 @@ elif halaman == "🔐 Admin Panel":
             df_jemaat = pd.DataFrame(daftar_jemaat)
             
             def filter_ulang_tahun(df, mode="hari"):
-                today = date.today()
-                st.write("Tanggal hari ini:", today)
+                # Ambil tanggal dan waktu sesuai zona WIB
+                today = datetime.now(ZoneInfo("Asia/Jakarta")).date()
+                st.write("Tanggal hari ini (WIB):", today.strftime("%A, %d %B %Y"))
+            
                 df = df.copy()
             
-                # Konversi tanggal lahir ke date saja (tanpa tahun, tanpa tz)
+                # Konversi tanggal lahir ke objek date (tanpa jam)
                 df["Tgl Lahir"] = pd.to_datetime(df["Tgl Lahir"], errors="coerce").dt.date
             
                 if mode == "hari":
                     return df[
-                        df["Tgl Lahir"].apply(lambda x: x is not None and x.day == today.day and x.month == today.month)
+                        df["Tgl Lahir"].apply(
+                            lambda x: pd.notnull(x) and x.day == today.day and x.month == today.month
+                        )
                     ]
             
                 elif mode == "minggu":
-                    week_start = today - timedelta(days=today.weekday())
-                    week_dates = [(week_start + timedelta(days=i)) for i in range(7)]
+                    week_start = today - timedelta(days=today.weekday())  # Senin
+                    week_dates = [week_start + timedelta(days=i) for i in range(7)]
                     week_day_month = {(d.day, d.month) for d in week_dates}
             
                     return df[
-                        df["Tgl Lahir"].apply(lambda x: (x.day, x.month) in week_day_month if pd.notnull(x) else False)
+                        df["Tgl Lahir"].apply(
+                            lambda x: pd.notnull(x) and (x.day, x.month) in week_day_month
+                        )
                     ]
             
                 elif mode == "bulan":
                     return df[
-                        df["Tgl Lahir"].apply(lambda x: x is not None and x.month == today.month)
+                        df["Tgl Lahir"].apply(
+                            lambda x: pd.notnull(x) and x.month == today.month
+                        )
                     ]
             
-                return df.iloc[0:0]
+                return df.iloc[0:0]  # default: kosong
 
             def kirim_email_ulang_tahun(nama, email_tujuan):
                 try:
