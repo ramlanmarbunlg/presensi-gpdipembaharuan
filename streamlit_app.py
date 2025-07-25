@@ -198,11 +198,11 @@ if st.query_params.get("trigger") == "ultah":
 
     for j in jemaat_ultah:
         if j.get("Email"):
-            success = kirim_email_ultah(j["Nama"], j["Usia"], j["Email"])
+            success = kirim_email_ultah(j["Nama"], j["Email"], j["Usia"])
             if success:
-                st.write(f"✅ Email terkirim ke: {j['Nama']} {j['Usia']} ({j['Email']})")
+                st.write(f"✅ Email terkirim ke: {j['Nama']} ({j['Email']}) {j['Usia']}")
             else:
-                st.write(f"❌ Gagal kirim ke: {j['Nama']} {j['Usia']} ({j['Email']})")
+                st.write(f"❌ Gagal kirim ke: {j['Nama']} ({j['Email']}) {j['Usia']}")
     st.stop()
 
 # ===================== FUNGSI KIRIM EMAIL BERHASIL DAFTAR =====================
