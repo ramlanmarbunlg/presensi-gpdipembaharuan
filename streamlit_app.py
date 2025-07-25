@@ -324,7 +324,7 @@ def proses_presensi(qr_data):
 
 # ===================== HALAMAN PRESENSI =====================
 if halaman == "📸 Presensi Jemaat":
-    st.title("📸 Scan QR Kehadiran Jemaat")
+    st.title("Sistem Absensi Jemaat")
     st.markdown("### 🖨️ Arahkan QR Code ke Scanner USB")
 
     # ✅ Autofokus JS
