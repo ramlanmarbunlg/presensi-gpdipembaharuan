@@ -41,6 +41,11 @@ def load_data_ibadah():
 @st.cache_data(ttl=60)
 def load_data_presensi():
     return sheet_presensi.get_all_records()
+    
+# Panggil sekali di awal, gunakan nanti di tab mana pun
+daftar_jemaat = load_data_jemaat()
+daftar_ibadah = load_data_ibadah()
+daftar_presensi = load_data_presensi()
 
 # ===================== KONFIGURASI APLIKASI =====================
 st.set_page_config(page_title="Presensi Jemaat", page_icon="🙏", layout="wide")
@@ -911,8 +916,8 @@ elif halaman == "🔐 Admin Panel":
             def filter_ulang_tahun(df, mode="hari"):
                 today = date.today()
                 df = df.copy()
-                
-                # Parsing dan normalisasi ke .date
+            
+                # Konversi tanggal lahir ke date saja (tanpa tahun, tanpa tz)
                 df["Tgl Lahir"] = pd.to_datetime(df["Tgl Lahir"], errors="coerce").dt.date
             
                 if mode == "hari":
@@ -921,17 +926,18 @@ elif halaman == "🔐 Admin Panel":
                     ]
             
                 elif mode == "minggu":
-                    # Buat list tanggal dalam minggu ini (abaikan tahun)
-                    week_start = today - timedelta(days=today.weekday())  # Senin
+                    week_start = today - timedelta(days=today.weekday())
                     week_dates = [(week_start + timedelta(days=i)) for i in range(7)]
-                    week_day_month = set((d.day, d.month) for d in week_dates)
+                    week_day_month = {(d.day, d.month) for d in week_dates}
             
                     return df[
                         df["Tgl Lahir"].apply(lambda x: (x.day, x.month) in week_day_month if pd.notnull(x) else False)
                     ]
             
                 elif mode == "bulan":
-                    return df[df["Tgl Lahir"].apply(lambda x: x is not None and x.month == today.month)]
+                    return df[
+                        df["Tgl Lahir"].apply(lambda x: x is not None and x.month == today.month)
+                    ]
             
                 return df.iloc[0:0]
 
