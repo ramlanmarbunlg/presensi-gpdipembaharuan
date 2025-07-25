@@ -459,71 +459,112 @@ elif halaman == "🔐 Admin Panel":
             st.markdown("### ✨ Tambah Jemaat Baru")
             delay = st.slider("⏱️ Tampilkan pesan sukses selama (detik):", 1, 5, 2)
         
+           # --- Load data jemaat dan buat ID baru ---
             daftar_jemaat = load_data_jemaat()
-        
-            # Buat ID baru
             daftar_id = [j["ID"] for j in daftar_jemaat]
             angka_terakhir = max([int(i[1:]) for i in daftar_id if i.startswith("J")], default=0)
             id_baru = f"J{angka_terakhir + 1:03d}"
-        
+            
+            # --- Inisialisasi session state untuk input real-time ---
+            for key in ["nik_input", "no_wa_input", "email_input"]:
+                if key not in st.session_state:
+                    st.session_state[key] = ""
+            
+            # --- Fungsi untuk menyaring NIK hanya angka ---
+            def on_nik_change():
+                st.session_state.nik_input = ''.join(filter(str.isdigit, st.session_state.nik_input))
+            
+            # --- Fungsi validasi ---
+            def is_valid_nik(nik):
+                return bool(re.fullmatch(r'\d{16}', nik))
+            
+            def is_valid_wa(no):
+                return bool(re.fullmatch(r"628\d{7,10}", no))
+            
+            def is_valid_email(email):
+                return bool(re.fullmatch(r"^[\w\.-]+@[\w\.-]+\.\w+$", email))
+            
+            # --- FORM INPUT ---
             form_key = st.session_state.get("form_key", "form_jemaat_default")
             with st.form(key=form_key):
                 st.text_input("ID Jemaat", value=id_baru, disabled=True)
-                nik = st.text_input("NIK", max_chars=20)
+            
+                # --- Input NIK dengan pembatasan angka ---
+                st.text_input("NIK (16 digit angka saja)", key="nik_input", max_chars=16, on_change=on_nik_change)
+                nik_live = st.session_state.nik_input
+                if nik_live:
+                    if is_valid_nik(nik_live):
+                        st.success("✅ NIK valid (16 digit angka)")
+                    else:
+                        st.warning(f"⚠️ NIK saat ini: {len(nik_live)} digit (harus 16 digit angka)")
+                else:
+                    st.info("💡 Masukkan NIK yang terdiri dari 16 digit angka.")
+            
                 nama_baru = st.text_input("Nama Lengkap")
                 jenis_kelamin = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
-                # 🎂 Input Tanggal Lahir dengan batas tahun
+            
+                # --- Tanggal Lahir & Usia ---
                 tgl_lahir = st.date_input(
                     "Tanggal Lahir",
                     min_value=date(1900, 1, 1),
                     max_value=date.today(),
                     value=date(2025, 1, 1)
                 )
-                # Hitung usia detail
                 today = date.today()
                 usia_delta = relativedelta(today, tgl_lahir)
                 usia_str = f"{usia_delta.years} Tahun, {usia_delta.months} Bulan, {usia_delta.days} Hari"
                 st.text(f"Usia otomatis: {usia_str}")
-        
-                no_wa = st.text_input("No WhatsApp (format 628xxx)")
-                email_baru = st.text_input("Email aktif")
+            
+                # --- Input Nomor WhatsApp ---
+                st.text_input("No WhatsApp (format 628xxxxxxxxx)", key="no_wa_input")
+                no_wa_live = st.session_state.no_wa_input
+                if no_wa_live:
+                    if is_valid_wa(no_wa_live):
+                        st.success("✅ Nomor WhatsApp valid")
+                    else:
+                        st.warning("⚠️ Nomor WA harus dimulai dengan 628 dan panjang 10-13 digit.")
+                else:
+                    st.info("💡 Masukkan nomor WA aktif, contoh: 6281234567890")
+            
+                # --- Input Email ---
+                st.text_input("Email aktif", key="email_input")
+                email_live = st.session_state.email_input
+                if email_live:
+                    if is_valid_email(email_live):
+                        st.success("✅ Email valid")
+                    else:
+                        st.warning("⚠️ Format email tidak valid.")
+                else:
+                    st.info("💡 Contoh: nama@email.com")
+            
+                # --- Tombol Simpan ---
                 simpan = st.form_submit_button("💾 Simpan")
-        
-            def is_valid_wa(no):
-                import re
-                return re.match(r"^(628\d{7,10})$", no)
             
-            def is_valid_email(email):
-                import re
-                return re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", email)
-            # Cek bahwa NIK hanya terdiri dari 16 digit angka
-            def is_valid_nik(nik):
-                return bool(re.fullmatch(r'\d{16}', nik))
-            
+            # --- Proses Simpan ---
             if simpan:
-                nik = nik.strip()
-                no_wa = no_wa.strip()
-                email_baru = email_baru.strip()
+                nik = st.session_state.nik_input.strip()
                 nama_baru = nama_baru.strip()
+                no_wa = st.session_state.no_wa_input.strip()
+                email_baru = st.session_state.email_input.strip()
             
                 if not nik or not nama_baru or not no_wa or not email_baru:
                     st.warning("⚠️ Semua isian wajib diisi.")
                 elif not is_valid_nik(nik):
-                    st.error("❌ NIK harus 16 digit.")
-                elif not is_valid_wa(no_wa):
-                    st.error("❌ Format nomor WhatsApp tidak valid.")
-                elif not is_valid_email(email_baru):
-                    st.error("❌ Format email tidak valid.")
+                    st.error("❌ NIK harus 16 digit angka.")
                 elif any(str(j["NIK"]).strip() == nik for j in daftar_jemaat):
                     st.error("❌ NIK sudah terdaftar.")
+                elif not is_valid_wa(no_wa):
+                    st.error("❌ Format nomor WhatsApp tidak valid.")
                 elif any(str(j["No_WhatsApp"]).strip() == no_wa for j in daftar_jemaat):
                     st.error("❌ Nomor WhatsApp sudah terdaftar.")
+                elif not is_valid_email(email_baru):
+                    st.error("❌ Format email tidak valid.")
                 elif any(str(j["Email"]).strip().lower() == email_baru.lower() for j in daftar_jemaat):
                     st.error("❌ Email sudah terdaftar.")
                 else:
-                    nij = generate_nij(nik, jenis_kelamin, id_baru) 
+                    nij = generate_nij(nik, jenis_kelamin, id_baru)
                     tgl_lahir_str = tgl_lahir.strftime("%d-%m-%Y")
-                    
+            
                     sheet_jemaat.append_row([
                         id_baru,               # ID
                         nik,                   # NIK
@@ -537,7 +578,6 @@ elif halaman == "🔐 Admin Panel":
                         email_baru.strip(),    # Email
                         ""                     # QR Code
                     ])
-        
                     st.success(f"✅ Jemaat '{nama_baru}' berhasil ditambahkan dengan NIJ: {nij}")
 
                     # Kirim email selamat datang (jika email diisi)
