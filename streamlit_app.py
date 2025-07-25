@@ -467,7 +467,7 @@ elif halaman == "🔐 Admin Panel":
                 st.rerun()
 
         # Tabs Admin
-        tab1, tab2, tab3, tab4 = st.tabs(["🆕 Tambah Jemaat", "🖼️ Upload Foto", "📊 Statistik Presensi", "🏠 Tambah Ibadah"])
+        tab1, tab2, tab3, tab4, tab5 = st.tabs(["🆕 Tambah Jemaat", "🖼️ Upload Foto", "📊 Statistik Presensi", "🏠 Tambah Ibadah", "📅 Ultah Jemaat"])
         
         # Defenisikan fungsi menghasilkan NIJ Otomatis
         def generate_nij(nik, gender, id_baru):
@@ -588,6 +588,10 @@ elif halaman == "🔐 Admin Panel":
                     time.sleep(delay)
                     st.session_state.form_key = f"form_{datetime.now().timestamp()}"
                     st.rerun()
+                    
+        # ========== TAB 5: Ultah Jemaat ==========
+        with tab5:
+            st.markdown("### ⏰ Ulang tahun jemaat")
         # -------------------------------
         # 🎉 FITUR ULANG TAHUN
         # -------------------------------
