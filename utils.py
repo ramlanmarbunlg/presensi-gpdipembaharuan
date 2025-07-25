@@ -37,14 +37,14 @@ def filter_ulang_tahun_hari_ini():
     st.info(f"📊 Tanggal valid: {valid}, Tanggal tidak valid/kosong: {invalid}")
     return hasil
 
-def kirim_email_ultah(nama, usia, email_penerima):
+def kirim_email_ultah(nama, email_penerima, usia):
     sender = st.secrets["email_smtp"]["sender"]
     password = st.secrets["email_smtp"]["app_password"]
 
     subject = "🎉 Selamat Ulang Tahun!"
     body = (
         f"Syalom {nama},\n\n"
-        "Gembala, Pelayan dan Jemaat mengucapkan SELAMAT ULANG TAHUN! 🎂 yang ke- {usia}\n\n"
+        "Gembala, Pelayan dan Jemaat mengucapkan SELAMAT ULANG TAHUN! 🎂 yang ke- {usia} \n\n"
         "Pada hari istimewa ini, berdoa agar Tuhan Yesus selalu melindungi dan memberkati langkah-langkahmu kedepan.\n"
         "Semoga tahun ini menjadi tahun yang penuh dengan kemurahan Tuhan dalam hidupmu.\n\n"
         "Salam kasih,\n IT & Media GPdI Pembaharuan"
