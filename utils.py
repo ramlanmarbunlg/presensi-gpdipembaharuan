@@ -13,9 +13,9 @@ def filter_ulang_tahun_hari_ini():
     jemaat = load_data_jemaat()
     return [
         j for j in jemaat
-        if "Tanggal_Lahir" in j and j["Tgl Lahir"]
-        and datetime.strptime(j["Tanggal_Lahir"], "%d-%m-%Y").month == today.month
-        and datetime.strptime(j["Tanggal_Lahir"], "%d-%m-%Y").day == today.day
+        if "Tgl Lahir" in j and j["Tgl Lahir"]
+        and datetime.strptime(j["Tgl Lahir"], "%d-%m-%Y").month == today.month
+        and datetime.strptime(j["Tgl Lahir"], "%d-%m-%Y").day == today.day
     ]
 
 def kirim_email_ultah(nama, email_penerima):
