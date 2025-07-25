@@ -44,7 +44,7 @@ def kirim_email_ultah(nama, email_penerima, usia):
     subject = "🎉 Selamat Ulang Tahun!"
     body = (
         f"Syalom {nama},\n\n"
-        "Gembala, Pelayan dan Jemaat mengucapkan SELAMAT ULANG TAHUN! 🎂 yang ke- {usia} \n\n"
+        f"Gembala, Pelayan dan Jemaat mengucapkan SELAMAT ULANG TAHUN! 🎂 yang ke- {usia}\n\n"
         "Pada hari istimewa ini, berdoa agar Tuhan Yesus selalu melindungi dan memberkati langkah-langkahmu kedepan.\n"
         "Semoga tahun ini menjadi tahun yang penuh dengan kemurahan Tuhan dalam hidupmu.\n\n"
         "Salam kasih,\n IT & Media GPdI Pembaharuan"
