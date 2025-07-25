@@ -6,6 +6,7 @@
 import streamlit as st
 from PIL import Image
 from pyzbar.pyzbar import decode
+import re
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import date
@@ -495,9 +496,9 @@ elif halaman == "🔐 Admin Panel":
             def is_valid_email(email):
                 import re
                 return re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", email)
-            
+            # Cek bahwa NIK hanya terdiri dari 16 digit angka
             def is_valid_nik(nik):
-                return nik.isdigit() and len(nik) == 16
+                return bool(re.fullmatch(r'\d{16}', nik))
             
             if simpan:
                 nik = nik.strip()
