@@ -7,22 +7,34 @@ def load_data_jemaat():
     return st.session_state.get("data_jemaat", [])
 
 def parse_tanggal_lahir(tgl_str):
+    if not tgl_str or tgl_str.strip() == "":
+        return None  # kosong, jangan parse
     try:
-        return datetime.strptime(tgl_str, "%d-%m-%Y").date()
+        return datetime.strptime(tgl_str.strip(), "%d-%m-%Y").date()
     except Exception as e:
-        st.warning(f"Gagal parsing tanggal: {tgl_str} | Error: {e}")
+        st.warning(f"Gagal parsing tanggal: '{tgl_str}' | Error: {e}")
         return None
 
 def filter_ulang_tahun_hari_ini():
     today = date.today()
     jemaat = load_data_jemaat()
     hasil = []
+    
+    valid = 0
+    invalid = 0
 
     for j in jemaat:
-        tgl_lahir_raw = j.get("Tgl Lahir", "")
+        tgl_lahir_raw = j.get("Tgl Lahir", "").strip()
         parsed = parse_tanggal_lahir(tgl_lahir_raw)
-        if parsed and parsed.day == today.day and parsed.month == today.month:
-            hasil.append(j)
+
+        if parsed:
+            valid += 1
+            if parsed.day == today.day and parsed.month == today.month:
+                hasil.append(j)
+        else:
+            invalid += 1
+
+    st.info(f"📊 Tanggal valid: {valid}, Tanggal tidak valid/kosong: {invalid}")
     return hasil
 
 def kirim_email_ultah(nama, email_penerima):
