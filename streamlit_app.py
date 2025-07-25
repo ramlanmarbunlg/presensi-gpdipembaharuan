@@ -588,84 +588,6 @@ elif halaman == "🔐 Admin Panel":
                     time.sleep(delay)
                     st.session_state.form_key = f"form_{datetime.now().timestamp()}"
                     st.rerun()
-                    
-        # ========== TAB 5: Ultah Jemaat ==========
-        with tab5:
-            st.markdown("### ⏰ Ulang tahun jemaat")
-        # -------------------------------
-        # 🎉 FITUR ULANG TAHUN
-        # -------------------------------
-        st.subheader("🎂 Daftar Ulang Tahun Jemaat")
-        
-        df_jemaat = pd.DataFrame(daftar_jemaat)
-        df_jemaat["Tanggal_Lahir"] = pd.to_datetime(df_jemaat["Tgl Lahir"], format="%d-%m-%Y", errors="coerce")
-        
-        def filter_ulang_tahun(df, mode="hari"):
-            today = date.today()
-            if mode == "hari":
-                return df[(df["Tanggal_Lahir"].dt.day == today.day) & (df["Tanggal_Lahir"].dt.month == today.month)]
-            elif mode == "minggu":
-                week_start = today - timedelta(days=today.weekday())
-                week_end = week_start + timedelta(days=6)
-                return df[(df["Tanggal_Lahir"].dt.month == today.month) &
-                          (df["Tanggal_Lahir"].dt.day >= week_start.day) &
-                          (df["Tanggal_Lahir"].dt.day <= week_end.day)]
-            elif mode == "bulan":
-                return df[df["Tanggal_Lahir"].dt.month == today.month]
-            return df.iloc[0:0]
-        
-        def kirim_email_ulang_tahun(nama, email_tujuan):
-            try:
-                subject = "Selamat Ulang Tahun 🎉"
-                isi = f"""\
-        Syalom {nama},
-        
-        Gembala, Pelayan dan Jemaat mengucapkan SELAMAT ULANG TAHUN! 🎂
-        Semoga panjang umur, sehat, dan diberkati selalu.
-        
-        Tuhan Yesus memberkati.
-        
-        Salam hangat,
-        IT & Media GPdI Pembaharuan."""
-        
-                msg = MIMEMultipart()
-                msg["From"] = EMAIL_SENDER
-                msg["To"] = email_tujuan
-                msg["Subject"] = subject
-                msg.attach(MIMEText(isi, "plain"))
-        
-                server = smtplib.SMTP("smtp.gmail.com", 587)
-                server.starttls()
-                server.login(EMAIL_SENDER, EMAIL_PASSWORD)
-                server.send_message(msg)
-                server.quit()
-                return True
-            except Exception as e:
-                st.error(f"Gagal kirim ke {email_tujuan}: {e}")
-                return False
-        
-        # UI ulang tahun
-        pilihan = st.selectbox("Filter Ulang Tahun", ["Hari ini", "Minggu ini", "Bulan ini"])
-        mode = {"Hari ini": "hari", "Minggu ini": "minggu", "Bulan ini": "bulan"}[pilihan]
-        df_ulangtahun = filter_ulang_tahun(df_jemaat, mode)
-        
-        if df_ulangtahun.empty:
-            st.info("Tidak ada jemaat yang ulang tahun " + pilihan.lower())
-        else:
-            st.success(f"🎉 {len(df_ulangtahun)} jemaat ulang tahun {pilihan.lower()}")
-            st.dataframe(df_ulangtahun[["Nama", "Tanggal_Lahir", "Usia", "Email"]])
-        
-            if mode == "hari":
-                if st.button("📧 Kirim Ucapan via Email"):
-                    berhasil, gagal = [], []
-                    for _, row in df_ulangtahun.iterrows():
-                        if kirim_email_ulang_tahun(row["Nama"], row["Email"]):
-                            berhasil.append(row["Email"])
-                        else:
-                            gagal.append(row["Email"])
-                    st.success(f"✅ Email berhasil dikirim ke: {', '.join(berhasil)}")
-                    if gagal:
-                        st.error(f"❌ Gagal kirim ke: {', '.join(gagal)}")
                         
         # ========== TAB 2: Upload Foto ==========
         with tab2:
@@ -961,6 +883,84 @@ elif halaman == "🔐 Admin Panel":
                 else:
                     st.warning("⚠️ Tidak ditemukan baris untuk dihapus.")
                     st.experimental_rerun()
+
+        # ========== TAB 5: Ultah Jemaat ==========
+        with tab5:
+            st.markdown("### ⏰ Ulang tahun jemaat")
+        # -------------------------------
+        # 🎉 FITUR ULANG TAHUN
+        # -------------------------------
+        st.subheader("🎂 Daftar Ulang Tahun Jemaat")
+        
+        df_jemaat = pd.DataFrame(daftar_jemaat)
+        df_jemaat["Tanggal_Lahir"] = pd.to_datetime(df_jemaat["Tgl Lahir"], format="%d-%m-%Y", errors="coerce")
+        
+        def filter_ulang_tahun(df, mode="hari"):
+            today = date.today()
+            if mode == "hari":
+                return df[(df["Tanggal_Lahir"].dt.day == today.day) & (df["Tanggal_Lahir"].dt.month == today.month)]
+            elif mode == "minggu":
+                week_start = today - timedelta(days=today.weekday())
+                week_end = week_start + timedelta(days=6)
+                return df[(df["Tanggal_Lahir"].dt.month == today.month) &
+                          (df["Tanggal_Lahir"].dt.day >= week_start.day) &
+                          (df["Tanggal_Lahir"].dt.day <= week_end.day)]
+            elif mode == "bulan":
+                return df[df["Tanggal_Lahir"].dt.month == today.month]
+            return df.iloc[0:0]
+        
+        def kirim_email_ulang_tahun(nama, email_tujuan):
+            try:
+                subject = "Selamat Ulang Tahun 🎉"
+                isi = f"""\
+        Syalom {nama},
+        
+        Gembala, Pelayan dan Jemaat mengucapkan SELAMAT ULANG TAHUN! 🎂
+        Semoga panjang umur, sehat, dan diberkati selalu.
+        
+        Tuhan Yesus memberkati.
+        
+        Salam hangat,
+        IT & Media GPdI Pembaharuan."""
+        
+                msg = MIMEMultipart()
+                msg["From"] = EMAIL_SENDER
+                msg["To"] = email_tujuan
+                msg["Subject"] = subject
+                msg.attach(MIMEText(isi, "plain"))
+        
+                server = smtplib.SMTP("smtp.gmail.com", 587)
+                server.starttls()
+                server.login(EMAIL_SENDER, EMAIL_PASSWORD)
+                server.send_message(msg)
+                server.quit()
+                return True
+            except Exception as e:
+                st.error(f"Gagal kirim ke {email_tujuan}: {e}")
+                return False
+        
+        # UI ulang tahun
+        pilihan = st.selectbox("Filter Ulang Tahun", ["Hari ini", "Minggu ini", "Bulan ini"])
+        mode = {"Hari ini": "hari", "Minggu ini": "minggu", "Bulan ini": "bulan"}[pilihan]
+        df_ulangtahun = filter_ulang_tahun(df_jemaat, mode)
+        
+        if df_ulangtahun.empty:
+            st.info("Tidak ada jemaat yang ulang tahun " + pilihan.lower())
+        else:
+            st.success(f"🎉 {len(df_ulangtahun)} jemaat ulang tahun {pilihan.lower()}")
+            st.dataframe(df_ulangtahun[["Nama", "Tanggal_Lahir", "Usia", "Email"]])
+        
+            if mode == "hari":
+                if st.button("📧 Kirim Ucapan via Email"):
+                    berhasil, gagal = [], []
+                    for _, row in df_ulangtahun.iterrows():
+                        if kirim_email_ulang_tahun(row["Nama"], row["Email"]):
+                            berhasil.append(row["Email"])
+                        else:
+                            gagal.append(row["Email"])
+                    st.success(f"✅ Email berhasil dikirim ke: {', '.join(berhasil)}")
+                    if gagal:
+                        st.error(f"❌ Gagal kirim ke: {', '.join(gagal)}")
 
 # ===================== FOOTER =====================
 st.markdown("""
