@@ -591,15 +591,15 @@ elif halaman == "🔐 Admin Panel":
             try:
                 subject = "Selamat Ulang Tahun 🎉"
                 isi = f"""\
-        Halo {nama},
+        Syalom {nama},
         
-        Kami dari Gereja mengucapkan SELAMAT ULANG TAHUN! 🎂
+        Gembala, Pelayan dan Jemaat mengucapkan SELAMAT ULANG TAHUN! 🎂
         Semoga panjang umur, sehat, dan diberkati selalu.
         
         Tuhan Yesus memberkati.
         
         Salam hangat,
-        Panitia Jemaat"""
+        IT & Media GPdI Pembaharuan."""
         
                 msg = MIMEMultipart()
                 msg["From"] = EMAIL_SENDER
