@@ -29,32 +29,6 @@ from email.mime.multipart import MIMEMultipart
 import smtplib
 import streamlit.components.v1 as components
 
-# URL ini akan dipanggil oleh cronjob eksternal
-from utils import kirim_email_ultah, load_data_jemaat, filter_ulang_tahun_hari_ini
-from your_data_loader import load_data_jemaat_from_sheet  # misalnya dari gspread
-
-# Step 1: Muat data jemaat ke session_state (WAJIB, walau trigger=ultah)
-if "data_jemaat" not in st.session_state:
-    st.session_state["data_jemaat"] = load_data_jemaat_from_sheet()
-
-# Step 2: Jalankan trigger ulang tahun
-if st.query_params.get("trigger") == "ultah":
-    jemaat = st.session_state["data_jemaat"]
-    st.write(f"📋 Jumlah total jemaat terdata: {len(jemaat)}")
-    st.write("🔍 Mengecek siapa saja yang ulang tahun hari ini...")
-
-    jemaat_ultah = filter_ulang_tahun_hari_ini()
-    st.write(f"📌 Menemukan {len(jemaat_ultah)} jemaat ulang tahun hari ini.")
-
-    for j in jemaat_ultah:
-        if j.get("Email"):
-            success = kirim_email_ultah(j["Nama"], j["Email"])
-            if success:
-                st.write(f"✅ Email terkirim ke: {j['Nama']} ({j['Email']})")
-            else:
-                st.write(f"❌ Gagal kirim ke: {j['Nama']} ({j['Email']})")
-    st.stop()
-
 # fungsi cache untuk semua sheet
 @st.cache_data(ttl=60)
 def load_data_jemaat():
@@ -207,6 +181,29 @@ client = gspread.authorize(creds)
 sheet_presensi = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("presensi")     #Ganti dengan key/ID Sheet dan nama sheet
 sheet_jemaat = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("data_jemaat")    #Ganti dengan key/ID Sheet dan nama sheet
 sheet_ibadah = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("Ibadah")         #Ganti dengan key/ID Sheet dan nama sheet
+
+# URL ini akan dipanggil oleh cronjob eksternal (cron-job.org)
+from utils import kirim_email_ultah, load_data_jemaat, filter_ulang_tahun_hari_ini
+# ===================== KIRIM EMAIL ULTIMATE =====================
+if "data_jemaat" not in st.session_state:
+    st.session_state["data_jemaat"] = sheet_jemaat.get_all_records()
+
+if st.query_params.get("trigger") == "ultah":
+    jemaat = st.session_state["data_jemaat"]
+    st.write(f"📋 Jumlah total jemaat terdata: {len(jemaat)}")
+    st.write("🔍 Mengecek siapa saja yang ulang tahun hari ini...")
+
+    jemaat_ultah = filter_ulang_tahun_hari_ini()
+    st.write(f"📌 Menemukan {len(jemaat_ultah)} jemaat ulang tahun hari ini.")
+
+    for j in jemaat_ultah:
+        if j.get("Email"):
+            success = kirim_email_ultah(j["Nama"], j["Email"])
+            if success:
+                st.write(f"✅ Email terkirim ke: {j['Nama']} ({j['Email']})")
+            else:
+                st.write(f"❌ Gagal kirim ke: {j['Nama']} ({j['Email']})")
+    st.stop()
 
 # ===================== FUNGSI KIRIM EMAIL =====================
 def kirim_email(to_email, subject, body):
