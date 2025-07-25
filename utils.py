@@ -37,7 +37,7 @@ def filter_ulang_tahun_hari_ini():
     st.info(f"📊 Tanggal valid: {valid}, Tanggal tidak valid/kosong: {invalid}")
     return hasil
 
-def kirim_email_ultah(nama, usia, email_penerima):
+def kirim_email_ultah(nama, email_penerima, usia):
     sender = st.secrets["email_smtp"]["sender"]
     password = st.secrets["email_smtp"]["app_password"]
 
