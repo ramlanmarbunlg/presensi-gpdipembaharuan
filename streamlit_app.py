@@ -910,25 +910,25 @@ elif halaman == "🔐 Admin Panel":
             df_jemaat["Tgl Lahir"] = pd.to_datetime(df_jemaat["Tgl Lahir"], format="%d-%m-%Y", errors="coerce")
             
             def filter_ulang_tahun(df, mode="hari"):
-            today = date.today()
-        
-            # Pastikan kolom hanya berisi tanggal saja, bukan datetime
-            df = df.copy()
-            df["Tgl Lahir"] = pd.to_datetime(df["Tgl Lahir"], format="%d-%m-%Y", errors="coerce").dt.date
-        
-            if mode == "hari":
-                return df[(df["Tgl Lahir"].apply(lambda x: x.day if pd.notnull(x) else -1) == today.day) &
-                          (df["Tgl Lahir"].apply(lambda x: x.month if pd.notnull(x) else -1) == today.month)]
+                today = date.today()
             
-            elif mode == "minggu":
-                # Menggunakan date bukan datetime
-                this_week_dates = [today - timedelta(days=today.weekday() - i) for i in range(7)]
-                return df[df["Tgl Lahir"].isin([d.replace(year=1900) for d in this_week_dates])]
+                # Pastikan kolom hanya berisi tanggal saja, bukan datetime
+                df = df.copy()
+                df["Tgl Lahir"] = pd.to_datetime(df["Tgl Lahir"], format="%d-%m-%Y", errors="coerce").dt.date
             
-            elif mode == "bulan":
-                return df[df["Tgl Lahir"].apply(lambda x: x.month if pd.notnull(x) else -1) == today.month]
-            
-            return df.iloc[0:0]
+                if mode == "hari":
+                    return df[(df["Tgl Lahir"].apply(lambda x: x.day if pd.notnull(x) else -1) == today.day) &
+                              (df["Tgl Lahir"].apply(lambda x: x.month if pd.notnull(x) else -1) == today.month)]
+                
+                elif mode == "minggu":
+                    # Menggunakan date bukan datetime
+                    this_week_dates = [today - timedelta(days=today.weekday() - i) for i in range(7)]
+                    return df[df["Tgl Lahir"].isin([d.replace(year=1900) for d in this_week_dates])]
+                
+                elif mode == "bulan":
+                    return df[df["Tgl Lahir"].apply(lambda x: x.month if pd.notnull(x) else -1) == today.month]
+                
+                return df.iloc[0:0]
 
             def kirim_email_ulang_tahun(nama, email_tujuan):
                 try:
