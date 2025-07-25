@@ -183,10 +183,7 @@ sheet_jemaat = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ"
 sheet_ibadah = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ").worksheet("Ibadah")         #Ganti dengan key/ID Sheet dan nama sheet
 
 # URL ini akan dipanggil oleh cronjob eksternal (cron-job.org)
-from utils import kirim_email_ultah, load_data_jemaat, filter_ulang_tahun_hari_ini
-# ===================== KIRIM EMAIL ULTAH JEMAAT =====================
-if "data_jemaat" not in st.session_state:
-    st.session_state["data_jemaat"] = sheet_jemaat.get_all_records()
+from utils import kirim_email_ultah, filter_ulang_tahun_hari_ini, parse_tanggal_lahir, hitung_usia
 
 if st.query_params.get("trigger") == "ultah":
     jemaat = st.session_state["data_jemaat"]
@@ -198,11 +195,13 @@ if st.query_params.get("trigger") == "ultah":
 
     for j in jemaat_ultah:
         if j.get("Email"):
-            success = kirim_email_ultah(j["Nama"], j["Email"], j["Usia"])
+            tgl_lahir = parse_tanggal_lahir(j.get("Tgl Lahir", ""))
+            usia = hitung_usia(tgl_lahir) if tgl_lahir else None
+            success = kirim_email_ultah(j["Nama"], j["Email"], usia)
             if success:
-                st.write(f"✅ Email terkirim ke: {j['Nama']} ({j['Email']}) {j['Usia']}")
+                st.write(f"✅ Email terkirim ke: {j['Nama']} ({j['Email']}) - Usia: {usia}")
             else:
-                st.write(f"❌ Gagal kirim ke: {j['Nama']} ({j['Email']}) {j['Usia']}")
+                st.write(f"❌ Gagal kirim ke: {j['Nama']} ({j['Email']})")
     st.stop()
 
 # ===================== FUNGSI KIRIM EMAIL BERHASIL DAFTAR =====================
