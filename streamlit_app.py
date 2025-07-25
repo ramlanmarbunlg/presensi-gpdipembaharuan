@@ -32,15 +32,40 @@ import streamlit.components.v1 as components
 # URL ini akan dipanggil oleh cronjob eksternal
 from utils import kirim_email_ultah, load_data_jemaat, filter_ulang_tahun_hari_ini
 if st.query_params.get("trigger") == "ultah":
-    jemaat_ultah = filter_ulang_tahun_hari_ini()
-    st.write(f"Menemukan {len(jemaat_ultah)} jemaat ulang tahun hari ini.")
+    today = date.today()
+    jemaat = load_data_jemaat()
+    jemaat_ultah = []
+
+    st.write(f"🧾 Jumlah total jemaat terdata: {len(jemaat)}")
+    st.write("🔍 Mengecek siapa saja yang ulang tahun hari ini...\n")
+
+    for j in jemaat:
+        nama = j.get("Nama", "Tanpa Nama")
+        email = j.get("Email", "")
+        tgl_raw = j.get("Tgl Lahir", "").strip()
+
+        try:
+            tgl_lahir = datetime.strptime(tgl_raw, "%d-%m-%Y")
+            if tgl_lahir.day == today.day and tgl_lahir.month == today.month:
+                jemaat_ultah.append(j)
+                st.write(f"🎉 {nama} ulang tahun hari ini. Tgl Lahir: {tgl_raw}")
+        except Exception as e:
+            st.warning(f"⚠️ Format salah: {nama} – '{tgl_raw}' (error: {e})")
+
+    st.write(f"\n📌 Menemukan {len(jemaat_ultah)} jemaat ulang tahun hari ini.")
+
     for j in jemaat_ultah:
-        if j.get("Email"):
-            success = kirim_email_ultah(j["Nama"], j["Email"])
+        nama = j.get("Nama", "Tanpa Nama")
+        email = j.get("Email", "")
+        if email:
+            success = kirim_email_ultah(nama, email)
             if success:
-                st.write(f"✅ Email ulang tahun terkirim ke: {j['Nama']} ({j['Email']})")
+                st.success(f"✅ Email ulang tahun terkirim ke: {nama} ({email})")
             else:
-                st.write(f"❌ Gagal kirim ke: {j['Nama']} ({j['Email']})")
+                st.error(f"❌ Gagal kirim ke: {nama} ({email})")
+        else:
+            st.warning(f"⚠️ Tidak ada email untuk: {nama}")
+
     st.stop()
 
 # fungsi cache untuk semua sheet
