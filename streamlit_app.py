@@ -561,7 +561,7 @@ elif halaman == "🔐 Admin Panel":
 
                     time.sleep(delay)
                     st.session_state.form_key = f"form_{datetime.now().timestamp()}"
-                    st.experimental_rerun()
+                    st.rerun()
         # ========== TAB 2: Upload Foto ==========
         with tab2:
             st.markdown("### 🖼️ Upload Foto dan Dokumen Jemaat")
