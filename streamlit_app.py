@@ -910,6 +910,7 @@ elif halaman == "🔐 Admin Panel":
             
             def filter_ulang_tahun(df, mode="hari"):
                 today = date.today()
+                st.write("Tanggal hari ini:", today)
                 df = df.copy()
             
                 # Konversi tanggal lahir ke date saja (tanpa tahun, tanpa tz)
