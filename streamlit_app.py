@@ -907,7 +907,6 @@ elif halaman == "🔐 Admin Panel":
             st.subheader("🎂 Daftar Ulang Tahun Jemaat")
             
             df_jemaat = pd.DataFrame(daftar_jemaat)
-            df_jemaat["Tgl Lahir"] = pd.to_datetime(df_jemaat["Tgl Lahir"], format="%d-%m-%Y", errors="coerce")
             
             def filter_ulang_tahun(df, mode="hari"):
                 today = date.today()
