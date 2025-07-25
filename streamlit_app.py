@@ -884,11 +884,11 @@ elif halaman == "🔐 Admin Panel":
                     st.warning("⚠️ Tidak ditemukan baris untuk dihapus.")
                     st.experimental_rerun()
 
-            # ========== TAB 5: Ultah Jemaat ==========
-            with tab5:
-            # -------------------------------
-            # 🎉 FITUR ULANG TAHUN
-            # -------------------------------
+        # ========== TAB 5: Ultah Jemaat ==========
+        with tab5:
+        # -------------------------------
+        # 🎉 FITUR ULANG TAHUN
+        # -------------------------------
             st.subheader("🎂 Daftar Ulang Tahun Jemaat")
             
             df_jemaat = pd.DataFrame(daftar_jemaat)
