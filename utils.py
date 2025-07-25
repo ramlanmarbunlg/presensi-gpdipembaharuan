@@ -41,7 +41,7 @@ def kirim_email_ultah(nama, email_penerima, usia):
     sender = st.secrets["email_smtp"]["sender"]
     password = st.secrets["email_smtp"]["app_password"]
 
-    subject = "🎉 Selamat Ulang Tahun!"
+    subject = f"🎉 Selamat Ulang Tahun, {nama}!"
     body = (
         f"Syalom {nama},\n\n"
         f"Gembala, Pelayan dan Jemaat mengucapkan SELAMAT ULANG TAHUN! 🎂 yang ke- {usia}\n\n"
