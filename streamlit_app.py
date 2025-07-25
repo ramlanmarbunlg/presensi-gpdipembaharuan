@@ -187,7 +187,12 @@ sheet_ibadah = client.open_by_key("1LI5D_rWMkek5CHnEbZgHW4BV_FKcS9TUP0icVlKK1kQ"
 from utils import kirim_email_ultah, filter_ulang_tahun_hari_ini
 
 if st.query_params.get("trigger") == "ultah":
-    jemaat = st.session_state["data_jemaat"]
+    jemaat = st.session_state.get("data_jemaat", [])
+    
+    if not jemaat:
+        st.error("❌ Data jemaat belum dimuat! Silakan upload atau ambil data terlebih dahulu.")
+        st.stop()
+        
     st.write(f"📋 Jumlah total jemaat terdata: {len(jemaat)}")
     st.write("🔍 Mengecek siapa saja yang ulang tahun hari ini...")
 
@@ -195,10 +200,11 @@ if st.query_params.get("trigger") == "ultah":
     st.write(f"📌 Menemukan {len(jemaat_ultah)} jemaat ulang tahun hari ini.")
 
     for j in jemaat_ultah:
-        if j.get("Email") and j.get("Usia"):
-            success = kirim_email_ultah(j["Nama"], j["Email"], j["Usia"])
+        if j.get("Email"):
+            usia = j.get("Usia")  # Ambil dari kolom langsung
+            success = kirim_email_ultah(j["Nama"], j["Email"], usia)
             if success:
-                st.write(f"✅ Email terkirim ke: {j['Nama']} ({j['Email']}) - Usia: {j['Usia']}")
+                st.write(f"✅ Email terkirim ke: {j['Nama']} ({j['Email']}) - Usia: {usia}")
             else:
                 st.write(f"❌ Gagal kirim ke: {j['Nama']} ({j['Email']})")
         else:
