@@ -4,8 +4,14 @@ from email.message import EmailMessage
 import streamlit as st
 
 def load_data_jemaat():
-    # Load dari session state atau ganti sesuai database aslinya
     return st.session_state.get("data_jemaat", [])
+
+def parse_tanggal_lahir(tgl_str):
+    try:
+        return datetime.strptime(tgl_str, "%d-%m-%Y").date()
+    except Exception as e:
+        st.warning(f"Gagal parsing tanggal: {tgl_str} | Error: {e}")
+        return None
 
 def filter_ulang_tahun_hari_ini():
     today = date.today()
