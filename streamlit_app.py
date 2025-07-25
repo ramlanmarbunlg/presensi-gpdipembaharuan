@@ -915,7 +915,7 @@ elif halaman == "🔐 Admin Panel":
                     return df[(df["Tgl Lahir"].dt.day == today.day) & (df["Tgl Lahir"].dt.month == today.month)]
                 elif mode == "minggu":
                     week_start = today - timedelta(days=today.weekday())
-                    week_end = week_start + timedelta(days=6)
+                    week_end = week_start + timedelta(days=7)
                     return df[(df["Tgl Lahir"].dt.month == today.month) &
                               (df["Tgl Lahir"].dt.day >= week_start.day) &
                               (df["Tgl Lahir"].dt.day <= week_end.day)]
