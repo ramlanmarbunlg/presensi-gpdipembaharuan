@@ -642,43 +642,44 @@ elif halaman == "🔐 Admin Panel":
                     st.success(f"✅ Email berhasil dikirim ke: {', '.join(berhasil)}")
                     if gagal:
                         st.error(f"❌ Gagal kirim ke: {', '.join(gagal)}")
-                        
-        if st.query_params.get("trigger") == "ultah":
-            today = date.today()
-            jemaat = load_data_jemaat()
-            jemaat_ultah = []
-        
-            st.write(f"🧾 Jumlah total jemaat terdata: {len(jemaat)}")
-            st.write("🔍 Mengecek siapa saja yang ulang tahun hari ini...\n")
-        
-            for j in jemaat:
-                nama = j.get("Nama", "Tanpa Nama")
-                email = j.get("Email", "")
-                tgl_raw = j.get("Tgl Lahir", "").strip()
-        
-                try:
-                    tgl_lahir = datetime.strptime(tgl_raw, "%d-%m-%Y")
-                    if tgl_lahir.day == today.day and tgl_lahir.month == today.month:
-                        jemaat_ultah.append(j)
-                        st.write(f"🎉 {nama} ulang tahun hari ini. Tgl Lahir: {tgl_raw}")
-                except Exception as e:
-                    st.warning(f"⚠️ Format salah: {nama} – '{tgl_raw}' (error: {e})")
-        
-            st.write(f"\n📌 Menemukan {len(jemaat_ultah)} jemaat ulang tahun hari ini.")
-        
-            for j in jemaat_ultah:
-                nama = j.get("Nama", "Tanpa Nama")
-                email = j.get("Email", "")
-                if email:
-                    success = kirim_email_ultah(nama, email)
-                    if success:
-                        st.success(f"✅ Email ulang tahun terkirim ke: {nama} ({email})")
-                    else:
-                        st.error(f"❌ Gagal kirim ke: {nama} ({email})")
-                else:
-                    st.warning(f"⚠️ Tidak ada email untuk: {nama}")
-        
-            st.stop()
+                    
+
+if st.query_params.get("trigger") == "ultah":
+    today = date.today()
+    jemaat = load_data_jemaat()
+    jemaat_ultah = []
+
+    st.write(f"🧾 Jumlah total jemaat terdata: {len(jemaat)}")
+    st.write("🔍 Mengecek siapa saja yang ulang tahun hari ini...\n")
+
+    for j in jemaat:
+        nama = j.get("Nama", "Tanpa Nama")
+        email = j.get("Email", "")
+        tgl_raw = j.get("Tgl Lahir", "").strip()
+
+        try:
+            tgl_lahir = datetime.strptime(tgl_raw, "%d-%m-%Y")
+            if tgl_lahir.day == today.day and tgl_lahir.month == today.month:
+                jemaat_ultah.append(j)
+                st.write(f"🎉 {nama} ulang tahun hari ini. Tgl Lahir: {tgl_raw}")
+        except Exception as e:
+            st.warning(f"⚠️ Format salah: {nama} – '{tgl_raw}' (error: {e})")
+
+    st.write(f"\n📌 Menemukan {len(jemaat_ultah)} jemaat ulang tahun hari ini.")
+
+    for j in jemaat_ultah:
+        nama = j.get("Nama", "Tanpa Nama")
+        email = j.get("Email", "")
+        if email:
+            success = kirim_email_ultah(nama, email)
+            if success:
+                st.success(f"✅ Email ulang tahun terkirim ke: {nama} ({email})")
+            else:
+                st.error(f"❌ Gagal kirim ke: {nama} ({email})")
+        else:
+            st.warning(f"⚠️ Tidak ada email untuk: {nama}")
+
+    st.stop()
                         
         # ========== TAB 2: Upload Foto ==========
         with tab2:
