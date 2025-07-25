@@ -10,17 +10,13 @@ def load_data_jemaat():
 def filter_ulang_tahun_hari_ini():
     today = date.today()
     jemaat = load_data_jemaat()
-    
     hasil = []
+
     for j in jemaat:
-        tgl_lahir_str = j.get("Tgl Lahir", "").strip()
-        if tgl_lahir_str:
-            try:
-                tgl_lahir = datetime.strptime(tgl_lahir_str, "%d-%m-%Y")
-                if tgl_lahir.day == today.day and tgl_lahir.month == today.month:
-                    hasil.append(j)
-            except ValueError:
-                pass  # Abaikan jika format salah
+        tgl_lahir_raw = j.get("Tgl Lahir", "")
+        parsed = parse_tanggal_lahir(tgl_lahir_raw)
+        if parsed and parsed.day == today.day and parsed.month == today.month:
+            hasil.append(j)
     return hasil
 
 def kirim_email_ultah(nama, email_penerima):
