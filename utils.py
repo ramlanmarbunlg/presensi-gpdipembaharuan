@@ -8,7 +8,7 @@ def load_data_jemaat():
 
 def parse_tanggal_lahir(tgl_str):
     try:
-        return datetime.strptime(tgl_str, "%d-%m-%Y").date()
+        return datetime.strptime(tgl_str, "%Y-%m-%d").date()
     except Exception as e:
         st.warning(f"Gagal parsing tanggal: {tgl_str} | Error: {e}")
         return None
