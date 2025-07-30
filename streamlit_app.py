@@ -918,16 +918,12 @@ elif halaman == "🔐 Admin Panel":
                     "Monday": "Senin", "Tuesday": "Selasa", "Wednesday": "Rabu",
                     "Thursday": "Kamis", "Friday": "Jumat", "Saturday": "Sabtu", "Sunday": "Minggu"
                 }
-            
                 bulan_indo = {
                     1: "Januari", 2: "Februari", 3: "Maret", 4: "April", 5: "Mei", 6: "Juni",
                     7: "Juli", 8: "Agustus", 9: "September", 10: "Oktober", 11: "November", 12: "Desember"
                 }
-            
-                nama_hari = hari_indo[today.strftime("%A")]
-                nama_bulan = bulan_indo[today.month]
-                tanggal_indo = f"{nama_hari}, {today.day:02d} {nama_bulan} {today.year}"
-            
+                
+                tanggal_indo = f"{hari_indo[now.strftime('%A')]}, {now.day:02d} {bulan_indo[now.month]} {now.year}"
                 st.write(f"📅 Tanggal hari ini: {tanggal_indo}, pukul {jam} WIB")
             
                 df = df.copy()
