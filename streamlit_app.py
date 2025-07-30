@@ -909,7 +909,7 @@ elif halaman == "🔐 Admin Panel":
             
             def filter_ulang_tahun(df, mode="hari"):
                 # Ambil tanggal dan waktu sesuai zona WIB
-                now = datetime.now(ZoneInfo("Asia/Jakarta"))
+                today = datetime.now(ZoneInfo("Asia/Jakarta")).date()
                 jam = now.strftime("%H:%M:%S")
             
                 # Daftar nama hari dan bulan dalam bahasa Indonesia
