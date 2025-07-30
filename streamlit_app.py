@@ -928,7 +928,7 @@ elif halaman == "🔐 Admin Panel":
             
                 elif mode == "minggu":
                     week_start = today - timedelta(days=today.weekday())  # Senin
-                    week_dates = [week_start + timedelta(days=i) for i in range(7)]
+                    week_dates = [week_start + timedelta(days=i) for i in range(6)]
                     week_day_month = {(d.day, d.month) for d in week_dates}
             
                     return df[
