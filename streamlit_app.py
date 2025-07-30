@@ -906,6 +906,7 @@ elif halaman == "🔐 Admin Panel":
         # 🎉 FITUR ULANG TAHUN
         # -------------------------------
             st.subheader("🎂 Daftar Ulang Tahun Jemaat")
+            df_jemaat = pd.DataFrame(daftar_jemaat)
             
             def filter_ulang_tahun(df, mode="hari"):
                 # Ambil tanggal dan waktu sesuai zona WIB
