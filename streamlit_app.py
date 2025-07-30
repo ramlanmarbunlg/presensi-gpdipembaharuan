@@ -907,44 +907,47 @@ elif halaman == "🔐 Admin Panel":
         # -------------------------------
             st.subheader("🎂 Daftar Ulang Tahun Jemaat")
             
-            df_jemaat = pd.DataFrame(daftar_jemaat)
-            
             def filter_ulang_tahun(df, mode="hari"):
                 # Ambil tanggal dan waktu sesuai zona WIB
-                today = datetime.now(ZoneInfo("Asia/Jakarta")).date()
-                st.write("Tanggal hari ini (WIB):", today.strftime("%A, %d %B %Y"))
+                now = datetime.now(ZoneInfo("Asia/Jakarta"))
+                jam = now.strftime("%H:%M:%S")
+            
+                # Daftar nama hari dan bulan dalam bahasa Indonesia
+                hari_indo = {
+                    "Monday": "Senin", "Tuesday": "Selasa", "Wednesday": "Rabu",
+                    "Thursday": "Kamis", "Friday": "Jumat", "Saturday": "Sabtu", "Sunday": "Minggu"
+                }
+            
+                bulan_indo = {
+                    1: "Januari", 2: "Februari", 3: "Maret", 4: "April", 5: "Mei", 6: "Juni",
+                    7: "Juli", 8: "Agustus", 9: "September", 10: "Oktober", 11: "November", 12: "Desember"
+                }
+            
+                nama_hari = hari_indo[today.strftime("%A")]
+                nama_bulan = bulan_indo[today.month]
+                tanggal_indo = f"{nama_hari}, {today.day:02d} {nama_bulan} {today.year}"
+            
+                st.write("📅 Tanggal hari ini (WIB):", tanggal_indo, pukul {jam} WIB")
             
                 df = df.copy()
-            
-                # Konversi tanggal lahir ke objek date (tanpa jam)
                 df["Tgl Lahir"] = pd.to_datetime(df["Tgl Lahir"], errors="coerce").dt.date
             
                 if mode == "hari":
-                    return df[
-                        df["Tgl Lahir"].apply(
-                            lambda x: pd.notnull(x) and x.day == today.day and x.month == today.month
-                        )
-                    ]
-            
+                    return df[df["Tgl Lahir"].apply(
+                        lambda x: pd.notnull(x) and x.day == today.day and x.month == today.month
+                    )]
                 elif mode == "minggu":
-                    week_start = today - timedelta(days=today.weekday())  # Senin
-                    week_dates = [week_start + timedelta(days=i) for i in range(6)]
+                    week_start = today - timedelta(days=today.weekday())
+                    week_dates = [week_start + timedelta(days=i) for i in range(7)]
                     week_day_month = {(d.day, d.month) for d in week_dates}
-            
-                    return df[
-                        df["Tgl Lahir"].apply(
-                            lambda x: pd.notnull(x) and (x.day, x.month) in week_day_month
-                        )
-                    ]
-            
+                    return df[df["Tgl Lahir"].apply(
+                        lambda x: pd.notnull(x) and (x.day, x.month) in week_day_month
+                    )]
                 elif mode == "bulan":
-                    return df[
-                        df["Tgl Lahir"].apply(
-                            lambda x: pd.notnull(x) and x.month == today.month
-                        )
-                    ]
-            
-                return df.iloc[0:0]  # default: kosong
+                    return df[df["Tgl Lahir"].apply(
+                        lambda x: pd.notnull(x) and x.month == today.month
+                    )]
+                return df.iloc[0:0] # default: kosong
 
             def kirim_email_ulang_tahun(nama, email_tujuan):
                 try:
