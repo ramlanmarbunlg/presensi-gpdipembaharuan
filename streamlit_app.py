@@ -1,8 +1,3 @@
-
-# ============================================
-# PRESENSI JEMAAT STREAMLIT QR CAMERA (V3 + CAMERA MANUAL MODE + USB SCANNER MODE)
-# ============================================
-
 import streamlit as st
 from PIL import Image
 from pyzbar.pyzbar import decode
