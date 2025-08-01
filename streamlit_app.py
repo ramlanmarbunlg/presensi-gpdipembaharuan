@@ -559,7 +559,7 @@ elif halaman == "🔐 Admin Panel":
                     st.error("❌ Email sudah terdaftar.")
                 else:
                     nij = generate_nij(nik, jenis_kelamin, id_baru) 
-                    tgl_lahir_str = tgl_lahir.strftime("%d-%m-%Y")
+                    tgl_lahir_str = tgl_lahir.strftime("%Y-%m-%d")
                     
                     sheet_jemaat.append_row([
                         id_baru,               # ID
