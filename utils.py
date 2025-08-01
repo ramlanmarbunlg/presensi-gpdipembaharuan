@@ -20,7 +20,7 @@ def parse_tanggal_lahir(tgl_str):
     if not tgl_str or tgl_str.strip() == "":
         return None  # kosong, jangan parse
     try:
-        return datetime.strptime(tgl_str.strip(), "%d-%m-%Y").date()
+        return datetime.strptime(tgl_str.strip(), "%Y-%m-%d").date()
     except Exception as e:
         st.warning(f"Gagal parsing tanggal: '{tgl_str}' | Error: {e}")
         logger.warning("Gagal parsing tanggal: '%s' | Error: %s", tgl_str, e)
