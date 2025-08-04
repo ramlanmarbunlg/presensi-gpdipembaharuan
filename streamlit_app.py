@@ -919,7 +919,7 @@ elif halaman == "🔐 Admin Panel":
                 }
                 
                 tanggal_indo = f"{hari_indo[now.strftime('%A')]}, {now.day:02d} {bulan_indo[now.month]} {now.year}"
-                st.write(f"📅 Tanggal hari ini: {tanggal_indo}, pukul {jam} WIB")
+                st.write(f"📅 {tanggal_indo}, pukul {jam} WIB")
             
                 df = df.copy()
                 df["Tgl Lahir"] = pd.to_datetime(df["Tgl Lahir"], errors="coerce").dt.date
